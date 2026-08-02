@@ -1,0 +1,526 @@
+<!doctype html>
+<html class="light" lang="en" style="">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&amp;family=Manrope:wght@400;500;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      try {
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "dark-background": "#0b1f17",
+                "tertiary-fixed-dim": "#f5b7b8",
+                "on-error-container": "#93000a",
+                "surface-dim": "#d8dad9",
+                surface: "#f8faf8",
+                "primary-fixed-dim": "#a5d0b8",
+                "on-primary": "#ffffff",
+                "secondary-fixed-dim": "#a5d0b9",
+                "surface-container-lowest": "#ffffff",
+                "primary-fixed": "#c0edd4",
+                "secondary-fixed": "#c1ecd4",
+                "on-tertiary": "#ffffff",
+                "outline-variant": "#c1c8c2",
+                "surface-container-low": "#f2f4f2",
+                "surface-container-highest": "#e1e3e1",
+                "dark-on-surface": "#e1e5e2",
+                "surface-container-high": "#e6e9e7",
+                "inverse-on-surface": "#eff1ef",
+                "surface-container": "#eceeec",
+                "on-secondary-container": "#436b58",
+                "on-secondary-fixed-variant": "#274e3d",
+                outline: "#717973",
+                "on-primary-fixed-variant": "#264e3c",
+                "surface-variant": "#e1e3e1",
+                "secondary-container": "#beead1",
+                "on-tertiary-container": "#b67f80",
+                "primary-container": "#012d1d",
+                "on-secondary-fixed": "#002114",
+                tertiary: "#260709",
+                "on-primary-fixed": "#002114",
+                "inverse-surface": "#2e3130",
+                "surface-tint": "#3e6653",
+                background: "#f8faf8",
+                "on-tertiary-fixed": "#331013",
+                "on-background": "#191c1b",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#414844",
+                "error-container": "#ffdad6",
+                error: "#ba1a1a",
+                "on-surface": "#191c1b",
+                "inverse-primary": "#a5d0b8",
+                "surface-bright": "#f8faf8",
+                "on-tertiary-fixed-variant": "#663a3c",
+                primary: "#00160c",
+                "tertiary-container": "#401b1d",
+                "tertiary-fixed": "#ffdada",
+                "on-primary-container": "#6d9681",
+                secondary: "#3f6653",
+                "on-secondary": "#ffffff",
+              },
+              borderRadius: {
+                DEFAULT: "0.5rem",
+                lg: "0.5rem",
+                xl: "0.75rem",
+                "2xl": "1.5rem",
+                full: "9999px",
+              },
+              spacing: {
+                "card-padding": "2rem",
+                base: "8px",
+                "sidebar-width": "18rem",
+                "section-gap": "6rem",
+                "bento-gap": "1.5rem",
+              },
+              fontFamily: {
+                "display-lg": ["Epilogue"],
+                "label-sm": ["Manrope"],
+                "headline-md": ["Epilogue"],
+                "display-lg-mobile": ["Epilogue"],
+                "body-md": ["Manrope"],
+                "title-lg": ["Manrope"],
+                "label-md": ["Manrope"],
+                "body-lg": ["Manrope"],
+              },
+              fontSize: {
+                "display-lg": [
+                  "80px",
+                  {
+                    lineHeight: "1.0",
+                    letterSpacing: "-0.02em",
+                    fontWeight: "800",
+                  },
+                ],
+                "label-sm": ["11px", { lineHeight: "1.0", fontWeight: "700" }],
+                "headline-md": [
+                  "24px",
+                  { lineHeight: "1.2", fontWeight: "700" },
+                ],
+                "display-lg-mobile": [
+                  "48px",
+                  { lineHeight: "1.1", fontWeight: "800" },
+                ],
+                "body-md": ["14px", { lineHeight: "1.6", fontWeight: "400" }],
+                "title-lg": ["20px", { lineHeight: "1.4", fontWeight: "700" }],
+                "label-md": [
+                  "12px",
+                  {
+                    lineHeight: "1.0",
+                    letterSpacing: "0.1em",
+                    fontWeight: "700",
+                  },
+                ],
+                "body-lg": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
+              },
+            },
+          },
+        };
+      } catch (_e) {}
+    </script>
+  </head>
+  <body
+    class="font-body-md overflow-x-hidden bg-surface dark:bg-dark-background text-on-surface transition-colors duration-300"
+  >
+    <!-- Top Navigation (Consolidated Switcher) -->
+    <nav
+      class="fixed top-8 left-0 right-0 z-50 flex justify-center px-8 pointer-events-none"
+    >
+      <div class="w-full max-w-7xl flex justify-between items-center">
+        <!-- Brand -->
+        <div class="pointer-events-auto">
+          <a
+            href="#"
+            class="font-display-lg text-headline-md text-primary dark:text-primary-fixed-dim tracking-tighter"
+            >scottgilbert.dev</a
+          >
+        </div>
+
+        <!-- Consolidated Unified Switcher Pill -->
+        <div
+          class="pointer-events-auto bg-surface/80 dark:bg-dark-background/80 glass-effect rounded-full px-2 py-1.5 shadow-lg flex items-center gap-1"
+        >
+          <!-- Blog Switcher Links -->
+          <div class="flex items-center gap-1 px-3">
+            <a
+              class="px-3 py-1.5 font-label-md text-label-md text-primary dark:text-primary-fixed-dim font-bold bg-primary/5 dark:bg-primary-fixed/10 rounded-full"
+              href="#"
+              >Personal</a
+            >
+            <a
+              class="px-3 py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors"
+              href="#"
+              >Engineering</a
+            >
+            <a
+              class="px-3 py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors"
+              href="#"
+              >Miracle Makers</a
+            >
+          </div>
+
+          <!-- Divider (Implicit via spacing) -->
+          <div class="w-[1px] h-6 bg-outline-variant/20 mx-1"></div>
+
+          <!-- Theme Toggle -->
+          <div class="flex items-center gap-1">
+            <button
+              class="p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-highest/20 transition-colors text-on-surface-variant dark:text-on-surface-variant"
+              onclick="document.documentElement.classList.remove('dark')"
+              title="Light Mode"
+            >
+              <span class="material-symbols-outlined text-[20px]"
+                >light_mode</span
+              >
+            </button>
+            <button
+              class="p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-highest/20 transition-colors text-on-surface-variant dark:text-primary-fixed"
+              onclick="document.documentElement.classList.add('dark')"
+              title="Dark Mode"
+            >
+              <span class="material-symbols-outlined text-[20px]"
+                >dark_mode</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Canvas -->
+    <main class="min-h-screen">
+      <!-- Hero Section -->
+      <section class="px-8 pt-48 pb-32 max-w-5xl mx-auto text-center">
+        <div class="space-y-8">
+          <span
+            class="font-label-md text-label-md text-secondary dark:text-secondary-fixed-dim tracking-[0.2em] uppercase"
+            >Architecture &amp; Systems</span
+          >
+          <h1
+            class="font-display-lg text-display-lg-mobile md:text-display-lg leading-[1.05] tracking-tighter text-on-surface dark:text-surface-bright"
+          >
+            Crafting
+            <span
+              class="bg-gradient-to-br from-primary to-primary-container dark:from-primary-fixed dark:to-primary-fixed-dim bg-clip-text text-transparent"
+              >precise digital structures</span
+            >
+            for an organic world.
+          </h1>
+          <p
+            class="font-body-lg text-body-lg text-on-surface-variant dark:text-on-surface-variant max-w-2xl mx-auto"
+          >
+            I am Scott Gilbert, a systems architect bridging the gap between
+            rigorous engineering and meaningful human impact. Through code and
+            community, I build for the digital arboretum.
+          </p>
+        </div>
+      </section>
+
+      <!-- Writing Hub (Bento Grid) -->
+      <section class="px-8 pb-32 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <!-- Personal Card -->
+          <div
+            class="md:col-span-8 group relative bg-surface-container-lowest dark:bg-surface-container-highest/5 rounded-2xl p-10 bento-card-hover overflow-hidden flex flex-col justify-between min-h-[400px]"
+          >
+            <div class="z-10">
+              <span
+                class="font-label-sm text-label-sm text-secondary bg-secondary-container dark:bg-secondary-container/20 dark:text-secondary-fixed-dim px-3 py-1 rounded-full"
+                >Reflections</span
+              >
+              <h3
+                class="font-headline-md text-headline-md mt-6 mb-3 text-on-surface dark:text-surface-bright"
+              >
+                Personal Growth &amp; Life Logs
+              </h3>
+              <p
+                class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant max-w-md"
+              >
+                Life updates, philosophical reflections, and what I'm currently
+                learning beyond the screen. An organic record of a digital life.
+              </p>
+            </div>
+            <div
+              class="absolute bottom-[-20px] right-[-20px] opacity-5 dark:opacity-10 group-hover:opacity-10 transition-opacity"
+            >
+              <span
+                class="material-symbols-outlined text-[240px]"
+                style="font-variation-settings: &quot;FILL&quot; 1"
+                >person</span
+              >
+            </div>
+            <div class="z-10 mt-8">
+              <button
+                class="bg-primary-container dark:bg-primary-fixed text-on-primary dark:text-on-primary-fixed px-8 py-3 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-primary transition-all shadow-sm"
+              >
+                READ UPDATES
+                <span class="material-symbols-outlined text-sm"
+                  >arrow_forward</span
+                >
+              </button>
+            </div>
+          </div>
+
+          <!-- Engineering Card -->
+          <div
+            class="md:col-span-4 group relative bg-surface-container-lowest dark:bg-surface-container-highest/5 rounded-2xl p-10 bento-card-hover overflow-hidden flex flex-col justify-between min-h-[400px]"
+          >
+            <div class="z-10">
+              <span
+                class="font-label-sm text-label-sm text-secondary bg-secondary-container dark:bg-secondary-container/20 dark:text-secondary-fixed-dim px-3 py-1 rounded-full"
+                >Technical</span
+              >
+              <h3
+                class="font-headline-md text-headline-md mt-6 mb-3 text-on-surface dark:text-surface-bright"
+              >
+                Engineering &amp; CAD
+              </h3>
+              <p
+                class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant"
+              >
+                Deep dives into software architecture, industrial CAD workflows,
+                and systemic problem-solving.
+              </p>
+            </div>
+            <div
+              class="absolute -bottom-8 -right-8 opacity-5 dark:opacity-10 group-hover:opacity-10 transition-opacity"
+            >
+              <span class="material-symbols-outlined text-[180px]"
+                >precision_manufacturing</span
+              >
+            </div>
+            <div class="z-10 mt-8">
+              <button
+                class="bg-surface-container-high/50 dark:bg-surface-container-highest/10 text-primary dark:text-primary-fixed-dim px-8 py-3 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-surface-container-high transition-colors"
+              >
+                VIEW WORK
+              </button>
+            </div>
+          </div>
+
+          <!-- Miracle Makers Card -->
+          <div
+            class="md:col-span-12 group relative bg-surface-container-lowest dark:bg-surface-container-highest/5 rounded-2xl p-10 bento-card-hover overflow-hidden flex flex-col md:flex-row gap-12 items-center min-h-[350px]"
+          >
+            <div class="flex-1 z-10">
+              <span
+                class="font-label-sm text-label-sm text-secondary bg-secondary-container dark:bg-secondary-container/20 dark:text-secondary-fixed-dim px-3 py-1 rounded-full"
+                >Impact</span
+              >
+              <h3
+                class="font-headline-md text-headline-md mt-6 mb-3 text-on-surface dark:text-surface-bright"
+              >
+                Miracle Makers
+              </h3>
+              <p
+                class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant max-w-xl"
+              >
+                Dedicated service projects and volunteer work focused on
+                creating tangible miracles for those who need them most.
+                Building bridges between technology and charity.
+              </p>
+              <div class="mt-8 flex gap-4">
+                <button
+                  class="bg-primary-container dark:bg-primary-fixed text-on-primary dark:text-on-primary-fixed px-10 py-4 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-primary transition-all shadow-sm"
+                >
+                  GET INVOLVED
+                  <span class="material-symbols-outlined text-sm"
+                    >volunteer_activism</span
+                  >
+                </button>
+              </div>
+            </div>
+            <div
+              class="flex-1 w-full h-full min-h-[250px] relative rounded-xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-700"
+            >
+              <img
+                class="absolute inset-0 w-full h-full object-cover"
+                alt="Community service project in progress"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYW1K9z8D6mBtjXat7I5hhZfjTDP4BqXnaiYTQ2r9-ubz5uLWSvag7ZfFTDEQh0bPq-lvTx5foKjJYhX4YHg9zONZwnZunRjdWJplKN5KaSdAgojVZqjts4NMOzZ5OI1UN1i3wffnOjBc4bpPpzImiZY7GuJvL9DfZcgxqNBSk20MlgerC-Hsga_JLf9GCTVwNuN5bZlkI14ukt-g25_iYQIO6VGFK3dTmMzEC9ilAMG3CeOkB-6gDYc-GbFnfvCDC1NEVTP8VEO4"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer (Redefined) -->
+      <footer class="w-full tonal-layering pt-24 px-8">
+        <div class="max-w-7xl mx-auto">
+          <!-- Main Footer Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16">
+            <!-- Left Column: Branding & Newsletter -->
+            <div class="md:col-span-5 space-y-12">
+              <div class="space-y-6">
+                <div
+                  class="font-display-lg text-headline-md text-primary dark:text-primary-fixed-dim tracking-tighter"
+                >
+                  scottgilbert.dev
+                </div>
+              </div>
+              <div class="space-y-4">
+                <p
+                  class="font-label-md text-label-md text-on-surface uppercase tracking-widest"
+                >
+                  Growth Updates
+                </p>
+                <div class="flex gap-2 max-w-sm">
+                  <input
+                    class="flex-1 bg-surface-container-high/50 dark:bg-surface-container-highest/10 border-none rounded-lg px-4 py-3 font-body-md focus:ring-2 focus:ring-primary/20 text-on-surface"
+                    placeholder="Email address"
+                    type="email"
+                  />
+                  <button
+                    class="bg-primary-container dark:bg-primary-fixed text-on-primary dark:text-on-primary-fixed px-6 py-3 rounded-lg font-label-md hover:bg-primary transition-all"
+                  >
+                    SIGNUP
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Navigation Links -->
+            <div
+              class="md:col-span-7 grid grid-cols-2 md:grid-cols-4 gap-8 justify-items-end"
+            >
+              <div class="flex flex-col gap-6 items-end">
+                <p
+                  class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest"
+                >
+                  Navigation
+                </p>
+                <nav class="flex flex-col gap-3 items-end">
+                  <a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >Home</a
+                  ><a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >About</a
+                  ><a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >Legal</a
+                  >
+                </nav>
+              </div>
+              <div class="flex flex-col gap-6 items-end">
+                <p
+                  class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest"
+                >
+                  External
+                </p>
+                <nav class="flex flex-col gap-3 items-end">
+                  <a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >LinkedIn</a
+                  >
+                  <a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >GitHub</a
+                  >
+                  <a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >Portfolio</a
+                  >
+                </nav>
+              </div>
+              <div class="flex flex-col gap-6 items-end">
+                <p
+                  class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest"
+                >
+                  Digital Hub
+                </p>
+                <nav class="flex flex-col gap-3 items-end">
+                  <a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >RSS Feed</a
+                  >
+                  <a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >Sitemap</a
+                  >
+                  <a
+                    class="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
+                    href="#"
+                    >Digital Archive</a
+                  >
+                </nav>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Bottom -->
+          <div
+            class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-outline-variant/5 gap-4"
+          >
+            <p
+              class="font-body-md text-body-md text-on-surface-variant opacity-60"
+            >
+              © 2024 Scott Gilbert. Built for the Digital Arboretum.
+            </p>
+            <div class="flex gap-6">
+              <span
+                class="font-label-sm text-label-sm text-on-surface-variant/40"
+                >SYSTEM STATUS: OPTIMAL</span
+              >
+            </div>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <!-- Cookie Notice (Bottom Anchored) -->
+    <div
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-2xl bg-on-surface dark:bg-surface-container-highest text-surface p-8 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center gap-8 transform translate-y-0 transition-transform duration-500 ease-out"
+      id="cookieBanner"
+    >
+      <div class="flex items-start gap-4 flex-1">
+        <span
+          class="material-symbols-outlined text-secondary-fixed text-[32px]"
+          style="font-variation-settings: &quot;FILL&quot; 1"
+          >cookie</span
+        >
+        <div class="space-y-1">
+          <p class="font-title-lg text-title-lg text-surface-bright">
+            Privacy Notice
+          </p>
+          <p class="font-body-md text-body-md opacity-80 leading-relaxed">
+            We use essential cookies to maintain system integrity and analyze
+            growth patterns within the Arboretum. No data is harvested for third
+            parties.
+          </p>
+        </div>
+      </div>
+      <div class="flex gap-4 w-full md:w-auto">
+        <button
+          class="flex-1 md:flex-none px-8 py-3 bg-surface text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-dim transition-colors"
+          onclick="dismissCookies()"
+        >
+          ACCEPT
+        </button>
+        <button
+          class="flex-1 md:flex-none px-8 py-3 border border-surface/20 text-surface font-label-md text-label-md rounded-lg hover:bg-surface/10 transition-colors"
+          onclick="dismissCookies()"
+        >
+          DECLINE
+        </button>
+      </div>
+    </div>
+  </body>
+</html>

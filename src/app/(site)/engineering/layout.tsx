@@ -9,8 +9,8 @@ export default function BlogLayout({ children }: { children: ReactNode }) {
           Engineering Insights
         </h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Deep dives, architectural reviews, and lessons learned from both
-          development and (regrettably) production.
+          Some insights from my time in the &quot;field&quot;, and lessons
+          learned from both development and (regrettably) production.
         </p>
       </header>
 
