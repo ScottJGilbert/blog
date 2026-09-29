@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 export default function BlogLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto max-auto max-w-4xl px-4 py-8 antialiased">
+    <div>
       {/* Blog Section Header */}
       <header className="mb-8 border-b border-zinc-200 pb-4 dark:border-zinc-800">
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
