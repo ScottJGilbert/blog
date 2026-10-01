@@ -34,5 +34,6 @@ Run listmonk in a container host (Railway / Fly.io / Render): see `docker-compos
 For minute-level precision use Vercel Pro (`* * * * *`) or an external scheduler calling the URL with `Authorization: Bearer $CRON_SECRET`.
 
 ## 5. Local single-origin dev
-`docker compose up -d` (Postgres+pgvector, listmonk) or any local Postgres with pgvector, then `cp .env.example .env`, `pnpm install`, `pnpm db:migrate && pnpm db:seed`, `pnpm dev`
+Without Docker: any local Postgres with pgvector, `cp .env.example .env`, `pnpm install`, `pnpm db:migrate && pnpm db:seed`, `pnpm dev`
 (web :3000 proxies `/api` → :4000 and `/admin` → :3001; open http://localhost:3000).
+With Docker (full stack behind a Caddy reverse proxy that mirrors the Vercel Services routing): `docker compose up --build`, see [`LOCAL_DEV.md`](LOCAL_DEV.md).

@@ -1,0 +1,46 @@
+# Reverse proxy that reproduces the production routing of Vercel Services on one origin:
+#   /api/*    -> Express API      (prefix is kept, the API serves /api/...)
+#   /admin/*  -> admin Next app   (basePath: /admin)
+#   everything else -> public Next app
+# Upstreams are overridable so the same file works outside Docker, e.g. WEB_UPSTREAM=localhost:3000.
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	encode zstd gzip
+
+	# request id for correlating proxy/app logs
+	request_header X-Request-Id {http.request.uuid}
+
+	@api path /api /api/*
+	handle @api {
+		reverse_proxy {$API_UPSTREAM:api:4000} {
+			lb_try_duration 30s
+			lb_try_interval 500ms
+			# the API trusts exactly one proxy hop (TRUST_PROXY=1) for client IPs: Caddy sets X-Forwarded-For
+		}
+	}
+
+	@admin path /admin /admin/*
+	handle @admin {
+		reverse_proxy {$ADMIN_UPSTREAM:admin:3001} {
+			lb_try_duration 30s
+			lb_try_interval 500ms
+		}
+	}
+
+	# public site (also Next HMR websocket in dev, /_next/*, /feed.xml, /sitemap.xml, /internal/revalidate)
+	handle {
+		reverse_proxy {$WEB_UPSTREAM:web:3000} {
+			lb_try_duration 30s
+			lb_try_interval 500ms
+		}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

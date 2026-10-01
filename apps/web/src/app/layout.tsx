@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { epilogue } from "@/lib/fonts/epilogue";
 import { manrope } from "@/lib/fonts/manrope";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/site-url";
@@ -50,7 +51,7 @@ export default function RootLayout({
     // before React hydrates.
     <html
       lang="en"
-      className={manrope.variable}
+      className={`${manrope.variable} ${epilogue.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

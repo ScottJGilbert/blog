@@ -1,5 +1,4 @@
 import { SiteShell } from "@/components/layout/SiteShell";
-import { epilogue } from "@/lib/fonts/epilogue";
 
 export default function HomeSectionLayout({
   children,
@@ -7,7 +6,7 @@ export default function HomeSectionLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SiteShell section="home" className={epilogue.variable}>
+    <SiteShell section="home">
       {children}
     </SiteShell>
   );

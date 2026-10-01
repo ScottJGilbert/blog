@@ -1,17 +1,176 @@
-# Local services for the blog platform.
+# Whole stack for local development, no Vercel required.
 #
-#   docker compose up -d db                 app database only (what `pnpm dev` + tests need)
-#   docker compose up -d                    + listmonk (newsletters) on http://localhost:9000
-#   docker compose down -v                  stop and delete all data
+#   docker compose up --build            web + admin + api + Postgres(pgvector) + Mailpit behind Caddy, with hot reload
+#   docker compose --profile newsletters up --build     ... plus listmonk (newsletters)
+#   docker compose down -v               stop and delete all data (db, uploads, node_modules volumes)
 #
-# App database : postgres://blog:blog@localhost:5432/blog      (tests: .../blog_test), pgvector enabled
-# listmonk     : http://localhost:9000  admin / listmonk-admin (DEV ONLY, see docs/NEWSLETTERS.md to create the API user)
+# Open http://localhost:3000       public site         (Caddy routes like Vercel Services: / -> web, /admin -> admin, /api -> api)
+#      http://localhost:3000/admin  admin app           (seed login: admin@example.com / admin-password-123)
+#      http://localhost:8025        Mailpit: every email the API sends (verification, password reset, newsletter confirmation)
+#      http://localhost:9000        listmonk (profile `newsletters`, admin / listmonk-admin)
+#      localhost:5432               Postgres (user/password/db: blog/blog/blog, plus blog_test for the API test suite)
 #
-# Everything here is for development. Production uses Neon (app DB) and a hosted listmonk container, see docs/NEWSLETTERS.md.
+# Source is bind-mounted, so edits hot-reload. Dependencies live in named volumes and the one-shot `setup` service runs
+# `pnpm install` + migrations (+ seed) before the apps start. Optional overrides go in a root `.env` file (see .env.example):
+# PORT, PUBLIC_URL, BETTER_AUTH_SECRET, ADMIN_EMAILS, SEED_DB=0, EMBEDDING_API_KEY, LISTMONK_*, WATCHPACK_POLLING=true (slow bind mounts).
+#
+# DEVELOPMENT ONLY: default passwords and secrets below are public. Production uses Vercel + Neon (docs/DEPLOYMENT.md).
 
 name: blog
 
+x-app: &app
+  build:
+    context: .
+    target: dev
+  image: blog-dev
+  working_dir: /app
+  restart: unless-stopped
+  volumes: &app-volumes
+    - .:/app
+    # dependency and build output stay inside Docker (host copies would have the wrong platform / env)
+    - node-modules-root:/app/node_modules
+    - node-modules-web:/app/apps/web/node_modules
+    - node-modules-admin:/app/apps/admin/node_modules
+    - node-modules-api:/app/apps/api/node_modules
+    - node-modules-db:/app/packages/db/node_modules
+    - node-modules-shared:/app/packages/shared/node_modules
+    - node-modules-content:/app/packages/content/node_modules
+    - next-web:/app/apps/web/.next
+    - next-admin:/app/apps/admin/.next
+  environment: &app-env
+    NODE_ENV: development
+    DATABASE_URL: postgres://blog:blog@db:5432/blog
+    PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3000}
+    WATCHPACK_POLLING: ${WATCHPACK_POLLING:-}
+    CHOKIDAR_USEPOLLING: ${WATCHPACK_POLLING:-}
+
 services:
+  # ---- one-shot: dependencies in sync with the lockfile, migrations, demo data ---------------------------------
+  setup:
+    <<: *app
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        pnpm install --frozen-lockfile --filter "./apps/*" --filter "./packages/*"
+        pnpm db:migrate
+        if [ "$${SEED_DB:-1}" != "0" ]; then pnpm db:seed; fi
+    environment:
+      <<: *app-env
+      SEED_DB: ${SEED_DB:-1}
+
+  # ---- Express API ------------------------------------------------------------------------------------------
+  api:
+    <<: *app
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_started
+    command: pnpm --filter @blog/api dev
+    environment:
+      <<: *app-env
+      API_PORT: 4000
+      API_BASE_PATH: /api
+      # Caddy is the single proxy hop in front of the API
+      TRUST_PROXY: 1
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-dev-only-secret-change-me-0123456789abcdef}
+      BETTER_AUTH_URL: ${PUBLIC_URL:-http://localhost:3000}
+      SITE_URL: ${PUBLIC_URL:-http://localhost:3000}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@example.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      # every email lands in Mailpit (http://localhost:8025)
+      MAILER_DRIVER: smtp
+      SMTP_URL: smtp://mailpit:1025
+      MAIL_FROM: "Blog <no-reply@blog.localhost>"
+      STORAGE_DRIVER: local
+      UPLOAD_DIR: /data/uploads
+      EMBEDDING_API_URL: ${EMBEDDING_API_URL:-https://api.openai.com/v1}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      # newsletters: empty LISTMONK_URL => no-op provider. With the `newsletters` profile use http://listmonk:9000 plus the API user/token (docs/NEWSLETTERS.md)
+      LISTMONK_URL: ${LISTMONK_URL:-}
+      LISTMONK_USER: ${LISTMONK_USER:-}
+      LISTMONK_API_TOKEN: ${LISTMONK_API_TOKEN:-}
+      LISTMONK_LIST_ID: ${LISTMONK_LIST_ID:-}
+      LISTMONK_WEBHOOK_SECRET: ${LISTMONK_WEBHOOK_SECRET:-}
+      WEB_REVALIDATE_URL: http://web:3000/internal/revalidate
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-dev-revalidate-secret}
+      CRON_SECRET: ${CRON_SECRET:-dev-cron-secret}
+    volumes:
+      - .:/app
+      - node-modules-root:/app/node_modules
+      - node-modules-api:/app/apps/api/node_modules
+      - node-modules-db:/app/packages/db/node_modules
+      - node-modules-shared:/app/packages/shared/node_modules
+      - node-modules-content:/app/packages/content/node_modules
+      - uploads:/data/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # ---- public site (Next.js) --------------------------------------------------------------------------------
+  web:
+    <<: *app
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    command: pnpm --filter @blog/web dev
+    environment:
+      <<: *app-env
+      HOSTNAME: 0.0.0.0
+      SITE_URL: ${PUBLIC_URL:-http://localhost:3000}
+      API_INTERNAL_URL: http://api:4000
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-dev-revalidate-secret}
+      NEXT_PUBLIC_AUTH_GOOGLE: ${NEXT_PUBLIC_AUTH_GOOGLE:-}
+      NEXT_PUBLIC_AUTH_GITHUB: ${NEXT_PUBLIC_AUTH_GITHUB:-}
+
+  # ---- admin (Next.js, basePath /admin) ---------------------------------------------------------------------
+  admin:
+    <<: *app
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    command: pnpm --filter @blog/admin dev
+    environment:
+      <<: *app-env
+      HOSTNAME: 0.0.0.0
+      SITE_URL: ${PUBLIC_URL:-http://localhost:3000}
+      NEXT_PUBLIC_SITE_URL: ${PUBLIC_URL:-http://localhost:3000}
+      API_INTERNAL_URL: http://api:4000
+
+  # ---- single origin entrypoint (mirrors Vercel Services routing) --------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
+      - admin
+      - api
+    ports:
+      - "${PORT:-3000}:80"
+    environment:
+      API_UPSTREAM: api:4000
+      ADMIN_UPSTREAM: admin:3001
+      WEB_UPSTREAM: web:3000
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+  # ---- infrastructure ---------------------------------------------------------------------------------------
   db:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
@@ -31,7 +190,17 @@ services:
       timeout: 3s
       retries: 20
 
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "8025:8025" # web UI
+    environment:
+      MP_MAX_MESSAGES: 500
+
+  # ---- newsletters (docker compose --profile newsletters up) --------------------------------------------------
   listmonk-db:
+    profiles: [newsletters]
     image: postgres:16
     restart: unless-stopped
     environment:
@@ -47,6 +216,7 @@ services:
       retries: 20
 
   listmonk:
+    profiles: [newsletters]
     image: listmonk/listmonk:latest
     restart: unless-stopped
     depends_on:
@@ -67,5 +237,17 @@ services:
 
 volumes:
   db-data:
+  uploads:
+  caddy-data:
+  caddy-config:
   listmonk-db-data:
   listmonk-uploads:
+  node-modules-root:
+  node-modules-web:
+  node-modules-admin:
+  node-modules-api:
+  node-modules-db:
+  node-modules-shared:
+  node-modules-content:
+  next-web:
+  next-admin:

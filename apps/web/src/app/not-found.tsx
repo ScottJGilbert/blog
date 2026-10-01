@@ -3,8 +3,6 @@ import { SiteShell } from "@/components/layout/SiteShell";
 import { ButtonLink } from "@/components/ui/Button";
 import { StatusPage } from "@/components/ui/StatusPage";
 
-/* No section font import here: a font imported by a root-level file is preloaded on EVERY route (it was Epilogue,
-   15 KB of unused preload on every non-home page). Headings fall back to Manrope through the CSS var chain. */
 export const metadata: Metadata = {
   title: "Page not found",
   robots: { index: false },

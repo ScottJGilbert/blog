@@ -69,6 +69,25 @@
   --font-sans: var(--f-body);
   --font-display: var(--f-display);
   --font-accent: var(--f-accent);
+  --font-mono: var(--f-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Typography is identical in every section and in light/dark: only colours differ per theme.
+   Display = Epilogue (headings, brand), body/UI/meta = Manrope, code = system monospace.
+   -------------------------------------------------------------------------- */
+:root {
+  --f-body:
+    var(--font-manrope, "Manrope"), ui-sans-serif, system-ui, sans-serif;
+  --f-display:
+    var(--font-epilogue, var(--font-manrope, "Manrope")), ui-sans-serif,
+    system-ui, sans-serif;
+  --f-accent: var(--f-body);
+  --f-mono:
+    ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+  --h-weight: 800;
+  --h-tracking: -0.025em;
+  --eyebrow-tracking: 0.12em;
 }
 
 /* --------------------------------------------------------------------------
@@ -91,15 +110,6 @@
   --danger: #ba1a1a;
   --motif: rgb(15 74 51 / 0.07);
 
-  --f-body:
-    var(--font-manrope, "Manrope"), ui-sans-serif, system-ui, sans-serif;
-  --f-display:
-    var(--font-epilogue, var(--font-manrope, "Manrope")), ui-sans-serif,
-    system-ui, sans-serif;
-  --f-accent: var(--f-body);
-  --h-weight: 800;
-  --h-tracking: -0.025em;
-  --eyebrow-tracking: 0.12em;
 }
 .dark [data-section="home"] {
   --bg: #0b1f17;
@@ -139,17 +149,6 @@
   --danger: #b91c1c;
   --motif: rgb(24 24 27 / 0.06);
 
-  --f-body:
-    var(--font-manrope, "Manrope"), ui-sans-serif, system-ui, sans-serif;
-  --f-display:
-    var(--font-jetbrains-mono, "JetBrains Mono"), ui-monospace,
-    "SFMono-Regular", Menlo, monospace;
-  --f-accent:
-    var(--font-jetbrains-mono, "JetBrains Mono"), ui-monospace,
-    "SFMono-Regular", Menlo, monospace;
-  --h-weight: 700;
-  --h-tracking: -0.03em;
-  --eyebrow-tracking: 0.04em;
 }
 .dark [data-section="engineering"] {
   --bg: #09090b;
@@ -189,15 +188,6 @@
   --danger: #a4262c;
   --motif: rgb(161 71 42 / 0.1);
 
-  --f-body:
-    var(--font-manrope, "Manrope"), ui-sans-serif, system-ui, sans-serif;
-  --f-display:
-    var(--font-fraunces, "Fraunces"), ui-serif, Georgia, "Times New Roman",
-    serif;
-  --f-accent: var(--f-body);
-  --h-weight: 600;
-  --h-tracking: -0.015em;
-  --eyebrow-tracking: 0.1em;
 }
 .dark [data-section="personal"] {
   --bg: #1b1612;

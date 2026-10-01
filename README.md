@@ -13,13 +13,19 @@ Full-stack blog: public site, admin, Express API, Postgres (pgvector), listmonk 
 
 Docs: [`docs/SPEC.md`](docs/SPEC.md) (architecture + API contract), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md), [`docs/NEWSLETTERS.md`](docs/NEWSLETTERS.md), [`docs/STATUS.md`](docs/STATUS.md), [`docs/lighthouse/`](docs/lighthouse).
 
-## Quick start
+## Quick start (Docker, no Vercel needed)
 ```bash
-cp .env.example .env            # edit secrets
-docker compose up -d            # Postgres+pgvector (+ listmonk), or use any local Postgres with pgvector
+docker compose up --build       # web + admin + api + Postgres(pgvector) + Mailpit behind a Caddy reverse proxy, hot reload
+```
+Open <http://localhost:3000> (site), <http://localhost:3000/admin> (admin; seeded `admin@example.com` / `admin-password-123`) and <http://localhost:8025> (Mailpit: all emails the API sends).
+Add `--profile newsletters` for listmonk. Details, ports and troubleshooting: [`docs/LOCAL_DEV.md`](docs/LOCAL_DEV.md).
+
+## Quick start (without Docker)
+```bash
+cp .env.example .env            # edit secrets; needs a local Postgres with pgvector
 pnpm install
 pnpm db:migrate && pnpm db:seed # seed creates demo posts and (non-prod) admin@example.com / admin-password-123
-pnpm dev                        # open http://localhost:3000 (proxies /api and /admin like production)
+pnpm dev                        # open http://localhost:3000 (web proxies /api and /admin like production)
 ```
 Checks: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`. E2E: see `playwright.config.ts` (projects `site`, `admin`; start the stack first).
 > Next.js 16 differs from older versions: see `AGENTS.md`.

@@ -14,7 +14,7 @@ listmonk ──webhook (bounce / unsubscribe)──▶ API /api/webhooks/listmon
 ## 1. Run it locally
 
 ```bash
-docker compose up -d            # db (pgvector) + listmonk-db + listmonk
+docker compose --profile newsletters up -d   # whole stack + listmonk-db + listmonk (see docs/LOCAL_DEV.md); add `db` only to start just the database
 open http://localhost:9000      # admin / listmonk-admin  (set in docker-compose.yml, DEV ONLY)
 ```
 
@@ -23,8 +23,7 @@ does nothing afterwards) against its own `postgres:16` (`listmonk-db`). Configur
 overridden with `LISTMONK_<section>__<key>` environment variables. The app database (`db`, `pgvector/pgvector:pg16`) is separate and gets
 `blog` + `blog_test` databases and the `vector` extension from `docker/initdb/01-databases.sql`.
 
-Mail: listmonk sends through SMTP. For local development run a catcher such as Mailpit (`docker run -p 8025:8025 -p 1025:1025 axllent/mailpit`)
-and set **Settings → SMTP** to host `host.docker.internal` (or the container name on the compose network), port `1025`, auth `none`.
+Mail: listmonk sends through SMTP. The compose stack already runs Mailpit (http://localhost:8025): set **Settings → SMTP** in listmonk to host `mailpit`, port `1025`, auth `none`.
 
 ## 2. Create the API user and token
 
