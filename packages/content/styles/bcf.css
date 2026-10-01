@@ -1,0 +1,193 @@
+/*
+ * @blog/content/styles.css — companion stylesheet for HTML produced by renderHtml({ target: "web" }).
+ *
+ * Load it AFTER the editor package's viewer theme:
+ *   import "@scottjgilbert/lexical-blog-editor/styles/ViewerTheme.css";   // paragraph/heading/list/table/code/... classes
+ *   import "@blog/content/styles.css";                                    // this file
+ *   import "katex/dist/katex.min.css";                                    // only needed when the post contains equations
+ *
+ * It only styles things the editor's ViewerTheme.css does NOT cover (collapsible, figure/caption, embeds, equations,
+ * date-time, mentions, h4-h6, responsive layout columns, accessibility helpers).
+ * Colours use CSS variables with light defaults so sites can theme them:
+ *   --bcf-muted, --bcf-border, --bcf-surface, --bcf-accent, --bcf-focus
+ */
+
+/* ---------- accessibility helpers ---------- */
+.bcf-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.ViewerTheme__code:focus-visible,
+.ViewerTheme__tableScrollableWrapper:focus-visible {
+  outline: 2px solid var(--bcf-focus, currentColor);
+  outline-offset: 2px;
+}
+
+/* ---------- headings not covered by the viewer theme ---------- */
+.ViewerTheme__h4 {
+  font-size: 1.1em;
+  font-weight: 700;
+  margin: 0 0 1em 0;
+}
+.ViewerTheme__h5 {
+  font-size: 1em;
+  font-weight: 700;
+  margin: 0 0 1em 0;
+}
+.ViewerTheme__h6 {
+  font-size: 0.9em;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0 0 1em 0;
+}
+
+/* ---------- images ---------- */
+.bcf-image {
+  max-width: 100%;
+  height: auto;
+}
+.bcf-figure {
+  margin: 0 0 1.5em 0;
+}
+.bcf-figure > img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.bcf-figure > figcaption {
+  margin-top: 0.5em;
+  font-size: 0.875em;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--bcf-muted, #65676b);
+}
+
+/* ---------- embeds (iframes carry explicit size + aspect-ratio inline, so no layout shift) ---------- */
+.bcf-embed {
+  margin: 0 0 1.5em 0;
+  max-width: 100%;
+}
+.bcf-embed > iframe {
+  display: inline-block;
+  vertical-align: top;
+  max-width: 100%;
+  border: 0;
+}
+
+/* ---------- collapsible (same class names the editor uses) ---------- */
+.Collapsible__container {
+  background: var(--bcf-surface, #fcfcfc);
+  border: 1px solid var(--bcf-border, #eee);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.Collapsible__title {
+  cursor: pointer;
+  padding: 5px 5px 5px 20px;
+  position: relative;
+  font-weight: bold;
+  list-style: none;
+}
+.Collapsible__title::marker,
+.Collapsible__title::-webkit-details-marker {
+  display: none;
+}
+.Collapsible__title:before {
+  border-style: solid;
+  border-color: transparent;
+  border-width: 4px 6px 4px 6px;
+  border-left-color: currentColor;
+  display: block;
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.Collapsible__container[open] > .Collapsible__title:before {
+  border-color: transparent;
+  border-width: 6px 4px 0 4px;
+  border-top-color: currentColor;
+}
+.Collapsible__title:focus-visible {
+  outline: 2px solid var(--bcf-focus, currentColor);
+  outline-offset: 2px;
+}
+.Collapsible__content {
+  padding: 0 5px 5px 20px;
+}
+
+/* ---------- equations (KaTeX) ---------- */
+.bcf-equation--block {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.bcf-equation .katex-display {
+  margin: 0;
+}
+
+/* ---------- small inline nodes ---------- */
+.bcf-datetime {
+  background: var(--bcf-pill, #ddd);
+  border: 1px solid var(--bcf-pill, #ddd);
+  border-radius: 8px;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+.bcf-mention {
+  background-color: rgba(24, 119, 232, 0.2);
+}
+.keyword {
+  color: var(--bcf-accent, #f1765e);
+  font-weight: bold;
+}
+.bcf-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* ---------- page break ---------- */
+.bcf-page-break {
+  border: 0;
+  border-top: 1px dashed var(--bcf-border, #ccc);
+  margin: 2em 0;
+}
+@media print {
+  .bcf-page-break {
+    border: 0;
+    margin: 0;
+    break-after: page;
+  }
+}
+
+/* ---------- responsive layout columns: stack on narrow screens (inline grid-template-columns is overridden) ---------- */
+@media (max-width: 640px) {
+  .ViewerTheme__layoutContainer {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bcf-muted: #9a9ea5;
+    --bcf-border: #3a3a3d;
+    --bcf-surface: #1f1f22;
+    --bcf-pill: #3a3a3d;
+  }
+  .bcf-mention {
+    background-color: rgba(88, 166, 255, 0.25);
+  }
+}
+:root[data-theme="dark"] {
+  --bcf-muted: #9a9ea5;
+  --bcf-border: #3a3a3d;
+  --bcf-surface: #1f1f22;
+  --bcf-pill: #3a3a3d;
+}

@@ -1,51 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
+import { Button } from "@/components/ui/Button";
+import { SmartLink } from "@/components/ui/SmartLink";
 
-export default function CookieBanner() {
-  const [visible, setVisible] = useState(true);
+const STORAGE_KEY = "blog-consent";
+const EVENT = "blog-consent-change";
 
-  if (!visible) return null;
+type Choice = "accepted" | "declined";
+
+function read(): Choice | null {
+  try {
+    const value = window.localStorage.getItem(STORAGE_KEY);
+    return value === "accepted" || value === "declined" ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function subscribe(onChange: () => void) {
+  window.addEventListener(EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+/**
+ * Optional consent notice (currently not mounted anywhere: the site only uses
+ * cookieless analytics and a theme preference in localStorage). It is `fixed`,
+ * so it can never shift page content, and it renders nothing on the server or
+ * before the stored choice is known (no flash for returning visitors).
+ */
+export default function CookieBanner({
+  privacyHref = "/about",
+  onChoice,
+}: {
+  privacyHref?: string;
+  onChoice?: (choice: Choice) => void;
+}) {
+  // Server + hydration snapshot is "decided" so nothing is rendered until the
+  // client has read the stored value.
+  const choice = useSyncExternalStore<Choice | null>(
+    subscribe,
+    read,
+    () => "declined",
+  );
+
+  if (choice) return null;
+
+  const decide = (next: Choice) => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      /* ignore: the notice simply reappears next visit */
+    }
+    window.dispatchEvent(new Event(EVENT));
+    onChoice?.(next);
+  };
 
   return (
-    <div
-      id="cookieBanner"
-      className="fixed bottom-8 left-1/2 z-60 flex w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 translate-y-0 transform flex-col items-center gap-8 rounded-2xl bg-on-surface p-8 text-surface shadow-2xl transition-transform duration-500 ease-out md:flex-row dark:bg-surface-container-highest"
+    <section
+      aria-labelledby="consent-title"
+      className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-2xl flex-col gap-4 rounded-card border border-border-strong bg-surface p-5 text-fg shadow-card-hover sm:flex-row sm:items-center"
     >
-      <div className="flex flex-1 items-start gap-4">
-        <span
-          className="material-symbols-outlined text-[32px] text-secondary-fixed"
-          style={{ fontVariationSettings: '"FILL" 1' }}
-        >
-          cookie
-        </span>
-        <div className="space-y-1">
-          <p className="font-title-lg text-title-lg text-surface-bright">
-            Privacy Notice
-          </p>
-          <p className="font-body-md text-body-md leading-relaxed opacity-80">
-            We use essential cookies to maintain system integrity and analyze
-            growth patterns within the Arboretum. No data is harvested for third
-            parties.
-          </p>
-        </div>
+      <div className="flex-1">
+        <h2 id="consent-title" className="text-base">
+          Privacy notice
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          This site only stores what it needs to work, such as your theme
+          choice. Optional analytics run only if you accept.{" "}
+          <SmartLink
+            href={privacyHref}
+            className="font-semibold text-accent underline underline-offset-4"
+          >
+            Learn more
+          </SmartLink>
+        </p>
       </div>
-      <div className="flex w-full gap-4 md:w-auto">
-        <button
-          type="button"
-          onClick={() => setVisible(false)}
-          className="flex-1 rounded-lg bg-surface px-8 py-3 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-dim md:flex-none"
-        >
-          ACCEPT
-        </button>
-        <button
-          type="button"
-          onClick={() => setVisible(false)}
-          className="flex-1 rounded-lg border border-surface/20 px-8 py-3 font-label-md text-label-md text-surface transition-colors hover:bg-surface/10 md:flex-none"
-        >
-          DECLINE
-        </button>
+      <div className="flex gap-3">
+        <Button variant="primary" onClick={() => decide("accepted")}>
+          Accept
+        </Button>
+        <Button variant="secondary" onClick={() => decide("declined")}>
+          Decline
+        </Button>
       </div>
-    </div>
+    </section>
   );
 }

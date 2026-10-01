@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./styles.css": "./styles/bcf.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -19,5 +20,10 @@
     "vitest": "^3",
     "@types/node": "^22",
     "@types/katex": "^0.16"
-  }
+  },
+  "files": [
+    "src",
+    "styles",
+    "STANDARD.md"
+  ]
 }

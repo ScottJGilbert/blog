@@ -1,0 +1,326 @@
+<h1 id="building-a-blog-platform" class="ViewerTheme__h1">Building a Blog Platform</h1>
+<p class="ViewerTheme__paragraph">An intro with <strong class="ViewerTheme__textBold">bold</strong>, <em class="ViewerTheme__textItalic">italic</em>, <em>
+<strong class="ViewerTheme__textBold ViewerTheme__textItalic">both</strong>
+</em> and <code class="ViewerTheme__textCode">code</code>.</p>
+<h2 id="formatting" class="ViewerTheme__h2">Formatting</h2>
+<p class="ViewerTheme__paragraph">
+<u class="ViewerTheme__textUnderline">under</u> <s class="ViewerTheme__textStrikethrough">strike</s> <s>
+<u class="ViewerTheme__textUnderlineStrikethrough">both</u>
+</s> H<sub class="ViewerTheme__textSubscript">2</sub>O x<sup class="ViewerTheme__textSuperscript">2</sup> <mark class="ViewerTheme__textHighlight">highlight</mark> <span class="ViewerTheme__textUppercase">UPPER</span>
+<br>
+<span class="ViewerTheme__tabNode" style="white-space:pre">	</span>after tab and break</p>
+<p class="ViewerTheme__paragraph">
+<span style="color:#d0021b;background-color:#ffff00;font-size:18px;font-family:&#39;Georgia&#39;, serif">Colored</span>
+</p>
+<p class="ViewerTheme__paragraph" style="text-align:center;padding-inline-start:40px">Centered and indented</p>
+<blockquote class="ViewerTheme__quote">A wise quote.</blockquote>
+<h2 id="lists" class="ViewerTheme__h2">Lists</h2>
+<ul class="ViewerTheme__ul">
+<li class="ViewerTheme__listItem">one</li>
+<li class="ViewerTheme__listItem ViewerTheme__nestedListItem">
+<ul class="ViewerTheme__ul">
+<li class="ViewerTheme__listItem">nested bullet</li>
+</ul>
+</li>
+<li class="ViewerTheme__listItem">two</li>
+</ul>
+<ol class="ViewerTheme__ol1">
+<li class="ViewerTheme__listItem" value="1">first</li>
+<li class="ViewerTheme__listItem ViewerTheme__nestedListItem">
+<ol class="ViewerTheme__ol2">
+<li class="ViewerTheme__listItem" value="1">nested number</li>
+</ol>
+</li>
+<li class="ViewerTheme__listItem" value="2">second</li>
+</ol>
+<ul class="ViewerTheme__ul ViewerTheme__checklist">
+<li class="ViewerTheme__listItem ViewerTheme__listItemChecked">
+<span class="bcf-sr-only">Completed: </span>done</li>
+<li class="ViewerTheme__listItem ViewerTheme__listItemUnchecked">
+<span class="bcf-sr-only">Not completed: </span>todo</li>
+</ul>
+<h2 id="inline-extras" class="ViewerTheme__h2">Inline extras</h2>
+<p class="ViewerTheme__paragraph">
+<a href="https://external.example.org/page?x=1&amp;y=2" target="_blank" rel="noopener noreferrer nofollow" class="ViewerTheme__link">external link</a> <a href="/about" class="ViewerTheme__link">internal link</a> <a href="https://auto.example.com" target="_blank" rel="noopener noreferrer nofollow" class="ViewerTheme__link">https://auto.example.com</a> <span class="ViewerTheme__hashtag">#lexical</span> <span class="bcf-emoji">🙂</span> <span class="bcf-mention" data-mention="Scott">Scott</span> <span class="keyword">congrats</span> <span class="ViewerTheme__specialText">[special]</span> <time class="bcf-datetime" datetime="2024-05-06T07:08:00.000Z">May 6, 2024 07:08 UTC</time> <span class="bcf-equation">
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mi>E</mi>
+<mo>=</mo>
+<mi>m</mi>
+<msup>
+<mi>c</mi>
+<mn>2</mn>
+</msup>
+</mrow>
+<annotation encoding="application/x-tex">E=mc^2</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html" aria-hidden="true">
+<span class="base">
+<span class="strut" style="height:0.6833em;">
+</span>
+<span class="mord mathnormal" style="margin-right:0.0576em;">E</span>
+<span class="mspace" style="margin-right:0.2778em;">
+</span>
+<span class="mrel">=</span>
+<span class="mspace" style="margin-right:0.2778em;">
+</span>
+</span>
+<span class="base">
+<span class="strut" style="height:0.8141em;">
+</span>
+<span class="mord mathnormal">m</span>
+<span class="mord">
+<span class="mord mathnormal">c</span>
+<span class="msupsub">
+<span class="vlist-t">
+<span class="vlist-r">
+<span class="vlist" style="height:0.8141em;">
+<span style="top:-3.063em;margin-right:0.05em;">
+<span class="pstrut" style="height:2.7em;">
+</span>
+<span class="sizing reset-size6 size3 mtight">
+<span class="mord mtight">2</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span> marked text overflowing</p>
+<h2 id="code" class="ViewerTheme__h2">Code</h2>
+<pre class="ViewerTheme__code" spellcheck="false" tabindex="0" data-language="ts" data-gutter="1&#10;2">
+<span class="ViewerTheme__tokenAttr">const</span> answer <span class="ViewerTheme__tokenOperator">=</span> <span class="ViewerTheme__tokenProperty" style="color:#905">42</span>
+<span class="ViewerTheme__tokenPunctuation">;</span>
+<br>	<span class="ViewerTheme__tokenComment">// done</span>
+</pre>
+<hr class="ViewerTheme__hr">
+<h3 id="math" class="ViewerTheme__h3">Math</h3>
+<div class="bcf-equation bcf-equation--block">
+<span class="katex-display">
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<semantics>
+<mrow>
+<msubsup>
+<mo>∫</mo>
+<mn>0</mn>
+<mn>1</mn>
+</msubsup>
+<msup>
+<mi>x</mi>
+<mn>2</mn>
+</msup>
+<mtext> </mtext>
+<mi>d</mi>
+<mi>x</mi>
+<mo>=</mo>
+<mfrac>
+<mn>1</mn>
+<mn>3</mn>
+</mfrac>
+</mrow>
+<annotation encoding="application/x-tex">\int_0^1 x^2\,dx = \frac{1}{3}</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html" aria-hidden="true">
+<span class="base">
+<span class="strut" style="height:2.476em;vertical-align:-0.9119em;">
+</span>
+<span class="mop">
+<span class="mop op-symbol large-op" style="margin-right:0.4445em;position:relative;top:-0.0011em;">∫</span>
+<span class="msupsub">
+<span class="vlist-t vlist-t2">
+<span class="vlist-r">
+<span class="vlist" style="height:1.564em;">
+<span style="top:-1.7881em;margin-left:-0.4445em;margin-right:0.05em;">
+<span class="pstrut" style="height:2.7em;">
+</span>
+<span class="sizing reset-size6 size3 mtight">
+<span class="mord mtight">0</span>
+</span>
+</span>
+<span style="top:-3.8129em;margin-right:0.05em;">
+<span class="pstrut" style="height:2.7em;">
+</span>
+<span class="sizing reset-size6 size3 mtight">
+<span class="mord mtight">1</span>
+</span>
+</span>
+</span>
+<span class="vlist-s">​</span>
+</span>
+<span class="vlist-r">
+<span class="vlist" style="height:0.9119em;">
+<span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+<span class="mspace" style="margin-right:0.1667em;">
+</span>
+<span class="mord">
+<span class="mord mathnormal">x</span>
+<span class="msupsub">
+<span class="vlist-t">
+<span class="vlist-r">
+<span class="vlist" style="height:0.8641em;">
+<span style="top:-3.113em;margin-right:0.05em;">
+<span class="pstrut" style="height:2.7em;">
+</span>
+<span class="sizing reset-size6 size3 mtight">
+<span class="mord mtight">2</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+<span class="mspace" style="margin-right:0.1667em;">
+</span>
+<span class="mord mathnormal">d</span>
+<span class="mord mathnormal">x</span>
+<span class="mspace" style="margin-right:0.2778em;">
+</span>
+<span class="mrel">=</span>
+<span class="mspace" style="margin-right:0.2778em;">
+</span>
+</span>
+<span class="base">
+<span class="strut" style="height:2.0074em;vertical-align:-0.686em;">
+</span>
+<span class="mord">
+<span class="mopen nulldelimiter">
+</span>
+<span class="mfrac">
+<span class="vlist-t vlist-t2">
+<span class="vlist-r">
+<span class="vlist" style="height:1.3214em;">
+<span style="top:-2.314em;">
+<span class="pstrut" style="height:3em;">
+</span>
+<span class="mord">
+<span class="mord">3</span>
+</span>
+</span>
+<span style="top:-3.23em;">
+<span class="pstrut" style="height:3em;">
+</span>
+<span class="frac-line" style="border-bottom-width:0.04em;">
+</span>
+</span>
+<span style="top:-3.677em;">
+<span class="pstrut" style="height:3em;">
+</span>
+<span class="mord">
+<span class="mord">1</span>
+</span>
+</span>
+</span>
+<span class="vlist-s">​</span>
+</span>
+<span class="vlist-r">
+<span class="vlist" style="height:0.686em;">
+<span>
+</span>
+</span>
+</span>
+</span>
+</span>
+<span class="mclose nulldelimiter">
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</div>
+<h2 id="media" class="ViewerTheme__h2">Media</h2>
+<p class="ViewerTheme__paragraph">
+<img src="https://img.example.com/photo.jpg" alt="A photo" width="640" height="480" loading="lazy" decoding="async" style="max-width:100%;height:auto" class="bcf-image">
+</p>
+<div role="paragraph" class="ViewerTheme__paragraph">
+<figure class="bcf-figure">
+<img src="https://img.example.com/captioned.png" alt="Captioned chart" width="400" height="300" loading="lazy" decoding="async" style="max-width:100%;height:auto" class="bcf-image">
+<figcaption>Figure 1: a chart</figcaption>
+</figure>
+</div>
+<div class="bcf-embed bcf-embed--youtube">
+<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="YouTube video player" width="560" height="315" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation" style="width:100%;max-width:560px;aspect-ratio:16/9;height:auto;border:0">
+</iframe>
+</div>
+<div class="bcf-embed bcf-embed--tweet">
+<iframe src="https://platform.twitter.com/embed/Tweet.html?dnt=true&amp;id=1234567890123456789" title="Embedded post on X" width="550" height="500" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation" style="width:100%;max-width:550px;height:500px;border:0">
+</iframe>
+</div>
+<div class="bcf-embed bcf-embed--figma">
+<iframe src="https://www.figma.com/embed?embed_host=bcf&amp;url=https%3A%2F%2Fwww.figma.com%2Ffile%2FAbCdEfGhIjKlMnOpQrStUv" title="Figma embed" width="560" height="315" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation" style="width:100%;max-width:560px;aspect-ratio:16/9;height:auto;border:0">
+</iframe>
+</div>
+<h2 id="tables" class="ViewerTheme__h2">Tables</h2>
+<div class="ViewerTheme__tableScrollableWrapper" tabindex="0">
+<table class="ViewerTheme__table ViewerTheme__tableRowStriping">
+<colgroup>
+<col style="width:120px">
+<col style="width:80px">
+<col style="width:80px">
+</colgroup>
+<tbody>
+<tr>
+<th class="ViewerTheme__tableCell ViewerTheme__tableCellHeader" scope="col">
+<p class="ViewerTheme__paragraph">Name</p>
+</th>
+<th class="ViewerTheme__tableCell ViewerTheme__tableCellHeader" scope="col" colspan="2">
+<p class="ViewerTheme__paragraph">Value</p>
+</th>
+</tr>
+<tr>
+<th class="ViewerTheme__tableCell ViewerTheme__tableCellHeader" scope="row">
+<p class="ViewerTheme__paragraph">alpha</p>
+</th>
+<td class="ViewerTheme__tableCell" style="background-color:#ffeeee">
+<p class="ViewerTheme__paragraph">1</p>
+</td>
+<td class="ViewerTheme__tableCell">
+<p class="ViewerTheme__paragraph">one</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="layout-and-collapsible" class="ViewerTheme__h2">Layout and collapsible</h2>
+<div class="ViewerTheme__layoutContainer" style="grid-template-columns:1fr 2fr" data-lexical-layout-container="true">
+<div class="ViewerTheme__layoutItem" data-lexical-layout-item="true">
+<p class="ViewerTheme__paragraph">left column</p>
+</div>
+<div class="ViewerTheme__layoutItem" data-lexical-layout-item="true">
+<p class="ViewerTheme__paragraph">right column</p>
+<ul class="ViewerTheme__ul">
+<li class="ViewerTheme__listItem">item</li>
+</ul>
+</div>
+</div>
+<details class="Collapsible__container" open>
+<summary class="Collapsible__title">More details</summary>
+<div class="Collapsible__content" data-lexical-collapsible-content="true">
+<p class="ViewerTheme__paragraph">Hidden until opened.</p>
+<p class="ViewerTheme__paragraph">Second paragraph.</p>
+</div>
+</details>
+<hr class="bcf-page-break" aria-hidden="true">
+<p class="ViewerTheme__paragraph">
+<br>
+</p>

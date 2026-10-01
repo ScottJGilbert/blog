@@ -1,9 +1,14 @@
-export default function BlogHomeLayout({
+import { SiteShell } from "@/components/layout/SiteShell";
+import { epilogue } from "@/lib/fonts/epilogue";
+
+export default function HomeSectionLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 antialiased">{children}</div>
+    <SiteShell section="home" className={epilogue.variable}>
+      {children}
+    </SiteShell>
   );
 }

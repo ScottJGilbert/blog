@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --env-file-if-exists=.env src/dev.ts",
+    "dev": "tsx watch --env-file-if-exists=../../.env --env-file-if-exists=.env src/dev.ts",
     "build": "tsup",
-    "start": "node dist/index.js",
+    "start": "node --env-file-if-exists=../../.env --env-file-if-exists=.env dist/index.js",
     "typecheck": "tsc --noEmit",
     "lint": "echo skip",
     "test": "vitest run --passWithNoTests",
-    "make-admin": "tsx --env-file-if-exists=.env src/scripts/make-admin.ts"
+    "make-admin": "tsx --env-file-if-exists=../../.env --env-file-if-exists=.env src/scripts/make-admin.ts"
   },
   "dependencies": {
     "@blog/content": "workspace:*",

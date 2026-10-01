@@ -1,0 +1,28 @@
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import type * as s from "./schema/index";
+
+export type User = InferSelectModel<typeof s.user>;
+export type NewUser = InferInsertModel<typeof s.user>;
+export type Session = InferSelectModel<typeof s.session>;
+export type Account = InferSelectModel<typeof s.account>;
+export type Post = InferSelectModel<typeof s.post>;
+export type NewPost = InferInsertModel<typeof s.post>;
+export type Tag = InferSelectModel<typeof s.tag>;
+export type NewTag = InferInsertModel<typeof s.tag>;
+export type PostTag = InferSelectModel<typeof s.postTag>;
+export type PostEmbedding = InferSelectModel<typeof s.postEmbedding>;
+export type NewPostEmbedding = InferInsertModel<typeof s.postEmbedding>;
+export type Comment = InferSelectModel<typeof s.comment>;
+export type NewComment = InferInsertModel<typeof s.comment>;
+export type CommentReport = InferSelectModel<typeof s.commentReport>;
+export type NewCommentReport = InferInsertModel<typeof s.commentReport>;
+export type Subscriber = InferSelectModel<typeof s.subscriber>;
+export type NewSubscriber = InferInsertModel<typeof s.subscriber>;
+export type Newsletter = InferSelectModel<typeof s.newsletter>;
+export type NewNewsletter = InferInsertModel<typeof s.newsletter>;
+export type Media = InferSelectModel<typeof s.media>;
+export type NewMedia = InferInsertModel<typeof s.media>;
+export type ApiKey = InferSelectModel<typeof s.apiKey>;
+export type NewApiKey = InferInsertModel<typeof s.apiKey>;
+export type AuditLog = InferSelectModel<typeof s.auditLog>;
+export type NewAuditLog = InferInsertModel<typeof s.auditLog>;

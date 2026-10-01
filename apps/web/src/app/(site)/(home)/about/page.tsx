@@ -1,22 +1,43 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { SectionHeader } from "@/components/layout/SectionHeader";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "About Scott Gilbert, a computer engineer who writes about engineering, making and meaningful human impact.",
+  alternates: { canonical: "/about" },
+};
+
 export default function AboutPage() {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-12 text-center dark:border-zinc-700 dark:bg-zinc-900/50">
-      {/* Engineering-style background grid accent (optional) */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[14px_24px]" />
-      <div className="mx-auto max-w-md">
-        {/* Simple Terminal-like Icon */}
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 font-mono text-xl font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-          &lt;/&gt;
-        </div>
-        <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          About The Author
-        </h2>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          This blog is maintained by Scott, a computer engineer passionate about
-          technology and the making miracles at the same itme. Check back soon
-          for more information about the author and the blog&apos;s mission.
+    <PageContainer size="prose" className="py-12 sm:py-16">
+      <SectionHeader
+        eyebrow="About"
+        title="About the author"
+        description="This blog is maintained by Scott, a computer engineer passionate about technology and about making miracles happen at the same time."
+      />
+      <div className="mt-10 space-y-5 text-lg leading-8 text-muted">
+        <p>
+          More information about the author and the mission of this blog is
+          coming soon. In the meantime, browse the{" "}
+          <Link
+            href="/personal"
+            className="font-semibold text-accent underline underline-offset-4"
+          >
+            personal
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/engineering"
+            className="font-semibold text-accent underline underline-offset-4"
+          >
+            engineering
+          </Link>{" "}
+          sections.
         </p>
       </div>
-    </div>
+    </PageContainer>
   );
 }

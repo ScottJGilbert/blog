@@ -1,69 +1,119 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { FaSun, FaMoon } from "react-icons/fa";
-import { clsx } from "clsx";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ThemeToggle } from "../ui/ThemeToggle";
+import { usePathname } from "next/navigation";
+import { clsx } from "clsx";
+import { LuMenu, LuX } from "react-icons/lu";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { SECTIONS, SITE_DOMAIN, isActivePath } from "@/lib/site";
 
-const blogLinks = [
-  { label: "Home", href: "/" },
-  { label: "Personal", href: "/personal" },
-  { label: "Engineering", href: "/engineering" },
-];
+const NAV_LIST_ID = "primary-nav-list";
 
+/**
+ * Sticky site header (reserves its own 4rem of space, never overlaps content).
+ *  - >= md: brand, inline links, theme toggle.
+ *  - <  md: brand, theme toggle and a disclosure button that reveals the links
+ *    in a panel below the header. Escape / outside click / focus leaving /
+ *    route change all close it; Escape returns focus to the button.
+ * It inherits colours and fonts from the surrounding [data-section] theme.
+ */
 export default function Navbar() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  const setLight = () => {
-    document.documentElement.classList.remove("dark");
-    setIsDarkMode(false);
-  };
-  const setDark = () => {
-    document.documentElement.classList.add("dark");
-    setIsDarkMode(true);
-  };
-
   const pathname = usePathname();
-  const activeLink = blogLinks.find((link) => link.href === pathname);
+  // Remember the path the menu was opened on: navigating elsewhere closes it
+  // without needing an effect.
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const open = openPath === pathname;
+
+  const headerRef = useRef<HTMLElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!headerRef.current?.contains(event.target as Node)) {
+        setOpenPath(null);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
 
   return (
-    <nav className="pointer-events-none fixed left-0 right-0 top-8 z-50 flex justify-center px-8">
-      <div className="flex w-full max-w-7xl items-center justify-between">
-        {/* Brand */}
-        <div className="pointer-events-auto">
-          <Link
-            href="/"
-            className="font-display-lg text-headline-md tracking-tighter text-primary dark:text-primary-fixed-dim"
-          >
-            blog.scottgilbert.dev
-          </Link>
-        </div>
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-40 border-b border-border bg-bg/95 backdrop-blur-sm supports-[backdrop-filter]:bg-bg/85"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && open) {
+          setOpenPath(null);
+          buttonRef.current?.focus();
+        }
+      }}
+      onBlur={(event) => {
+        // Keyboard users tabbing out of the open panel close it.
+        if (open && !headerRef.current?.contains(event.relatedTarget)) {
+          setOpenPath(null);
+        }
+      }}
+    >
+      <PageContainer
+        size="wide"
+        className="flex h-(--spacing-header) items-center justify-between gap-2"
+      >
+        <Link
+          href="/"
+          aria-label={`${SITE_DOMAIN}, home`}
+          className="inline-flex min-h-11 min-w-0 items-center truncate font-display text-[0.9375rem] font-extrabold tracking-tight text-accent sm:text-xl"
+        >
+          {SITE_DOMAIN}
+        </Link>
 
-        {/* Consolidated switcher pill */}
-        <div className="glass-effect pointer-events-auto flex items-center gap-1 rounded-full bg-surface/80 px-2 py-1.5 shadow-lg dark:bg-dark-background/80">
-          <div className="flex items-center gap-1 px-3">
-            {blogLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className={
-                  activeLink?.href === link.href
-                    ? "rounded-full bg-primary/5 px-3 py-1.5 font-label-md text-label-md font-bold text-primary dark:bg-primary-fixed/10 dark:text-primary-fixed-dim"
-                    : "px-3 py-1.5 font-label-md text-label-md text-on-surface-variant transition-colors hover:text-primary dark:hover:text-primary-fixed-dim"
-                }
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="mx-1 h-6 w-px bg-outline-variant/20" />
+        <div className="flex items-center gap-1">
+          <nav aria-label="Primary">
+            <ul
+              id={NAV_LIST_ID}
+              className={clsx(
+                "absolute inset-x-0 top-full flex-col gap-1 border-b border-border bg-bg p-3 shadow-card",
+                "md:static md:flex md:flex-row md:border-0 md:bg-transparent md:p-0 md:shadow-none",
+                open ? "flex" : "hidden",
+              )}
+            >
+              {SECTIONS.map((link) => (
+                <li key={link.id}>
+                  <Link
+                    href={link.href}
+                    aria-current={
+                      isActivePath(pathname, link.href) ? "page" : undefined
+                    }
+                    className="flex min-h-11 items-center rounded-full px-4 text-base font-semibold text-fg transition-colors hover:bg-surface-2 aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent-soft-fg md:text-sm"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           <ThemeToggle />
+
+          <button
+            ref={buttonRef}
+            type="button"
+            aria-expanded={open}
+            aria-controls={NAV_LIST_ID}
+            aria-label="Menu"
+            onClick={() => setOpenPath(open ? null : pathname)}
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-fg transition-colors hover:bg-surface-2 md:hidden"
+          >
+            {open ? (
+              <LuX aria-hidden className="size-6" />
+            ) : (
+              <LuMenu aria-hidden className="size-6" />
+            )}
+          </button>
         </div>
-      </div>
-    </nav>
+      </PageContainer>
+    </header>
   );
 }

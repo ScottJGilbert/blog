@@ -1,0 +1,47 @@
+[
+  {
+    "id": "building-a-blog-platform",
+    "text": "Building a Blog Platform",
+    "level": 1
+  },
+  {
+    "id": "formatting",
+    "text": "Formatting",
+    "level": 2
+  },
+  {
+    "id": "lists",
+    "text": "Lists",
+    "level": 2
+  },
+  {
+    "id": "inline-extras",
+    "text": "Inline extras",
+    "level": 2
+  },
+  {
+    "id": "code",
+    "text": "Code",
+    "level": 2
+  },
+  {
+    "id": "math",
+    "text": "Math",
+    "level": 3
+  },
+  {
+    "id": "media",
+    "text": "Media",
+    "level": 2
+  },
+  {
+    "id": "tables",
+    "text": "Tables",
+    "level": 2
+  },
+  {
+    "id": "layout-and-collapsible",
+    "text": "Layout and collapsible",
+    "level": 2
+  }
+]

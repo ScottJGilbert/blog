@@ -1,168 +1,359 @@
-@import url("https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Manrope:wght@400;500;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block");
-
 @import "tailwindcss";
-@plugin "@tailwindcss/postcss";
-@plugin "@tailwindcss/container-queries";
 
-/* v4 defaults to media-query dark mode; opt back into the class strategy
-   so the light_mode/dark_mode buttons (toggling .dark on <html>) still work */
+/* Dark mode is driven by a `.dark` class on <html>, applied before first paint
+   by the inline script in app/layout.tsx. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ==========================================================================
+   Design tokens
+   --------------------------------------------------------------------------
+   1. Shared tokens (@theme): type scale, radius, shadow, motion, containers.
+   2. Semantic colour/font variables (--bg, --surface, --text, ...) are set per
+      section via [data-section="home|personal|engineering"] with light + dark
+      values and mapped onto Tailwind utilities (bg-bg, text-fg, text-muted,
+      bg-accent, border-border, ring-ring, font-display, ...).
+   ========================================================================== */
+
 @theme {
-  /* Colors */
-  --color-dark-background: #0b1f17;
-  --color-tertiary-fixed-dim: #f5b7b8;
-  --color-on-error-container: #93000a;
-  --color-surface-dim: #d8dad9;
-  --color-surface: #f8faf8;
-  --color-primary-fixed-dim: #a5d0b8;
-  --color-on-primary: #ffffff;
-  --color-secondary-fixed-dim: #a5d0b9;
-  --color-surface-container-lowest: #ffffff;
-  --color-primary-fixed: #c0edd4;
-  --color-secondary-fixed: #c1ecd4;
-  --color-on-tertiary: #ffffff;
-  --color-outline-variant: #c1c8c2;
-  --color-surface-container-low: #f2f4f2;
-  --color-surface-container-highest: #e1e3e1;
-  --color-dark-on-surface: #e1e5e2;
-  --color-surface-container-high: #e6e9e7;
-  --color-inverse-on-surface: #eff1ef;
-  --color-surface-container: #eceeec;
-  --color-on-secondary-container: #436b58;
-  --color-on-secondary-fixed-variant: #274e3d;
-  --color-outline: #717973;
-  --color-on-primary-fixed-variant: #264e3c;
-  --color-surface-variant: #e1e3e1;
-  --color-secondary-container: #beead1;
-  --color-on-tertiary-container: #b67f80;
-  --color-primary-container: #012d1d;
-  --color-on-secondary-fixed: #002114;
-  --color-tertiary: #260709;
-  --color-on-primary-fixed: #002114;
-  --color-inverse-surface: #2e3130;
-  --color-surface-tint: #3e6653;
-  --color-background: #f8faf8;
-  --color-on-tertiary-fixed: #331013;
-  --color-on-background: #191c1b;
-  --color-on-error: #ffffff;
-  --color-on-surface-variant: #414844;
-  --color-error-container: #ffdad6;
-  --color-error: #ba1a1a;
-  --color-on-surface: #191c1b;
-  --color-inverse-primary: #a5d0b8;
-  --color-surface-bright: #f8faf8;
-  --color-on-tertiary-fixed-variant: #663a3c;
-  --color-primary: #00160c;
-  --color-tertiary-container: #401b1d;
-  --color-tertiary-fixed: #ffdada;
-  --color-on-primary-container: #6d9681;
-  --color-secondary: #3f6653;
-  --color-on-secondary: #ffffff;
+  /* Fluid display sizes; body scale uses Tailwind defaults (text-sm = 14px,
+     text-base = 16px ...). Never go below 0.75rem (12px), and only for
+     uppercase labels. */
+  --text-display: clamp(2.5rem, 1.6rem + 4.2vw, 4.5rem);
+  --text-display--line-height: 1.05;
+  --text-h1: clamp(2rem, 1.5rem + 2.4vw, 3rem);
+  --text-h1--line-height: 1.12;
+  --text-eyebrow: 0.8125rem;
+  --text-eyebrow--line-height: 1.25;
 
-  /* Border radius */
-  --radius-DEFAULT: 0.5rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1.5rem;
-  --radius-full: 9999px;
+  /* Radius */
+  --radius-control: 0.5rem;
+  --radius-card: 1rem;
+  --radius-panel: 1.5rem;
 
-  /* Spacing */
-  --spacing-card-padding: 2rem;
-  --spacing-base: 8px;
-  --spacing-sidebar-width: 18rem;
-  --spacing-section-gap: 6rem;
-  --spacing-bento-gap: 1.5rem;
+  /* Elevation */
+  --shadow-card:
+    0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.12);
+  --shadow-card-hover:
+    0 1px 2px rgb(0 0 0 / 0.05), 0 20px 40px -20px rgb(0 0 0 / 0.22);
 
-  /* Font families */
-  --font-display-lg: "Epilogue", sans-serif;
-  --font-label-sm: "Manrope", sans-serif;
-  --font-headline-md: "Epilogue", sans-serif;
-  --font-display-lg-mobile: "Epilogue", sans-serif;
-  --font-body-md: "Manrope", sans-serif;
-  --font-title-lg: "Manrope", sans-serif;
-  --font-label-md: "Manrope", sans-serif;
-  --font-body-lg: "Manrope", sans-serif;
+  /* Motion */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* Font sizes (value + paired line-height/letter-spacing/weight) */
-  --text-display-lg: 80px;
-  --text-display-lg--line-height: 1;
-  --text-display-lg--letter-spacing: -0.02em;
-  --text-display-lg--font-weight: 800;
+  /* Layout containers (see components/layout/PageContainer) */
+  --container-reading: 44rem;
+  --container-page: 64rem;
+  --container-wide: 80rem;
 
-  --text-label-sm: 11px;
-  --text-label-sm--line-height: 1;
-  --text-label-sm--font-weight: 700;
-
-  --text-headline-md: 24px;
-  --text-headline-md--line-height: 1.2;
-  --text-headline-md--font-weight: 700;
-
-  --text-display-lg-mobile: 48px;
-  --text-display-lg-mobile--line-height: 1.1;
-  --text-display-lg-mobile--font-weight: 800;
-
-  --text-body-md: 14px;
-  --text-body-md--line-height: 1.6;
-  --text-body-md--font-weight: 400;
-
-  --text-title-lg: 20px;
-  --text-title-lg--line-height: 1.4;
-  --text-title-lg--font-weight: 700;
-
-  --text-label-md: 12px;
-  --text-label-md--line-height: 1;
-  --text-label-md--letter-spacing: 0.1em;
-  --text-label-md--font-weight: 700;
-
-  --text-body-lg: 16px;
-  --text-body-lg--line-height: 1.6;
-  --text-body-lg--font-weight: 400;
+  /* Header height is reserved in flow (sticky), keep in sync with Navbar */
+  --spacing-header: 4rem;
 }
 
+/* Map semantic variables to utilities. `inline` keeps the var() reference at the
+   point of use so the nearest [data-section] wins. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-fg: var(--accent-soft-fg);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ring: var(--ring);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--f-body);
+  --font-display: var(--f-display);
+  --font-accent: var(--f-accent);
+}
+
+/* --------------------------------------------------------------------------
+   Section: HOME  ("arboretum" editorial greens)
+   -------------------------------------------------------------------------- */
+[data-section="home"] {
+  --bg: #f8faf8;
+  --surface: #ffffff;
+  --surface-2: #eef2ee;
+  --text: #191c1b;
+  --muted: #4a524d;
+  --accent: #0f4a33;
+  --accent-hover: #0a3826;
+  --accent-fg: #ffffff;
+  --accent-soft: #d4efe0;
+  --accent-soft-fg: #1c4a37;
+  --border: #dbe3dd;
+  --border-strong: #7f8c85;
+  --ring: #1b6b4a;
+  --danger: #ba1a1a;
+  --motif: rgb(15 74 51 / 0.07);
+
+  --f-body:
+    var(--font-manrope, "Manrope"), ui-sans-serif, system-ui, sans-serif;
+  --f-display:
+    var(--font-epilogue, var(--font-manrope, "Manrope")), ui-sans-serif,
+    system-ui, sans-serif;
+  --f-accent: var(--f-body);
+  --h-weight: 800;
+  --h-tracking: -0.025em;
+  --eyebrow-tracking: 0.12em;
+}
+.dark [data-section="home"] {
+  --bg: #0b1f17;
+  --surface: #122b20;
+  --surface-2: #19382b;
+  --text: #e6ece8;
+  --muted: #a8b8ae;
+  --accent: #a5d9bd;
+  --accent-hover: #c0edd4;
+  --accent-fg: #06241a;
+  --accent-soft: #1f4535;
+  --accent-soft-fg: #b9e3cb;
+  --border: #234536;
+  --border-strong: #5f8070;
+  --ring: #a5d9bd;
+  --danger: #ffb4ab;
+  --motif: rgb(165 217 189 / 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   Section: ENGINEERING  (technical zinc + emerald, mono accents, grid motif)
+   -------------------------------------------------------------------------- */
+[data-section="engineering"] {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --text: #18181b;
+  --muted: #52525b;
+  --accent: #047857;
+  --accent-hover: #065f46;
+  --accent-fg: #ffffff;
+  --accent-soft: #d1fae5;
+  --accent-soft-fg: #065f46;
+  --border: #e4e4e7;
+  --border-strong: #80808a;
+  --ring: #059669;
+  --danger: #b91c1c;
+  --motif: rgb(24 24 27 / 0.06);
+
+  --f-body:
+    var(--font-manrope, "Manrope"), ui-sans-serif, system-ui, sans-serif;
+  --f-display:
+    var(--font-jetbrains-mono, "JetBrains Mono"), ui-monospace,
+    "SFMono-Regular", Menlo, monospace;
+  --f-accent:
+    var(--font-jetbrains-mono, "JetBrains Mono"), ui-monospace,
+    "SFMono-Regular", Menlo, monospace;
+  --h-weight: 700;
+  --h-tracking: -0.03em;
+  --eyebrow-tracking: 0.04em;
+}
+.dark [data-section="engineering"] {
+  --bg: #09090b;
+  --surface: #121214;
+  --surface-2: #1c1c1f;
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --accent: #34d399;
+  --accent-hover: #6ee7b7;
+  --accent-fg: #04281d;
+  --accent-soft: #064e3b;
+  --accent-soft-fg: #a7f3d0;
+  --border: #27272a;
+  --border-strong: #71717a;
+  --ring: #34d399;
+  --danger: #fca5a5;
+  --motif: rgb(255 255 255 / 0.05);
+}
+
+/* --------------------------------------------------------------------------
+   Section: PERSONAL  (warm editorial paper, serif display, soft terracotta)
+   -------------------------------------------------------------------------- */
+[data-section="personal"] {
+  --bg: #fbf6ee;
+  --surface: #fffdf9;
+  --surface-2: #f3eadb;
+  --text: #2a2118;
+  --muted: #67584a;
+  --accent: #a1472a;
+  --accent-hover: #843720;
+  --accent-fg: #ffffff;
+  --accent-soft: #f6dcc8;
+  --accent-soft-fg: #6e2f19;
+  --border: #e6dac6;
+  --border-strong: #8f7b63;
+  --ring: #b4552f;
+  --danger: #a4262c;
+  --motif: rgb(161 71 42 / 0.1);
+
+  --f-body:
+    var(--font-manrope, "Manrope"), ui-sans-serif, system-ui, sans-serif;
+  --f-display:
+    var(--font-fraunces, "Fraunces"), ui-serif, Georgia, "Times New Roman",
+    serif;
+  --f-accent: var(--f-body);
+  --h-weight: 600;
+  --h-tracking: -0.015em;
+  --eyebrow-tracking: 0.1em;
+}
+.dark [data-section="personal"] {
+  --bg: #1b1612;
+  --surface: #241d17;
+  --surface-2: #2e261e;
+  --text: #f3ebdf;
+  --muted: #c0b09b;
+  --accent: #eba37c;
+  --accent-hover: #f6c0a0;
+  --accent-fg: #2c1608;
+  --accent-soft: #4a2f20;
+  --accent-soft-fg: #f6cdb3;
+  --border: #3a3027;
+  --border-strong: #8a785f;
+  --ring: #eba37c;
+  --danger: #ffb4ab;
+  --motif: rgb(235 163 124 / 0.1);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
 @layer base {
   html {
-    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--spacing-header) + 1rem);
+  }
+
+  /* Smooth anchor scrolling only for people who have not asked for less
+     motion. data-scroll-behavior lets Next.js suspend it during navigations. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 
   body {
-    @apply font-body-md overflow-x-hidden bg-surface text-on-surface transition-colors duration-300 dark:bg-dark-background;
+    margin: 0;
+    background-color: #f8faf8;
+    color: #191c1b;
+    font-family:
+      var(--font-manrope, "Manrope"), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  :root.dark body {
+    background-color: #0b1f17;
+    color: #e6ece8;
+  }
+
+  /* Headings follow the active section's typeface. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--f-display);
+    font-weight: var(--h-weight, 700);
+    letter-spacing: var(--h-tracking, -0.02em);
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--accent-soft-fg);
+  }
+
+  /* One shared, always-visible focus ring (WCAG 2.4.7 / 2.4.11). */
+  :where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex]
+  ):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-control);
+  }
+  :where(main):focus {
+    outline: none;
   }
 }
 
+/* People who ask for reduced motion get no animation or transition at all. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   Component-level utilities shared by all themes
+   ========================================================================== */
 @layer utilities {
-  /* Frosted glass pill used by the top nav switcher */
-  .glass-effect {
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+  /* Small uppercase label. Always >= 13px. */
+  .eyebrow {
+    font-family: var(--f-accent);
+    font-size: var(--text-eyebrow);
+    line-height: var(--text-eyebrow--line-height);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: var(--eyebrow-tracking, 0.1em);
   }
 
-  /* Hover lift + shadow used by the bento grid cards */
-  .bento-card-hover {
+  /* Section motif painted behind a header/hero. Purely decorative, GPU-free
+     (static gradients), and never affects layout. */
+  .section-motif {
+    position: relative;
+    isolation: isolate;
+  }
+  .section-motif::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  [data-section="home"] .section-motif::before {
+    background:
+      radial-gradient(60% 80% at 15% 0%, var(--motif), transparent 70%),
+      radial-gradient(40% 60% at 90% 10%, var(--motif), transparent 70%);
+  }
+  [data-section="engineering"] .section-motif::before {
+    background-image:
+      linear-gradient(to right, var(--motif) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--motif) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+  }
+  [data-section="personal"] .section-motif::before {
+    background:
+      radial-gradient(circle at 85% 0%, var(--motif), transparent 55%),
+      radial-gradient(circle, var(--motif) 1px, transparent 1.5px) 0 0 / 22px
+        22px;
+    mask-image: linear-gradient(to bottom, #000 20%, transparent 100%);
+  }
+
+  /* Card lift: transforms only when motion is allowed. */
+  .card-lift {
     transition:
-      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      transform 0.35s var(--ease-soft),
+      box-shadow 0.35s var(--ease-soft),
+      border-color 0.2s;
   }
-  .bento-card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -20px rgb(0 22 12 / 0.15);
+  @media (prefers-reduced-motion: no-preference) {
+    .card-lift:hover {
+      transform: translateY(-3px);
+    }
   }
-
-  /* Subtle tonal wash behind the footer */
-  .tonal-layering {
-    background: linear-gradient(
-      to bottom,
-      transparent,
-      var(--color-surface-container-lowest) 40%
-    );
-  }
-  .dark .tonal-layering {
-    background: linear-gradient(
-      to bottom,
-      transparent,
-      color-mix(in srgb, var(--color-surface-container-highest) 5%, transparent)
-        40%
-    );
+  .card-lift:hover {
+    box-shadow: var(--shadow-card-hover);
   }
 }

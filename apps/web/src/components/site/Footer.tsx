@@ -1,27 +1,25 @@
 import Link from "next/link";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { SmartLink } from "@/components/ui/SmartLink";
+import { SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
-interface NavigationGroup {
-  title: { label: string; href: string | null };
+interface FooterGroup {
+  title: string;
   links: { label: string; href: string }[];
 }
 
-const navigationGroups: NavigationGroup[] = [
+const FOOTER_GROUPS: FooterGroup[] = [
   {
-    title: {
-      label: "Home",
-      href: "/",
-    },
+    title: "Explore",
     links: [
       { label: "Home", href: "/" },
+      { label: "Personal", href: "/personal" },
+      { label: "Engineering", href: "/engineering" },
       { label: "About", href: "/about" },
-      { label: "Legal", href: "/legal" },
     ],
   },
   {
-    title: {
-      label: "External",
-      href: null,
-    },
+    title: "Elsewhere",
     links: [
       {
         label: "LinkedIn",
@@ -33,89 +31,57 @@ const navigationGroups: NavigationGroup[] = [
     ],
   },
   {
-    title: {
-      label: "Miscellaneous",
-      href: null,
-    },
-    links: [
-      { label: "RSS Feed", href: "/rss.xml" },
-      { label: "Sitemap", href: "/sitemap.xml" },
-    ],
+    title: "Site",
+    // B3: add the RSS feed link once /feed.xml exists.
+    links: [{ label: "Sitemap", href: "/sitemap.xml" }],
   },
 ];
 
+const linkClass =
+  "inline-flex min-h-11 items-center gap-1 whitespace-nowrap text-muted underline-offset-4 transition-colors hover:text-accent hover:underline";
+
 export default function Footer() {
   return (
-    <footer className="w-full tonal-layering pt-24 px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* <!-- Main Footer Grid --> */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16">
-          {/* <!-- Left Column: Branding & Newsletter --> */}
-          <div className="md:col-span-5 space-y-12">
-            <div className="space-y-6">
-              <div className="font-display-lg text-headline-md text-primary dark:text-primary-fixed-dim tracking-tighter">
-                blog.scottgilbert.dev
-              </div>
-            </div>
-            <div className="space-y-4">
-              <p className="font-label-md text-label-md text-on-surface uppercase tracking-widest">
-                Stay in the loop:
-              </p>
-              <div className="flex gap-2 max-w-sm">
-                <input
-                  className="flex-1 bg-surface-container-high/50 dark:bg-surface-container-highest/10 border-none rounded-lg px-4 py-3 font-body-md focus:ring-2 focus:ring-primary/20 text-on-surface"
-                  placeholder="Email address"
-                  type="email"
-                />
-                <button className="bg-primary-container dark:bg-primary-fixed text-on-primary dark:text-on-primary-fixed px-6 py-3 rounded-lg font-label-md hover:bg-primary transition-all">
-                  SIGNUP
-                </button>
-              </div>
-            </div>
+    <footer className="mt-24 border-t border-border bg-surface-2/40">
+      <PageContainer size="wide" className="py-12 sm:py-16">
+        <div className="grid gap-10 md:grid-cols-12">
+          <div className="md:col-span-5">
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center font-display text-xl font-extrabold tracking-tight text-accent"
+            >
+              {SITE_DOMAIN}
+            </Link>
+            <p className="mt-3 max-w-sm text-muted">
+              Notes on engineering, making, and life from {SITE_NAME}.
+            </p>
           </div>
 
-          {/* <!-- Right Column: Navigation Links --> */}
-          <div className="md:col-span-7 grid grid-cols-2 md:grid-cols-4 gap-8 justify-items-start">
-            {navigationGroups.map((group) => (
-              <div
-                className="flex flex-col gap-6 items-start"
-                key={group.title.label}
-              >
-                {group.title.href ? (
-                  <Link
-                    href={group.title.href}
-                    className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest"
-                  >
-                    {group.title.label}
-                  </Link>
-                ) : (
-                  <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">
-                    {group.title.label}
-                  </p>
-                )}
-                <nav className="flex flex-col gap-3 items-start">
+          <nav
+            aria-label="Footer"
+            className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 md:col-span-7"
+          >
+            {FOOTER_GROUPS.map((group) => (
+              <div key={group.title}>
+                <h2 className="eyebrow text-fg">{group.title}</h2>
+                <ul className="mt-2">
                   {group.links.map((link) => (
-                    <Link
-                      className="font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors"
-                      href={link.href}
-                      key={link.label}
-                    >
-                      {link.label}
-                    </Link>
+                    <li key={link.href}>
+                      <SmartLink href={link.href} className={linkClass}>
+                        {link.label}
+                      </SmartLink>
+                    </li>
                   ))}
-                </nav>
+                </ul>
               </div>
             ))}
-          </div>
+          </nav>
         </div>
 
-        {/* <!-- Footer Bottom --> */}
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-outline-variant/5 gap-4">
-          <p className="font-body-md text-body-md text-on-surface-variant opacity-60">
-            © 2026 Scott Gilbert. All rights reserved.
-          </p>
-        </div>
-      </div>
+        <p className="mt-10 border-t border-border pt-6 text-sm text-muted">
+          &copy; {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
+        </p>
+      </PageContainer>
     </footer>
   );
 }

@@ -1,39 +1,66 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { manrope } from "@/lib/fonts/manrope";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
+import { SITE_URL } from "@/lib/site-url";
+import { themeInitScript } from "@/lib/theme-script";
 
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const DEFAULT_TITLE = `Blog | ${SITE_NAME}`;
 
 export const metadata: Metadata = {
-  title: "Blog | Scott Gilbert",
-  description: "Coming soon...",
+  metadataBase: new URL(SITE_URL),
+  title: { default: DEFAULT_TITLE, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: DEFAULT_TITLE,
+  authors: [{ name: SITE_NAME }],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: DEFAULT_TITLE,
+    title: DEFAULT_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "en_US",
+    url: "/",
+  },
+  twitter: {
+    card: "summary",
+    title: DEFAULT_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8faf8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1f17" },
+  ],
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
+    // suppressHydrationWarning: the inline script below adds `dark` to <html>
+    // before React hydrates.
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={manrope.variable}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body>
         <ThemeProvider>{children}</ThemeProvider>
-        <Analytics />
+        {/* Vercel Analytics only exists on Vercel; elsewhere its script 404s. */}
+        {process.env.VERCEL ? <Analytics /> : null}
       </body>
     </html>
   );

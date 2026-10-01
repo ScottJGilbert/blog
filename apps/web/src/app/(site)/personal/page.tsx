@@ -1,12 +1,35 @@
+import type { Metadata } from "next";
+import { LuPenLine } from "react-icons/lu";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { SectionHeader } from "@/components/layout/SectionHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
+
+export const metadata: Metadata = {
+  title: "Personal",
+  description:
+    "Life updates, reflections, and what I’m learning beyond the screen.",
+  alternates: { canonical: "/personal" },
+};
+
 export default function PersonalPage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 antialiased">
-      <h1 className="mb-4 font-display-lg text-headline-lg tracking-tighter text-on-surface dark:text-on-surface-fixed">
-        Personal
-      </h1>
-      <p className="mb-8 font-body-md text-body-md text-on-surface-variant dark:text-on-surface-variant-fixed">
-        This is the personal page.
-      </p>
-    </div>
+    <>
+      <div className="section-motif">
+        <PageContainer className="pt-12 pb-10 sm:pt-16">
+          <SectionHeader
+            eyebrow="Reflections"
+            title="Personal"
+            description="Life updates, philosophical reflections, and what I’m currently learning beyond the screen."
+          />
+        </PageContainer>
+      </div>
+      <PageContainer className="pb-16">
+        <EmptyState
+          icon={<LuPenLine />}
+          title="The first entry is on its way"
+          description="I’m still gathering my thoughts. Check back soon for the first story."
+        />
+      </PageContainer>
+    </>
   );
 }

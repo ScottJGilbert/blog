@@ -1,77 +1,118 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useSyncExternalStore,
+} from "react";
+import { THEME_STORAGE_KEY } from "@/lib/theme-script";
 
 export type Theme = "light" | "dark" | "system";
-type ResolvedTheme = "light" | "dark";
-
-interface ThemeProviderProps {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey?: string;
-}
+export type ResolvedTheme = "light" | "dark";
 
 interface ThemeContextValue {
+  /** The stored preference. `system` follows the OS. */
   theme: Theme;
+  /** What is actually rendered right now. */
   resolvedTheme: ResolvedTheme;
   setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
+const THEME_EVENT = "blog-theme-change";
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
 const isTheme = (value: string | null): value is Theme =>
   value === "light" || value === "dark" || value === "system";
 
-export function ThemeProvider({
-  children,
-  defaultTheme = "system",
-  storageKey = "portfolio-theme",
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") {
-      return defaultTheme;
-    }
+function readStoredTheme(): Theme {
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return isTheme(stored) ? stored : "system";
+  } catch {
+    return "system";
+  }
+}
 
-    const storedTheme = window.localStorage.getItem(storageKey);
-    return isTheme(storedTheme) ? storedTheme : defaultTheme;
-  });
-  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() => {
-    if (typeof window === "undefined") {
-      return "light";
-    }
+function applyTheme(dark: boolean) {
+  const root = document.documentElement;
+  root.classList.toggle("dark", dark);
+  root.style.colorScheme = dark ? "dark" : "light";
+}
 
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  });
-  const resolvedTheme: ResolvedTheme = theme === "system" ? systemTheme : theme;
+function subscribeTheme(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(THEME_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(THEME_EVENT, onChange);
+  };
+}
 
+function subscribeSystem(onChange: () => void) {
+  const query = window.matchMedia(DARK_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/**
+ * SSR-safe theme state. The server (and the hydration pass) always sees
+ * `system`/light; the real value is read from localStorage on the client
+ * through useSyncExternalStore, so hydration never mismatches. The visual
+ * theme itself is applied before paint by `themeInitScript`, not by React.
+ */
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const theme = useSyncExternalStore<Theme>(
+    subscribeTheme,
+    readStoredTheme,
+    () => "system",
+  );
+  const systemDark = useSyncExternalStore(
+    subscribeSystem,
+    () => window.matchMedia(DARK_QUERY).matches,
+    () => false,
+  );
+  const resolvedTheme: ResolvedTheme =
+    theme === "system" ? (systemDark ? "dark" : "light") : theme;
+
+  // Follow OS changes while the preference is `system`, and theme changes made
+  // in another tab. (Never applied on mount: the init script already did, and a
+  // pre-hydration snapshot must not undo it.)
   useEffect(() => {
-    window.localStorage.setItem(storageKey, theme);
-  }, [storageKey, theme]);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const updateSystemTheme = (event: MediaQueryListEvent) => {
-      setSystemTheme(event.matches ? "dark" : "light");
+    const query = window.matchMedia(DARK_QUERY);
+    const sync = () => {
+      const stored = readStoredTheme();
+      applyTheme(stored === "system" ? query.matches : stored === "dark");
     };
-    mediaQuery.addEventListener("change", updateSystemTheme);
-
+    query.addEventListener("change", sync);
+    window.addEventListener("storage", sync);
     return () => {
-      mediaQuery.removeEventListener("change", updateSystemTheme);
+      query.removeEventListener("change", sync);
+      window.removeEventListener("storage", sync);
     };
   }, []);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle("dark", resolvedTheme === "dark");
-    root.style.colorScheme = resolvedTheme;
-  }, [resolvedTheme]);
+  const setTheme = useCallback((next: Theme) => {
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch {
+      /* storage unavailable: the choice just won't persist */
+    }
+    applyTheme(
+      next === "system"
+        ? window.matchMedia(DARK_QUERY).matches
+        : next === "dark",
+    );
+    window.dispatchEvent(new Event(THEME_EVENT));
+  }, []);
 
   const value = useMemo(
     () => ({ theme, resolvedTheme, setTheme }),
-    [theme, resolvedTheme],
+    [theme, resolvedTheme, setTheme],
   );
 
   return (
@@ -81,10 +122,8 @@ export function ThemeProvider({
 
 export function useTheme() {
   const context = useContext(ThemeContext);
-
   if (!context) {
     throw new Error("useTheme must be used within a ThemeProvider");
   }
-
   return context;
 }

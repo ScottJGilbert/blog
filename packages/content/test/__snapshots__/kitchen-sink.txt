@@ -1,0 +1,67 @@
+Building a Blog Platform
+
+An intro with bold, italic, both and code.
+
+Formatting
+
+under strike both H2O x2 highlight UPPER
+	after tab and break
+
+Colored
+
+Centered and indented
+
+A wise quote.
+
+Lists
+
+one
+nested bullet
+two
+
+first
+nested number
+second
+
+done
+todo
+
+Inline extras
+
+external link internal link https://auto.example.com #lexical 🙂 Scott congrats [special] May 6, 2024 07:08 UTC E=mc^2 marked text overflowing
+
+Code
+
+const answer = 42;
+	// done
+
+Math
+
+\int_0^1 x^2\,dx = \frac{1}{3}
+
+Media
+
+A photo
+
+Captioned chart
+
+Figure 1: a chart
+
+Tables
+
+Name | Value
+alpha | 1 | one
+
+Layout and collapsible
+
+left column
+
+right column
+
+item
+
+More details
+
+Hidden until opened.
+
+Second paragraph.

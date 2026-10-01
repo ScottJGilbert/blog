@@ -1,43 +1,32 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { FaMoon as Moon } from "react-icons/fa";
-import { IoIosSunny as Sun } from "react-icons/io";
+import { LuMoon, LuSun } from "react-icons/lu";
+import { clsx } from "clsx";
 import { useTheme } from "@/providers/ThemeProvider";
 
-interface ThemeToggleProps {
-  className?: string;
-}
-
-export function ThemeToggle({ className = "" }: ThemeToggleProps) {
+/**
+ * Light/dark switch. Both icons are always rendered and swapped with CSS
+ * (`dark:` variant) so the button is identical on the server, during hydration
+ * and after, with a fixed 44x44 box (no layout shift, no empty placeholder).
+ * The accessible name is static; state is exposed through aria-pressed.
+ */
+export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-
   const isDark = resolvedTheme === "dark";
-  const nextTheme = isDark ? "light" : "dark";
-  const label = mounted ? `Switch to ${nextTheme} mode` : "Toggle theme";
 
   return (
     <button
       type="button"
-      onClick={() => setTheme(nextTheme)}
-      className={`inline-flex items-center justify-center rounded-full border border-outline-ghost bg-surface-container p-2 text-foreground/80 backdrop-blur transition-colors hover:bg-surface-alt/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${className}`.trim()}
-      aria-label={label}
-    >
-      {mounted ? (
-        isDark ? (
-          <Sun className="size-4" aria-hidden suppressHydrationWarning />
-        ) : (
-          <Moon className="size-4" aria-hidden suppressHydrationWarning />
-        )
-      ) : (
-        <span className="size-4" aria-hidden />
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label="Dark mode"
+      aria-pressed={isDark}
+      className={clsx(
+        "inline-flex size-11 shrink-0 items-center justify-center rounded-full text-fg transition-colors hover:bg-surface-2",
+        className,
       )}
-      <span className="sr-only">{label}</span>
+    >
+      <LuSun aria-hidden className="hidden size-5 dark:block" />
+      <LuMoon aria-hidden className="block size-5 dark:hidden" />
     </button>
   );
 }
