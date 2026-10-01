@@ -38,5 +38,18 @@ export const ReindexResultSchema = z.object({
   queued: count,
 });
 
+/** `GET /api/admin/system` — read-only environment health (admin settings page). Added by WP B2. */
+export const SystemInfoSchema = z.object({
+  db: z.enum(["up", "down"]),
+  /** mailer driver in use: console | smtp | resend | memory */
+  mailer: z.string(),
+  /** storage driver in use: local | vercel-blob | memory */
+  storage: z.string(),
+  embeddings: z.object({ enabled: z.boolean(), model: z.string() }),
+  newsletter: z.object({ provider: z.enum(["listmonk", "noop"]), configured: z.boolean() }),
+  version: z.string(),
+});
+
 export type Stats = z.infer<typeof StatsSchema>;
 export type ReindexResult = z.infer<typeof ReindexResultSchema>;
+export type SystemInfo = z.infer<typeof SystemInfoSchema>;

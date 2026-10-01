@@ -59,6 +59,8 @@ export function createApiClient(options: ApiClientOptions) {
 
   const admin = {
     stats: (init?: Init) => http.data("GET", "/admin/stats", S.StatsSchema, { init }),
+    /** Environment health: db, mailer, storage, embeddings, newsletter provider, version. */
+    system: (init?: Init) => http.data("GET", "/admin/system", S.SystemInfoSchema, { init }),
 
     posts: {
       list: (query: AdminListPostsQueryInput = {}, init?: Init) =>

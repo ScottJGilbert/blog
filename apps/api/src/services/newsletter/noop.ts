@@ -14,6 +14,9 @@ export class NoopProvider implements NewsletterProvider {
   async removeSubscriber(_externalIdOrEmail: string): Promise<void> {
     this.logger?.debug("[newsletter:noop] removeSubscriber skipped");
   }
+  async deleteSubscriber(_externalIdOrEmail: string): Promise<void> {
+    this.logger?.debug("[newsletter:noop] deleteSubscriber skipped");
+  }
   async sendCampaign(input: { subject: string; html: string; preheader?: string; name: string }): Promise<{ campaignId: string }> {
     this.logger?.warn(`[newsletter:noop] campaign "${input.name}" NOT sent: no newsletter provider configured (set LISTMONK_URL)`);
     return { campaignId: "noop" };

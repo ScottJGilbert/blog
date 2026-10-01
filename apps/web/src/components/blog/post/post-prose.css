@@ -1,0 +1,248 @@
+/*
+ * Styling for server-rendered post HTML (@blog/content renderHtml, target "web"). Loaded AFTER
+ *   @scottjgilbert/lexical-blog-editor/styles/ViewerTheme.css   (class names: ViewerTheme__*)
+ *   @blog/content/styles.css                                    (companion rules)
+ * Those sheets are UNLAYERED and keyed to `prefers-color-scheme`; the site themes by [data-section] + `.dark`, so
+ * everything the viewer theme colours is re-declared here from the semantic tokens (specificity beats the theme
+ * because every rule is prefixed with .post-prose). This file must stay unlayered for the same reason.
+ */
+.post-prose {
+  --bcf-muted: var(--muted);
+  --bcf-border: var(--border);
+  --bcf-surface: var(--surface-2);
+  --bcf-pill: var(--surface-2);
+  --bcf-accent: var(--accent);
+  --bcf-focus: var(--ring);
+
+  color: var(--text);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+@media (min-width: 640px) {
+  .post-prose {
+    font-size: 1.125rem;
+  }
+}
+
+/* ---- headings (content starts at h2; the page owns the h1) ---- */
+.post-prose :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--f-display);
+  font-weight: var(--h-weight, 700);
+  letter-spacing: var(--h-tracking, -0.02em);
+  line-height: 1.25;
+  color: var(--text);
+  text-transform: none;
+  margin: 2.25em 0 0.6em;
+  text-wrap: balance;
+}
+.post-prose > :first-child {
+  margin-top: 0;
+}
+.post-prose h2 {
+  font-size: 1.75rem;
+}
+.post-prose h3 {
+  font-size: 1.4rem;
+}
+.post-prose h4 {
+  font-size: 1.2rem;
+}
+.post-prose :is(h5, h6) {
+  font-size: 1.05rem;
+}
+
+/* ---- text ---- */
+.post-prose .ViewerTheme__paragraph {
+  margin: 0 0 1.25em;
+}
+.post-prose .ViewerTheme__link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.08em;
+  overflow-wrap: anywhere;
+}
+.post-prose .ViewerTheme__link:hover {
+  color: var(--accent-hover);
+}
+.post-prose .ViewerTheme__textCode {
+  background-color: var(--surface-2);
+  color: var(--text);
+  padding: 0.12em 0.35em;
+  border-radius: 0.3em;
+  font-size: 0.88em;
+}
+.post-prose .ViewerTheme__textHighlight {
+  background: var(--accent-soft);
+  color: var(--accent-soft-fg);
+  border-bottom: 2px solid var(--accent);
+}
+.post-prose .ViewerTheme__hashtag {
+  background-color: var(--accent-soft);
+  color: var(--accent-soft-fg);
+  border-bottom: 0;
+}
+.post-prose .ViewerTheme__quote {
+  margin: 0 0 1.5em;
+  padding: 0.25em 0 0.25em 1.25em;
+  border-left: 4px solid var(--accent);
+  color: var(--muted);
+  font-size: 1em;
+  font-style: italic;
+}
+
+/* ---- lists ---- */
+.post-prose :is(.ViewerTheme__ul, .ViewerTheme__ol1, .ViewerTheme__ol2, .ViewerTheme__ol3, .ViewerTheme__ol4, .ViewerTheme__ol5) {
+  padding: 0 0 0 1.5em;
+  margin: 0 0 1.25em;
+}
+.post-prose .ViewerTheme__listItem {
+  margin: 0.35em 0;
+}
+.post-prose .ViewerTheme__nestedListItem {
+  list-style-type: none;
+}
+.post-prose :is(.ViewerTheme__listItemChecked, .ViewerTheme__listItemUnchecked) {
+  margin: 0.35em 0;
+  padding-left: 1.75em;
+  padding-right: 0;
+}
+.post-prose .ViewerTheme__listItemChecked {
+  text-decoration: none;
+  color: var(--muted);
+}
+.post-prose .ViewerTheme__listItemUnchecked::before {
+  border-color: var(--border-strong);
+}
+.post-prose .ViewerTheme__listItemChecked::before {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+.post-prose .ViewerTheme__listItemChecked::after {
+  border-color: var(--accent-fg);
+}
+
+/* ---- code (always a light surface: syntax-highlight colours in content are light-theme colours) ---- */
+.post-prose pre.ViewerTheme__code {
+  background-color: #fafafa;
+  color: #2b2d33;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  margin: 0 0 1.5em;
+  padding: 0.9em 1em 0.9em 3.4em;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  max-width: 100%;
+}
+.post-prose pre.ViewerTheme__code::before {
+  background-color: #eeeff1;
+  border-right: 1px solid #d0d3d8;
+  color: #5b6068;
+  padding: 0.9em 0.55em;
+  min-width: 2.2em;
+}
+.post-prose pre.ViewerTheme__code span[style*="color"] {
+  filter: brightness(0.8);
+}
+.post-prose .ViewerTheme__tokenComment {
+  color: #565e68;
+}
+.post-prose .ViewerTheme__tokenPunctuation {
+  color: #565a60;
+}
+.post-prose .ViewerTheme__tokenOperator {
+  color: #7a5420;
+}
+.post-prose .ViewerTheme__tokenSelector {
+  color: #3d6600;
+}
+.post-prose .ViewerTheme__tokenVariable {
+  color: #8a5a00;
+}
+.post-prose .ViewerTheme__tokenFunction {
+  color: #b0243f;
+}
+
+/* ---- tables (wrapped by prepareContentHtml in a focusable scroll region) ---- */
+.post-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0 0 1.5em;
+}
+.post-prose .ViewerTheme__table {
+  overflow: visible;
+  margin: 0;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+.post-prose .ViewerTheme__tableCell {
+  border: 1px solid var(--border-strong);
+  padding: 0.5em 0.75em;
+  width: auto;
+  overflow: visible;
+}
+.post-prose .ViewerTheme__tableCell > :last-child {
+  margin-bottom: 0;
+}
+.post-prose .ViewerTheme__tableCellHeader {
+  background-color: var(--surface-2);
+  color: var(--text);
+  font-weight: 700;
+}
+.post-prose .ViewerTheme__tableRowStriping tr:nth-child(even) {
+  background-color: var(--surface-2);
+}
+.post-prose .ViewerTheme__tableRowStriping tr:nth-child(even) .ViewerTheme__tableCellHeader {
+  background-color: var(--surface-2);
+}
+.post-prose .ViewerTheme__tableCell[style*="background-color"] {
+  color: #1a1c1e; /* author-chosen cell backgrounds are light-theme colours */
+}
+
+/* ---- misc blocks ---- */
+.post-prose .ViewerTheme__hr {
+  margin: 2em 0;
+}
+.post-prose .ViewerTheme__hr::after {
+  background-color: var(--border-strong);
+}
+.post-prose .bcf-figure,
+.post-prose .bcf-embed {
+  margin: 0 0 1.5em;
+}
+.post-prose .bcf-image {
+  border-radius: var(--radius-control);
+}
+.post-prose .bcf-figure > figcaption {
+  color: var(--muted);
+}
+.post-prose .Collapsible__container {
+  background: var(--surface);
+  border-color: var(--border);
+  margin-bottom: 1em;
+}
+.post-prose .Collapsible__title {
+  padding: 0.6em 0.75em 0.6em 1.75em;
+  min-height: 2.75rem;
+}
+.post-prose .Collapsible__content {
+  padding: 0 1em 0.75em 1.75em;
+}
+.post-prose .ViewerTheme__layoutItem {
+  border-color: var(--border);
+}
+.post-prose .bcf-mention {
+  background-color: var(--accent-soft);
+  color: var(--accent-soft-fg);
+}
+.post-prose .bcf-datetime {
+  color: var(--text);
+}
+.post-prose .keyword {
+  color: var(--accent);
+}
+.post-prose .katex {
+  font-size: 1.08em;
+}

@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { LuMenu, LuX } from "react-icons/lu";
+import { LuMenu, LuSearch, LuX } from "react-icons/lu";
+import { AccountLink } from "@/components/auth/AccountLink";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SECTIONS, SITE_DOMAIN, isActivePath } from "@/lib/site";
@@ -92,9 +93,32 @@ export default function Navbar() {
                   </Link>
                 </li>
               ))}
+              {/* Account lives in the menu panel below md; md+ shows it as the header pill next to the toggle. */}
+              <li className="md:hidden">
+                <Link
+                  href="/search"
+                  aria-current={pathname === "/search" ? "page" : undefined}
+                  className="flex min-h-11 items-center gap-2 rounded-full px-4 text-base font-semibold text-fg transition-colors hover:bg-surface-2 aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent-soft-fg"
+                >
+                  <LuSearch aria-hidden className="size-5" />
+                  Search
+                </Link>
+              </li>
+              <li className="md:hidden">
+                <AccountLink variant="menu" />
+              </li>
             </ul>
           </nav>
 
+          <Link
+            href="/search"
+            aria-label="Search"
+            aria-current={pathname === "/search" ? "page" : undefined}
+            className="hidden size-11 shrink-0 items-center justify-center rounded-full text-fg transition-colors hover:bg-surface-2 aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent-soft-fg md:inline-flex"
+          >
+            <LuSearch aria-hidden className="size-5" />
+          </Link>
+          <AccountLink variant="header" />
           <ThemeToggle />
 
           <button

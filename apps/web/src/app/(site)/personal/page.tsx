@@ -1,35 +1,13 @@
 import type { Metadata } from "next";
-import { LuPenLine } from "react-icons/lu";
-import { PageContainer } from "@/components/layout/PageContainer";
-import { SectionHeader } from "@/components/layout/SectionHeader";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { listingMetadata, SectionListing } from "@/components/blog/SectionListing";
+import { parsePage, parseTag } from "@/lib/paths";
 
-export const metadata: Metadata = {
-  title: "Personal",
-  description:
-    "Life updates, reflections, and what I’m learning beyond the screen.",
-  alternates: { canonical: "/personal" },
-};
+export async function generateMetadata({ searchParams }: PageProps<"/personal">): Promise<Metadata> {
+  const sp = await searchParams;
+  return listingMetadata("personal", parsePage(sp.page), parseTag(sp.tag));
+}
 
-export default function PersonalPage() {
-  return (
-    <>
-      <div className="section-motif">
-        <PageContainer className="pt-12 pb-10 sm:pt-16">
-          <SectionHeader
-            eyebrow="Reflections"
-            title="Personal"
-            description="Life updates, philosophical reflections, and what I’m currently learning beyond the screen."
-          />
-        </PageContainer>
-      </div>
-      <PageContainer className="pb-16">
-        <EmptyState
-          icon={<LuPenLine />}
-          title="The first entry is on its way"
-          description="I’m still gathering my thoughts. Check back soon for the first story."
-        />
-      </PageContainer>
-    </>
-  );
+export default async function PersonalPage({ searchParams }: PageProps<"/personal">) {
+  const sp = await searchParams;
+  return <SectionListing section="personal" page={parsePage(sp.page)} tag={parseTag(sp.tag)} />;
 }

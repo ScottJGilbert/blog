@@ -1,0 +1,179 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms" { strategy: class; }
+
+/* Dark mode is driven by the `dark` class on <html> (set by the blocking script in layout.tsx). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. Names deliberately avoid `--color-accent/border/error/...` because the Lexical editor package
+ * defines its own `--color-*` custom properties on :root.
+ * Contrast (WCAG AA): ink/muted on canvas+panel >= 4.5:1, brand-ink on brand >= 4.5:1, edge-strong >= 3:1 on panel.
+ */
+:root {
+  --c-canvas: #f4f5f7;
+  --c-panel: #ffffff;
+  --c-panel-2: #eef0f3;
+  --c-ink: #12161c;
+  --c-muted: #4a5565;
+  --c-edge: #dde1e7;
+  --c-edge-strong: #7d8795;
+  --c-brand: #3730a3;
+  --c-brand-hover: #2e2785;
+  --c-brand-ink: #ffffff;
+  --c-brand-soft: #e8e9fb;
+  --c-danger: #b42318;
+  --c-danger-hover: #912018;
+  --c-danger-soft: #fdecea;
+  --c-ok: #0f6b38;
+  --c-ok-soft: #e3f5ea;
+  --c-warn: #8a4b08;
+  --c-warn-soft: #fdf1dc;
+  --c-info: #1d4f9c;
+  --c-info-soft: #e5eefb;
+  --c-overlay: rgb(10 14 20 / 0.55);
+  --shadow-pop: 0 8px 28px rgb(15 20 30 / 0.18), 0 1px 3px rgb(15 20 30 / 0.1);
+  color-scheme: light;
+}
+
+:root.dark {
+  --c-canvas: #0d1117;
+  --c-panel: #151b23;
+  --c-panel-2: #1c242e;
+  --c-ink: #e8ecf1;
+  --c-muted: #a0acbb;
+  --c-edge: #2a3441;
+  --c-edge-strong: #7a8798;
+  --c-brand: #a5b4fc;
+  --c-brand-hover: #c0cafd;
+  --c-brand-ink: #10131f;
+  --c-brand-soft: #232a4a;
+  --c-danger: #f8887e;
+  --c-danger-hover: #fba9a1;
+  --c-danger-soft: #3a1b19;
+  --c-ok: #5fd68a;
+  --c-ok-soft: #12301f;
+  --c-warn: #f2b660;
+  --c-warn-soft: #36270f;
+  --c-info: #8db8f5;
+  --c-info-soft: #14253d;
+  --c-overlay: rgb(0 0 0 / 0.65);
+  --shadow-pop: 0 8px 28px rgb(0 0 0 / 0.5), 0 1px 3px rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --color-canvas: var(--c-canvas);
+  --color-panel: var(--c-panel);
+  --color-panel-2: var(--c-panel-2);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-edge: var(--c-edge);
+  --color-edge-strong: var(--c-edge-strong);
+  --color-brand: var(--c-brand);
+  --color-brand-hover: var(--c-brand-hover);
+  --color-brand-ink: var(--c-brand-ink);
+  --color-brand-soft: var(--c-brand-soft);
+  --color-danger: var(--c-danger);
+  --color-danger-hover: var(--c-danger-hover);
+  --color-danger-soft: var(--c-danger-soft);
+  --color-ok: var(--c-ok);
+  --color-ok-soft: var(--c-ok-soft);
+  --color-warn: var(--c-warn);
+  --color-warn-soft: var(--c-warn-soft);
+  --color-info: var(--c-info);
+  --color-info-soft: var(--c-info-soft);
+  --shadow-pop: var(--shadow-pop);
+  --radius-ctl: 0.5rem;
+}
+
+@layer base {
+  html {
+    background: var(--c-canvas);
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 4.5rem;
+  }
+  body {
+    background: var(--c-canvas);
+    color: var(--c-ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+  }
+  :focus-visible {
+    outline: 2px solid var(--c-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
+  dialog {
+    color: inherit;
+  }
+  dialog::backdrop {
+    background: var(--c-overlay);
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--c-brand) 30%, transparent);
+  }
+  h1, h2, h3 { text-wrap: balance; }
+}
+
+@layer components {
+  /* Form controls */
+  .ctl {
+    display: block;
+    width: 100%;
+    min-height: 2.5rem;
+    border-radius: var(--radius-ctl);
+    border: 1px solid var(--c-edge-strong);
+    background: var(--c-panel);
+    color: var(--c-ink);
+    padding: 0.4375rem 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+  .ctl::placeholder { color: var(--c-muted); opacity: 0.85; }
+  .ctl:focus-visible { outline: 2px solid var(--c-brand); outline-offset: 1px; border-color: var(--c-brand); }
+  .ctl[aria-invalid="true"] { border-color: var(--c-danger); }
+  .ctl:disabled { opacity: 0.6; cursor: not-allowed; background: var(--c-panel-2); }
+}
+
+/* ---------------------------------------------------------------------------------------------------------------
+ * Lexical editor host. The editor package styles itself from `--color-*` vars + `prefers-color-scheme` media
+ * queries (OS preference). We override the variables from the admin's own theme class so both agree, and bridge the
+ * icon inversion when the admin theme differs from the OS theme. Used as-is otherwise.
+ * ------------------------------------------------------------------------------------------------------------- */
+html:not(.dark) {
+  --color-bg-primary: #eee; --color-bg-surface: #fff; --color-bg-secondary: #222; --color-bg-button: #ddd;
+  --color-bg-button-hover: #ccc; --color-bg-hover: #eee; --color-bg-active: rgba(223, 232, 250, 0.3);
+  --color-bg-input: #eee; --color-bg-code: #222; --color-text-primary: #000; --color-text-secondary: #5a5a5a;
+  --color-text-tertiary: #6b6b6b; --color-text-heading: #333; --color-text-body: #050505; --color-text-code: #fff;
+  --color-text-button: #222; --color-text-muted: #666; --color-text-placeholder: #6b6b6b;
+  --color-border: #e8e8e8; --color-border-input: rgba(0, 0, 0, 0.075); --color-divider: #eee;
+  --color-accent: rgb(60, 132, 244); --color-accent-hover: rgb(33, 111, 219); --color-accent-bg: rgb(223, 232, 250);
+  --color-link: rgb(33, 111, 219); --color-overlay: rgba(255, 255, 255, 0.5); --color-overlay-bg: rgba(255, 255, 255, 0.9);
+  --color-switch-bg: rgb(206, 208, 212); --color-switch-active: rgb(24, 119, 242);
+  --color-accent-shadow: rgb(180, 213, 255); --color-keyword: rgb(241, 118, 94);
+}
+html.dark {
+  --color-bg-primary: #1e1e1e; --color-bg-surface: #2d2d2d; --color-bg-secondary: #1a1a1a; --color-bg-button: #3a3a3a;
+  --color-bg-button-hover: #4a4a4a; --color-bg-hover: #3a3a3a; --color-bg-active: rgba(60, 132, 244, 0.3);
+  --color-bg-input: #3a3a3a; --color-bg-code: #1a1a1a; --color-text-primary: #e0e0e0; --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #909090; --color-text-heading: #d0d0d0; --color-text-body: #e0e0e0; --color-text-code: #e0e0e0;
+  --color-text-button: #e0e0e0; --color-text-muted: #999; --color-text-placeholder: #8a8a8a;
+  --color-border: #404040; --color-border-input: rgba(255, 255, 255, 0.075); --color-divider: #3a3a3a;
+  --color-accent: rgb(80, 152, 255); --color-accent-hover: rgb(100, 170, 255); --color-accent-bg: rgb(40, 70, 120);
+  --color-link: rgb(100, 170, 255); --color-overlay: rgba(0, 0, 0, 0.5); --color-overlay-bg: rgba(45, 45, 45, 0.9);
+  --color-switch-bg: rgb(80, 80, 85); --color-switch-active: rgb(40, 140, 255);
+  --color-accent-shadow: rgb(40, 80, 140); --color-keyword: rgb(255, 150, 120);
+}
+.editor-host .editor-shell { color: var(--c-ink); }
+.editor-host { --editor-min-height: 28rem; }
+.editor-host .editor-container { min-height: var(--editor-min-height); }

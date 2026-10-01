@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { clsx } from "clsx";
 import { LuClock } from "react-icons/lu";
 import { Tag } from "@/components/ui/Tag";
@@ -16,6 +17,8 @@ export interface PostCardProps {
   /** Link to the post. The whole card is clickable via a stretched link. */
   href: string;
   excerpt?: string | null;
+  /** Rich teaser (e.g. search snippet with <mark>); replaces `excerpt` when given. */
+  snippet?: ReactNode;
   cover?: {
     src: string;
     /** Empty string marks the image as purely decorative. */
@@ -23,6 +26,8 @@ export interface PostCardProps {
     /** Intrinsic size, used only to infer the aspect ratio; defaults 1200x675. */
     width?: number;
     height?: number;
+    /** Skip the optimizer (cover hosted on a host that isn't in the image allow-list). */
+    unoptimized?: boolean;
   } | null;
   tags?: PostCardTag[];
   /** ISO string or Date. Rendered as <time> in UTC so SSR/CSR always agree. */
@@ -54,6 +59,7 @@ export function PostCard({
   title,
   href,
   excerpt,
+  snippet,
   cover,
   tags = [],
   publishedAt,
@@ -96,6 +102,7 @@ export function PostCard({
                 : "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw")
             }
             preload={priority}
+            unoptimized={cover.unoptimized}
             className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:scale-[1.03]"
           />
         </div>
@@ -128,7 +135,11 @@ export function PostCard({
           </Link>
         </Heading>
 
-        {excerpt && <p className="line-clamp-3 text-muted">{excerpt}</p>}
+        {snippet ? (
+          <p className="line-clamp-4 text-muted">{snippet}</p>
+        ) : excerpt ? (
+          <p className="line-clamp-3 text-muted">{excerpt}</p>
+        ) : null}
 
         {tags.length > 0 && (
           <ul

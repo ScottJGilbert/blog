@@ -26,4 +26,8 @@ export interface NewsletterProvider {
   /** Send a test copy of an existing campaign (`campaignId`) or of raw `html` to one address. */
   testCampaign(input: TestCampaignInput): Promise<void>;
   campaignStats(campaignId: string): Promise<CampaignStats>;
+  /** Optional (additive): start an already created campaign again, e.g. after a failed start. */
+  startCampaign?(campaignId: string): Promise<void>;
+  /** Optional (additive): permanently delete a subscriber (right to erasure) instead of blocklisting. */
+  deleteSubscriber?(externalIdOrEmail: string): Promise<void>;
 }
