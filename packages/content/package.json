@@ -1,0 +1,23 @@
+{
+  "name": "@blog/content",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "zod": "^4",
+    "katex": "^0.16"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "vitest": "^3",
+    "@types/node": "^22",
+    "@types/katex": "^0.16"
+  }
+}

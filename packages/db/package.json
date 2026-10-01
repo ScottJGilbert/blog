@@ -1,0 +1,31 @@
+{
+  "name": "@blog/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "generate": "drizzle-kit generate",
+    "migrate": "tsx src/migrate.ts",
+    "seed": "tsx src/seed.ts",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44",
+    "pg": "^8",
+    "@blog/content": "workspace:*",
+    "@blog/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31",
+    "tsx": "^4",
+    "typescript": "^5",
+    "vitest": "^3",
+    "@types/node": "^22",
+    "@types/pg": "^8"
+  }
+}

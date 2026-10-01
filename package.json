@@ -1,35 +1,25 @@
 {
   "name": "blog",
-  "version": "0.1.0",
   "private": true,
+  "version": "0.2.0",
+  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "dev": "pnpm -r --parallel --filter './apps/*' dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test",
+    "db:migrate": "pnpm --filter @blog/db migrate",
+    "db:seed": "pnpm --filter @blog/db seed",
+    "e2e": "playwright test"
   },
-  "dependencies": {
-    "@scottjgilbert/lexical-blog-editor": "^1.1.0",
-    "@tailwindcss/container-queries": "^0.1.1",
-    "@tailwindcss/forms": "^0.5.11",
-    "@vercel/analytics": "^2.0.1",
-    "autoprefixer": "^10.5.4",
-    "clsx": "^2.1.1",
-    "next": "16.2.4",
-    "postcss": "^8.5.25",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "react-icons": "^5.7.0"
+  "engines": {
+    "node": ">=22"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.4",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  },
-  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c"
+    "@playwright/test": "^1",
+    "lighthouse": "^12",
+    "typescript": "^5",
+    "prettier": "^3"
+  }
 }
