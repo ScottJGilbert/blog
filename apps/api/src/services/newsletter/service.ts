@@ -13,6 +13,7 @@ import type {
 import type { Deps } from "../../deps";
 import { HttpError, conflict, notFound } from "../../errors";
 import { audit } from "../../lib/audit";
+import { defuseTemplateTags } from "../../lib/text";
 import { iso } from "../admin/common";
 import { ListmonkError } from "./listmonk";
 import { assertValidContent, contentFromPost, previewHtml, renderNewsletterHtml } from "./render";
@@ -87,7 +88,7 @@ export function createNewsletterService(deps: Deps) {
       if (campaignId && prov.startCampaign) {
         await prov.startCampaign(String(campaignId));
       } else {
-        const res = await prov.sendCampaign({ subject: claimed.subject, html, preheader: claimed.preheader ?? undefined, name: campaignName(claimed) });
+        const res = await prov.sendCampaign({ subject: defuseTemplateTags(claimed.subject), html, preheader: claimed.preheader ?? undefined, name: campaignName(claimed) });
         const n = Number(res.campaignId);
         campaignId = Number.isInteger(n) ? n : null;
       }
@@ -245,7 +246,7 @@ export function createNewsletterService(deps: Deps) {
       await audit(db, actor, { action: "newsletter.test", targetType: "newsletter", targetId: id, meta: { to: maskEmail(email) } });
       if (isNoop()) return { sent: false, provider: "noop", warning: NOOP_WARNING };
       try {
-        await provider().testCampaign({ subject: `[Test] ${row.subject}`, to: email, html: render(row) });
+        await provider().testCampaign({ subject: defuseTemplateTags(`[Test] ${row.subject}`), to: email, html: render(row) });
       } catch (err) {
         deps.logger.error({ newsletterId: id, err: err instanceof Error ? err.message : String(err) }, "newsletter test send failed");
         throw new HttpError(502, "internal", `The newsletter provider could not send the test: ${err instanceof Error ? err.message : "unknown error"}`);

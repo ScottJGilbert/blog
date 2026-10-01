@@ -14,7 +14,7 @@ import { EmptyState, ErrorState } from "@/components/ui/empty-state";
 import { Input, Select } from "@/components/ui/form";
 import { Pagination } from "@/components/ui/pagination";
 import { TableSkeleton } from "@/components/ui/skeleton";
-import { Table, TableScroll, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
+import { Table, TableScroll, TBody, Td, Th, THead, Tr, STICKY_ACTION_TD, STICKY_ACTION_TH } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { publicPostUrl } from "@/lib/base-path";
@@ -144,12 +144,12 @@ export function PostsView() {
               <Table>
                 <THead>
                   <tr>
-                    <Th className="w-[40%]">Title</Th>
+                    <Th className="w-[40%] min-w-[13rem]">Title</Th>
                     <Th>Section</Th>
                     <Th>Status</Th>
                     <Th>Author</Th>
                     <Th>Updated</Th>
-                    <Th className="w-12">
+                    <Th className={`w-12 ${STICKY_ACTION_TH}`}>
                       <span className="sr-only">Actions</span>
                     </Th>
                   </tr>
@@ -176,7 +176,7 @@ export function PostsView() {
                       <Td className="whitespace-nowrap text-muted">
                         <time dateTime={p.updatedAt}>{formatDate(p.updatedAt)}</time>
                       </Td>
-                      <Td>
+                      <Td className={STICKY_ACTION_TD}>
                         <DropdownMenu
                           label={`Actions for ${p.title || "Untitled"}`}
                           triggerClassName="grid size-9 place-items-center rounded-ctl text-muted hover:bg-panel-2 hover:text-ink pointer-coarse:size-11"

@@ -18,6 +18,52 @@ import "@scottjgilbert/lexical-blog-editor/styles/ViewerTheme.css";
 import { useEffect, useMemo, useRef } from "react";
 import type { LexicalContent } from "@blog/shared";
 
+/** Node types that cannot sit directly under Lexical's root (text-like nodes, line breaks) or that are inline runs. */
+const INLINE_TYPES = new Set([
+  "text",
+  "linebreak",
+  "tab",
+  "specialText",
+  "hashtag",
+  "keyword",
+  "mention",
+  "emoji",
+  "code-highlight",
+  "overflow",
+  "link",
+  "autolink",
+  "mark",
+  "datetime",
+]);
+
+/**
+ * Lexical's `parseEditorState` throws ("Only element or decorator nodes can be inserted to the root node") when stored
+ * content has inline/text nodes straight under the root, which would take the whole editor page down. Such documents
+ * exist (the API accepts them and the public renderer shows them), so group each inline run into a paragraph first.
+ */
+export function normalizeRoot(content: LexicalContent): LexicalContent {
+  const root = (content as { root?: { children?: unknown[] } }).root;
+  if (!root || !Array.isArray(root.children)) return content;
+  const isInline = (n: unknown) => typeof n === "object" && n !== null && INLINE_TYPES.has((n as { type?: string }).type ?? "");
+  if (!root.children.some(isInline)) return content;
+  const children: unknown[] = [];
+  let run: unknown[] = [];
+  const flush = () => {
+    if (run.length === 0) return;
+    children.push({ type: "paragraph", version: 1, format: "", indent: 0, direction: "ltr", textFormat: 0, textStyle: "", children: run });
+    run = [];
+  };
+  for (const child of root.children) {
+    if (isInline(child)) run.push(child);
+    else {
+      flush();
+      children.push(child);
+    }
+  }
+  flush();
+  return { ...content, root: { ...root, children } } as LexicalContent;
+}
+
 export interface RichEditorProps {
   initialContent: LexicalContent;
   /** serialised JSON string of the current document (only when it differs from the previous report) */
@@ -31,7 +77,7 @@ export interface RichEditorProps {
 
 export default function EditorImpl({ initialContent, onChange, onBaseline, placeholder, flushRef }: RichEditorProps) {
   // Stable identity for the lifetime of this mount (see header comment).
-  const initialState = useMemo(() => initialContent as unknown as EditorState, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const initialState = useMemo(() => normalizeRoot(initialContent) as unknown as EditorState, []); // eslint-disable-line react-hooks/exhaustive-deps
   const touched = useRef(false);
   const last = useRef<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
@@ -50,9 +96,10 @@ export default function EditorImpl({ initialContent, onChange, onBaseline, place
       latest.current = null;
       const json = JSON.stringify(state.toJSON());
       if (json === last.current) return;
-      const first = last.current === null;
       last.current = json;
-      if (first && !touched.current) cbs.current.onBaseline(json);
+      // Until the user interacts, every report is the editor normalising what it loaded (code blocks are re-tokenised
+      // and styled a moment after mount): that is the new baseline, not an unsaved edit.
+      if (!touched.current) cbs.current.onBaseline(json);
       else cbs.current.onChange(json);
     },
     [],

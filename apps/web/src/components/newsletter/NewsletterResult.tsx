@@ -27,7 +27,9 @@ export function NewsletterResult({
         >
           <Icon />
         </div>
-        <h1 className="text-h1 text-fg">{title}</h1>
+        <h1 tabIndex={-1} className="text-h1 text-fg outline-none">
+          {title}
+        </h1>
         <div role={ok ? "status" : "alert"} className="mx-auto mt-4 max-w-md text-lg text-muted">
           {children}
         </div>

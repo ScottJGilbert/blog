@@ -1,10 +1,8 @@
-import dynamic from "next/dynamic";
 import "@scottjgilbert/lexical-blog-editor/styles/ViewerTheme.css";
 import "@blog/content/styles.css";
 import "./post-prose.css";
+import KatexStyles from "./KatexStyles";
 import { hasEquations, prepareContentHtml } from "./prepare-html";
-
-const KatexStyles = dynamic(() => import("./KatexStyles"));
 
 /**
  * The post body: server-rendered HTML from the API (`contentHtml`), zero client JavaScript. The HTML is produced and

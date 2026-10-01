@@ -14,7 +14,8 @@ export class ConsoleMailer implements Mailer {
 
   async send(message: MailMessage): Promise<void> {
     if (this.opts.logBodies) {
-      this.logger.info({ to: message.to, subject: message.subject }, `[mail:console] ${message.subject}\n${message.text}`);
+      // dev only: the body (verification / reset links) is the point of this driver; the recipient is masked (no full e-mails in logs)
+      this.logger.info({ to: message.to.replace(/^(.).*(@.*)$/, "$1***$2"), subject: message.subject }, `[mail:console] ${message.subject}\n${message.text}`);
     } else {
       this.logger.warn({ subject: message.subject }, "[mail:console] MAILER_DRIVER=console in production: email NOT delivered");
     }

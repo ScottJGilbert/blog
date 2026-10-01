@@ -39,6 +39,12 @@ export class UnsupportedImageError extends HttpError {
   }
 }
 
+export class ImageDimensionsError extends HttpError {
+  constructor(message = "Image dimensions are too large (max 16384 px per side and 100 megapixels).") {
+    super(422, "validation_error", message);
+  }
+}
+
 export class ImageTooLargeError extends HttpError {
   constructor(max = MEDIA_MAX_BYTES) {
     super(413, "validation_error", `Image is too large (max ${Math.round(max / 1024 / 1024)} MB).`);
@@ -90,6 +96,7 @@ export function createMediaService(deps: Deps) {
     if (buf.length > MEDIA_MAX_BYTES) throw new ImageTooLargeError();
     const sniffed = sniffImage(buf);
     if (!sniffed) throw new UnsupportedImageError();
+    if (sniffed.oversized) throw new ImageDimensionsError();
     const now = deps.now();
     const key = `media/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}/${randomUUID()}.${sniffed.ext}`;
     const stored = await storage.put(key, buf, { contentType: sniffed.mime });

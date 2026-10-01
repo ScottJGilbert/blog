@@ -22,7 +22,7 @@ export default async function SignupPage({ searchParams }: PageProps<"/signup">)
       footer={
         <p>
           Already have an account?{" "}
-          <Link href={`/login${nextQuery}`} className={linkClass}>
+          <Link prefetch={false} href={`/login${nextQuery}`} className={linkClass}>
             Sign in
           </Link>
         </p>

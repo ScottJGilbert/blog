@@ -2,6 +2,7 @@ import type { ErrorEnvelope } from "@blog/shared";
 import type { ErrorRequestHandler, RequestHandler } from "express";
 import { ZodError } from "zod";
 import { HttpError } from "../errors";
+import { pgError } from "../services/admin/common";
 import type { Logger } from "../logger";
 
 function envelope(code: ErrorEnvelope["error"]["code"], message: string, details?: unknown): ErrorEnvelope {
@@ -34,6 +35,25 @@ export function createErrorHandler(logger: Logger): ErrorRequestHandler {
     if (err instanceof ZodError) {
       return void res.status(400).json(envelope("validation_error", "Invalid request", err.issues));
     }
+    // Database rejections caused by the CLIENT'S data are 4xx, never a 500 (and never echo the SQL / constraint text):
+    // class 22 = data exception (NUL byte in text / jsonb, value too long, bad number/date, malformed uuid …),
+    // 23505 unique, 23503 foreign key, 23502 not-null, 23514 check constraint.
+    const pg = pgError(err);
+    if (pg?.code) {
+      if (pg.code.startsWith("22")) {
+        logger.warn({ reqId, code: pg.code, method: req.method, path: req.path }, "database rejected the request data");
+        return void res.status(400).json(envelope("validation_error", "The request contains a value that cannot be stored"));
+      }
+      if (pg.code === "23505" || pg.code === "23503") {
+        logger.warn({ reqId, code: pg.code, constraint: pg.constraint, method: req.method, path: req.path }, "database constraint conflict");
+        return void res.status(409).json(envelope("conflict", "The request conflicts with existing data"));
+      }
+      if (pg.code === "23502" || pg.code === "23514") {
+        logger.warn({ reqId, code: pg.code, constraint: pg.constraint, method: req.method, path: req.path }, "database constraint violated");
+        return void res.status(400).json(envelope("validation_error", "The request violates a data constraint"));
+      }
+    }
+
     const http = asHttpish(err);
     if (http) {
       if (http.status === 413) return void res.status(413).json(envelope("validation_error", "Request body too large"));

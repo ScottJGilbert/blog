@@ -44,8 +44,10 @@ export interface RateLimiters {
   subscribe: Limiter;
   /** Public reads: 120 / min / IP, 1200 / min for a verified API key (`req.apiKey`, set by the v1 key middleware before this). */
   publicRead: Limiter;
-  /** Authenticated admin API: generous 600 / min / user, mostly a runaway-script guard. */
+  /** Authenticated admin API: generous 600 / min / IP (runs before the session is known), mostly a runaway-script guard. */
   admin: Limiter;
+  /** `/v1` requests that present an API key: 1200 / min / IP, applied BEFORE the key lookup so guessing keys cannot hammer the database. */
+  apiKeyAttempt: Limiter;
 }
 
 /** The standard presets (SPEC §5). Disabled (pass-through) when `config.rateLimit.enabled` is false (RATE_LIMIT_ENABLED=0; the default under NODE_ENV=test). */
@@ -67,5 +69,6 @@ export function createRateLimiters(config: Pick<Config, "rateLimit">): RateLimit
       key: (req) => (req.apiKey ? `key:${req.apiKey.id}` : ipKey(req)),
     }),
     admin: makeLimiter(enabled, { windowMs: MIN, limit: 600, key: (req) => (req.user ? `user:${req.user.id}` : ipKey(req)) }),
+    apiKeyAttempt: makeLimiter(enabled, { windowMs: MIN, limit: 1200, key: (req) => `apikey-attempt:${ipKey(req)}` }),
   };
 }

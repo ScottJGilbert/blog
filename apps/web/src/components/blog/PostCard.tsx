@@ -129,6 +129,7 @@ export function PostCard({
         <Heading className="text-xl text-fg sm:text-2xl">
           {/* Stretched link: ::after covers the whole card. */}
           <Link
+            prefetch={false}
             href={href}
             className="rounded-none after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
           >

@@ -15,7 +15,7 @@ export default function ForgotPasswordPage() {
       title="Forgot your password?"
       description="Enter your email address and we'll send you a link to choose a new one."
       footer={
-        <Link href="/login" className={linkClass}>
+        <Link prefetch={false} href="/login" className={linkClass}>
           Back to sign in
         </Link>
       }

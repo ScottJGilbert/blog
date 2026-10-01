@@ -1,4 +1,4 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import type { Deps } from "../deps";
 import { csrfOrigin } from "../middleware/csrf";
 import { v1Cors } from "../middleware/cors";
@@ -26,7 +26,8 @@ export function buildRouter(deps: Deps): Router {
 
   router.use("/v1", v1Cors, v1Router(deps)); // CORS * (GET only)
   router.use("/cron", cronRouter(deps)); // bearer CRON_SECRET
-  router.use("/admin", deps.limiters.admin, requireAdmin, adminRouter(deps));
+  // 4 MB JSON (inline editor images) is only ever parsed for an authenticated admin; `express.json` skips bodies already parsed
+  router.use("/admin", deps.limiters.admin, requireAdmin, express.json({ limit: "4mb" }), adminRouter(deps));
   router.use(publicRouter(deps));
 
   return router;

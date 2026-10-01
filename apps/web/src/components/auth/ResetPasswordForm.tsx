@@ -33,7 +33,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <p className="font-bold">Your password has been updated.</p>
         <p className="mt-2 text-muted">For your security you were signed out everywhere.</p>
         <p className="mt-6">
-          <Link href="/login" className={linkClass}>
+          <Link prefetch={false} href="/login" className={linkClass}>
             Continue to sign in
           </Link>
         </p>

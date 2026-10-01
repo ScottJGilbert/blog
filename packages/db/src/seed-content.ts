@@ -361,7 +361,7 @@ Boring technology is a gift to your future self. I would rather spend the weeken
 
 Read more on [keeping a small web footprint](https://example.com/small-web) or just [say hello](mailto:hello@example.com).
 `,
-      special("[draft]"),
+      paragraph(special("[draft]")),
     ),
   },
   {

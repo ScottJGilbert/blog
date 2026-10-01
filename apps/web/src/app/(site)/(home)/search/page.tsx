@@ -173,11 +173,11 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
             )}
             <p className="text-muted">
               Or head straight to{" "}
-              <Link href="/personal" className="font-semibold text-accent underline underline-offset-4">
+              <Link prefetch={false} href="/personal" className="font-semibold text-accent underline underline-offset-4">
                 personal
               </Link>{" "}
               or{" "}
-              <Link href="/engineering" className="font-semibold text-accent underline underline-offset-4">
+              <Link prefetch={false} href="/engineering" className="font-semibold text-accent underline underline-offset-4">
                 engineering
               </Link>
               .

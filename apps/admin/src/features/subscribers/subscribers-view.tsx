@@ -12,7 +12,7 @@ import { EmptyState, ErrorState } from "@/components/ui/empty-state";
 import { Input, Select } from "@/components/ui/form";
 import { Pagination } from "@/components/ui/pagination";
 import { TableSkeleton } from "@/components/ui/skeleton";
-import { Table, TableScroll, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
+import { Table, TableScroll, TBody, Td, Th, THead, Tr, STICKY_ACTION_TD, STICKY_ACTION_TH } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
@@ -111,7 +111,7 @@ export function SubscribersView() {
                     <Th>Status</Th>
                     <Th>Source</Th>
                     <Th>Subscribed</Th>
-                    <Th className="w-12">
+                    <Th className={`w-12 ${STICKY_ACTION_TH}`}>
                       <span className="sr-only">Actions</span>
                     </Th>
                   </tr>
@@ -125,7 +125,7 @@ export function SubscribersView() {
                       </Td>
                       <Td className="text-muted">{s.source ?? "—"}</Td>
                       <Td className="whitespace-nowrap text-muted">{formatDate(s.confirmedAt ?? s.createdAt)}</Td>
-                      <Td>
+                      <Td className={STICKY_ACTION_TD}>
                         <IconButton label={`Delete subscriber ${s.email}`} size="sm" onClick={() => remove(s)}>
                           <LuTrash2 aria-hidden className="size-4 text-danger" />
                         </IconButton>

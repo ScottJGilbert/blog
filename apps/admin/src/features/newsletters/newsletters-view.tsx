@@ -17,7 +17,7 @@ import { EmptyState, ErrorState } from "@/components/ui/empty-state";
 import { FormError, Input, Select } from "@/components/ui/form";
 import { Pagination } from "@/components/ui/pagination";
 import { TableSkeleton } from "@/components/ui/skeleton";
-import { Table, TableScroll, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
+import { Table, TableScroll, TBody, Td, Th, THead, Tr, STICKY_ACTION_TD, STICKY_ACTION_TH } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { errorMessage, fieldErrorsFromApi } from "@/lib/errors";
@@ -93,11 +93,11 @@ export function NewslettersView() {
               <Table>
                 <THead>
                   <tr>
-                    <Th className="w-[38%]">Subject</Th>
+                    <Th className="w-[38%] min-w-[12rem]">Subject</Th>
                     <Th>Status</Th>
                     <Th>Date</Th>
                     <Th>Delivery</Th>
-                    <Th className="w-12">
+                    <Th className={`w-12 ${STICKY_ACTION_TH}`}>
                       <span className="sr-only">Actions</span>
                     </Th>
                   </tr>
@@ -122,7 +122,7 @@ export function NewslettersView() {
                           ? `${n.stats.sent ?? 0} sent · ${n.stats.views ?? 0} opens · ${n.stats.clicks ?? 0} clicks`
                           : "—"}
                       </Td>
-                      <Td>
+                      <Td className={STICKY_ACTION_TD}>
                         <DropdownMenu
                           label={`Actions for ${n.subject}`}
                           triggerClassName="grid size-9 place-items-center rounded-ctl text-muted hover:bg-panel-2 hover:text-ink pointer-coarse:size-11"

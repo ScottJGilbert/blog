@@ -135,7 +135,9 @@ export function createCommentsService(deps: Deps) {
       if (row.authorId !== actor.id) throw forbidden("You can only edit your own comments");
       if (!withinWindow(row.createdAt)) throw forbidden(`Comments can only be edited within ${COMMENT_EDIT_WINDOW_MINUTES} minutes of posting`);
       const editedAt = deps.now();
-      await db.update(comment).set({ body, editedAt }).where(eq(comment.id, id));
+      // conditional on `visible`: a moderator hiding / deleting the comment between the read and this write must win
+      const updated = await db.update(comment).set({ body, editedAt }).where(and(eq(comment.id, id), eq(comment.status, "visible"))).returning({ id: comment.id });
+      if (updated.length === 0) throw notFound("Comment not found");
       return toReply({ ...row, body, editedAt }, actor);
     },
 

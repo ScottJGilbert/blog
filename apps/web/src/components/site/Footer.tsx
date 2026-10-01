@@ -56,6 +56,7 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5">
             <Link
+              prefetch={false}
               href="/"
               className="inline-flex min-h-11 items-center font-display text-xl font-extrabold tracking-tight text-accent"
             >

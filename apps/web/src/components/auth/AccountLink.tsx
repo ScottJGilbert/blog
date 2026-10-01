@@ -28,6 +28,7 @@ export function AccountLink({ variant }: { variant: "header" | "menu" }) {
   if (variant === "menu") {
     return (
       <Link
+        prefetch={false}
         href={href}
         aria-current={pathname === "/account" ? "page" : undefined}
         className="flex min-h-11 items-center gap-2 rounded-full px-4 text-base font-semibold text-fg transition-colors hover:bg-surface-2 aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent-soft-fg"
@@ -39,6 +40,7 @@ export function AccountLink({ variant }: { variant: "header" | "menu" }) {
   }
   return (
     <Link
+      prefetch={false}
       href={href}
       aria-current={pathname === "/account" ? "page" : undefined}
       className={clsx(

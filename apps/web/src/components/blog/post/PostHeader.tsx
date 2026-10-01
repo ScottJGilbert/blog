@@ -22,7 +22,7 @@ export function PostHeader({ post }: { post: PostDetail }) {
   return (
     <header>
       <p className="eyebrow mb-4 text-accent">
-        <Link href={`/${post.section}`} className="underline-offset-4 hover:underline">
+        <Link prefetch={false} href={`/${post.section}`} className="underline-offset-4 hover:underline">
           {SECTION_LABEL[post.section]}
         </Link>
       </p>

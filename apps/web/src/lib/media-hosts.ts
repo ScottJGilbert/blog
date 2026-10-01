@@ -20,10 +20,13 @@ function hostAllowed(hostname: string): boolean {
 
 /** Props for a next/image of `url`: unoptimized (but still rendered) when the host isn't allow-listed. */
 export function imageSource(url: string): { src: string; unoptimized: boolean } {
-  if (url.startsWith("/") && !url.startsWith("//")) return { src: url, unoptimized: url.includes("?") };
+  // Site-relative path. `/\\host` is read by browsers as `//host` (protocol-relative), so it is not a path.
+  if (url.startsWith("/") && !url.startsWith("//") && !url.includes("\\")) return { src: url, unoptimized: url.includes("?") };
   try {
     const u = new URL(url);
-    if ((u.protocol === "https:" || u.protocol === "http:") && hostAllowed(u.hostname)) return { src: url, unoptimized: false };
+    // Only http(s) images: `javascript:`, `data:` etc. never reach an <img>, og:image or JSON-LD.
+    if (u.protocol !== "https:" && u.protocol !== "http:") return { src: "", unoptimized: true };
+    if (hostAllowed(u.hostname)) return { src: url, unoptimized: false };
     return { src: url, unoptimized: true };
   } catch {
     return { src: "", unoptimized: true };

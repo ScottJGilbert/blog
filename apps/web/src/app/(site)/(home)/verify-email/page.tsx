@@ -53,7 +53,7 @@ export default async function VerifyEmailPage({ searchParams }: PageProps<"/veri
           : "We sent you a link to verify your address. Open it to finish setting up your account."
       }
       footer={
-        <Link href="/login" className={linkClass}>
+        <Link prefetch={false} href="/login" className={linkClass}>
           Back to sign in
         </Link>
       }

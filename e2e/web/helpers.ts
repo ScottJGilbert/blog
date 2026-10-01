@@ -20,13 +20,15 @@ export const hasMailLog = () => Boolean(API_LOG_FILE);
 export async function mailLink(to: string, pattern: RegExp, timeoutMs = 10_000): Promise<string> {
   if (!API_LOG_FILE) throw new Error("API_LOG_FILE is not set");
   const deadline = Date.now() + timeoutMs;
+  const masked = to.replace(/^(.).*(@.*)$/, "$1***$2");
   while (Date.now() < deadline) {
     const lines = readFileSync(API_LOG_FILE, "utf8").split("\n").reverse();
     for (const line of lines) {
-      if (!line.includes("mail:console") || !line.includes(to)) continue;
+      // The console mailer masks the recipient in its log line (`n***@example.com`): accept either form.
+      if (!line.includes("mail:console") || !(line.includes(to) || line.includes(masked))) continue;
       try {
         const rec = JSON.parse(line) as { to?: string; msg?: string };
-        if (rec.to?.toLowerCase() !== to.toLowerCase()) continue;
+        if (rec.to?.toLowerCase() !== to.toLowerCase() && rec.to?.toLowerCase() !== masked.toLowerCase()) continue;
         const match = rec.msg?.match(/https?:\/\/[^\s"<>]+/g)?.find((u) => pattern.test(u));
         if (match) return match;
       } catch {

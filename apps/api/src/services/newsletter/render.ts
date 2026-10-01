@@ -2,6 +2,7 @@ import { emptyContent, escapeHtml, renderContent, validateContent, wrapEmailHtml
 import type { LexicalContent } from "@blog/shared";
 import type { Config } from "../../config";
 import { HttpError } from "../../errors";
+import { defuseTemplateTags } from "../../lib/text";
 
 /** listmonk template tags understood in campaign bodies (https://listmonk.app/docs/templating/). */
 export const UNSUBSCRIBE_TAG = "{{ UnsubscribeURL }}";
@@ -23,11 +24,12 @@ export function renderNewsletterHtml(
   const { html: fragment } = renderContent(input.content, { target: "email", baseUrl: config.siteUrl });
   const safeFragment = fragment.replaceAll("{{", "&#123;&#123;");
   const footerHtml =
-    `You are receiving this email because you subscribed to ${escapeHtml(config.siteName)}.<br>` +
+    `You are receiving this email because you subscribed to ${escapeHtml(defuseTemplateTags(config.siteName))}.<br>` +
     `<a href="${UNSUBSCRIBE_TAG}" ${LINK}>Unsubscribe</a> &middot; <a href="${MESSAGE_TAG}" ${LINK}>View in browser</a>`;
   return wrapEmailHtml(safeFragment, {
-    title: input.subject,
-    preheader: input.preheader?.trim() || undefined,
+    // subject / preheader are admin text, but listmonk compiles the whole body as a Go template: defuse `{{` there too
+    title: defuseTemplateTags(input.subject),
+    preheader: defuseTemplateTags(input.preheader?.trim() ?? "") || undefined,
     footerHtml,
   });
 }

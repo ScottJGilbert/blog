@@ -1,8 +1,9 @@
 import { account, comment, eq, or, session, sql, subscriber, user, verification, type Database } from "@blog/db";
 import { UpdateMeInputSchema, type Me } from "@blog/shared";
 import { Router } from "express";
-import { forbidden, notFound } from "../errors";
+import { badRequest, forbidden, notFound } from "../errors";
 import type { Deps } from "../deps";
+import { sanitizeDisplayName } from "../lib/text";
 import { parseBody } from "../lib/validate";
 import { requireUser } from "../middleware/auth";
 
@@ -41,10 +42,12 @@ export function meRouter(deps: Deps): Router {
 
   router.patch("/me", requireUser, async (req, res) => {
     const input = parseBody(UpdateMeInputSchema, req);
+    const name = input.name !== undefined ? sanitizeDisplayName(input.name) : undefined;
+    if (name === "") throw badRequest("Name cannot be empty", [{ path: ["name"], message: "must contain printable characters" }]);
     await deps.db
       .update(user)
       .set({
-        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(name !== undefined ? { name } : {}),
         ...(input.image !== undefined ? { image: input.image } : {}),
       })
       .where(eq(user.id, req.user!.id));
@@ -71,7 +74,12 @@ export function meRouter(deps: Deps): Router {
       await tx.delete(subscriber).where(or(eq(subscriber.userId, me.id), eq(subscriber.email, me.email.toLowerCase())));
       await tx.delete(session).where(eq(session.userId, me.id));
       await tx.delete(account).where(eq(account.userId, me.id));
-      await tx.delete(verification).where(sql`${verification.identifier} like ${"%" + me.email.toLowerCase() + "%"} or ${verification.identifier} like ${"%" + me.id + "%"}`);
+      // Better Auth stores one-time tokens as identifier `reset-password:<token>` with the user id as value (verification links are
+      // stateless JWTs). Match by exact value / literal substring: `like` would treat `_` and `%` in an e-mail as wildcards and
+      // delete other people's pending tokens.
+      await tx
+        .delete(verification)
+        .where(sql`${verification.value} = ${me.id} or strpos(${verification.identifier}, ${me.email.toLowerCase()}) > 0 or strpos(${verification.identifier}, ${me.id}) > 0`);
       await tx
         .update(user)
         .set({ name: "Deleted user", email: `deleted+${me.id}@deleted.invalid`, image: null, emailVerified: false, role: "reader" })

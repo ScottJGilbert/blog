@@ -4,7 +4,9 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Request } from "express";
+import { UrlOrPathSchema } from "@blog/shared";
 import type { Config } from "./config";
+import { sanitizeDisplayName } from "./lib/text";
 import type { Logger } from "./logger";
 import { resetPasswordEmail, verifyEmail, type Mailer } from "./services/mailer";
 
@@ -25,6 +27,24 @@ export interface AuthDeps {
   db: Database;
   mailer: Mailer;
   logger: Logger;
+}
+
+/**
+ * Normalise client-controlled profile fields that Better Auth would otherwise store verbatim (its own `update-user` /
+ * sign-up endpoints bypass `PATCH /me`'s validation): printable single-line `name` ≤ 80 chars (NUL bytes would 500),
+ * `image` limited to http(s) URLs / site-relative paths (no `javascript:` / `data:` / `/\\host`).
+ */
+export function cleanProfileFields<T extends { name?: unknown; image?: unknown; email?: unknown }>(data: T): T {
+  const out: Record<string, unknown> = { ...data };
+  if (typeof out.name === "string") {
+    const name = sanitizeDisplayName(out.name);
+    const local = typeof out.email === "string" ? sanitizeDisplayName(out.email.split("@")[0] ?? "") : "";
+    out.name = name || local || "Reader";
+  }
+  if (out.image !== undefined && out.image !== null) {
+    out.image = typeof out.image === "string" && UrlOrPathSchema.safeParse(out.image).success ? out.image : null;
+  }
+  return out as T;
 }
 
 export function createAuth({ config, db, mailer, logger }: AuthDeps) {
@@ -92,6 +112,10 @@ export function createAuth({ config, db, mailer, logger }: AuthDeps) {
       useSecureCookies: config.isProd,
       cookiePrefix: "blog",
       defaultCookieAttributes: { httpOnly: true, sameSite: "lax", secure: config.isProd },
+      // Better Auth skips its Origin / callbackURL validation when NODE_ENV=test by default. Force it on everywhere so the
+      // test-suite exercises exactly what production runs (state-changing + cookie ⇒ trusted Origin; callback URLs ⇒ trustedOrigins).
+      disableOriginCheck: false,
+      disableCSRFCheck: false,
     },
 
     // Our express-rate-limit presets cover /auth in every environment; Better Auth's own limiter adds per-rule limits in prod.
@@ -101,8 +125,11 @@ export function createAuth({ config, db, mailer, logger }: AuthDeps) {
       user: {
         create: {
           before: async (u) => ({
-            data: { ...u, role: u.emailVerified && isAdminEmail(u.email) ? "admin" : "reader" },
+            data: { ...cleanProfileFields(u), role: u.emailVerified && isAdminEmail(u.email) ? "admin" : "reader" },
           }),
+        },
+        update: {
+          before: async (u) => ({ data: cleanProfileFields(u) }),
         },
       },
       session: {

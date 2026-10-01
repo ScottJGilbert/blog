@@ -23,6 +23,7 @@ export default function AboutPage() {
           More information about the author and the mission of this blog is
           coming soon. In the meantime, browse the{" "}
           <Link
+            prefetch={false}
             href="/personal"
             className="font-semibold text-accent underline underline-offset-4"
           >
@@ -30,6 +31,7 @@ export default function AboutPage() {
           </Link>{" "}
           and{" "}
           <Link
+            prefetch={false}
             href="/engineering"
             className="font-semibold text-accent underline underline-offset-4"
           >

@@ -1,7 +1,7 @@
 import { getDb, type Database } from "@blog/db";
 import type { Request } from "express";
 import { createAuth, type Auth } from "./auth";
-import { loadConfig, type Config } from "./config";
+import { configWarnings, loadConfig, type Config } from "./config";
 import { createLogger, type Logger } from "./logger";
 import { createRateLimiters, type RateLimiters } from "./middleware/rate-limit";
 import { createRevalidator, type Revalidator } from "./lib/revalidate";
@@ -38,6 +38,7 @@ export type DepsOverrides = Partial<Deps>;
 export function createDeps(overrides: DepsOverrides = {}): Deps {
   const config = overrides.config ?? loadConfig();
   const logger = overrides.logger ?? createLogger(config);
+  if (!overrides.config) for (const w of configWarnings(config)) logger.warn(w);
   const fetchImpl = overrides.fetch ?? fetch;
   const db = overrides.db ?? getDb();
   const mailer = overrides.mailer ?? createMailer(config, logger, fetchImpl);

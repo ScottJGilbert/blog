@@ -64,6 +64,10 @@ export const UrlOrPathSchema = z
   .trim()
   .max(2048)
   .refine((v) => {
+    // Browsers drop tab/newline anywhere in a URL and treat `\` like `/`: `/\evil.com`, `/\t/evil.com` would become
+    // protocol-relative `//evil.com`. Control characters and backslashes never belong in a stored URL.
+    // eslint-disable-next-line no-control-regex
+    if (/[\u0000-\u001F\u007F-\u009F\\]/.test(v)) return false;
     if (v.startsWith("/") && !v.startsWith("//")) return true;
     try {
       const u = new URL(v);

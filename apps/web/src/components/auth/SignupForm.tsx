@@ -29,7 +29,12 @@ export function SignupForm({ next }: { next: string }) {
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) errors.email = "Enter a valid email address.";
     if (password.length < PASSWORD_MIN) errors.password = `Use at least ${PASSWORD_MIN} characters.`;
     setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+      // Move focus to the first invalid field so keyboard and screen-reader users land on the problem.
+      const first = errors.name ? "signup-name" : errors.email ? "signup-email" : "signup-password";
+      document.getElementById(first)?.focus();
+      return;
+    }
 
     setBusy(true);
     const { data, error } = await getAuthClient().signUp.email({

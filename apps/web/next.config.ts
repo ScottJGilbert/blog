@@ -58,6 +58,11 @@ const nextConfig: NextConfig = {
           ...(isProd ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }] : []),
         ],
       },
+      {
+        // KaTeX CSS + fonts (scripts/copy-katex.mjs): the path carries the package version, so they never change.
+        source: "/katex/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
     ];
   },
 };

@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blog platform
 
-## Getting Started
+Full-stack blog: public site, admin, Express API, Postgres (pgvector), listmonk newsletters. pnpm monorepo, deployed to Vercel as one project with path-prefixed services.
 
-First, run the development server:
+| Path | What | Dev port |
+| --- | --- | --- |
+| `apps/web` | Public Next.js 16 site (Home / Personal / Engineering themes, search, auth, comments, newsletter) | 3000 |
+| `apps/admin` | Admin Next.js app at `/admin` (posts + Lexical editor, media, users, moderation, newsletters, API keys) | 3001 |
+| `apps/api` | Express 5 API at `/api` (Better Auth, posts, search, comments, admin, newsletters, external `/api/v1`) | 4000 |
+| `packages/db` | Drizzle schema, migrations, seed | |
+| `packages/shared` | zod DTOs + typed API client | |
+| `packages/content` | Blog Content Format (BCF) standard + parser / validator / HTML renderer (`STANDARD.md`) | |
 
+Docs: [`docs/SPEC.md`](docs/SPEC.md) (architecture + API contract), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md), [`docs/NEWSLETTERS.md`](docs/NEWSLETTERS.md), [`docs/STATUS.md`](docs/STATUS.md), [`docs/lighthouse/`](docs/lighthouse).
+
+## Quick start
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env            # edit secrets
+docker compose up -d            # Postgres+pgvector (+ listmonk), or use any local Postgres with pgvector
+pnpm install
+pnpm db:migrate && pnpm db:seed # seed creates demo posts and (non-prod) admin@example.com / admin-password-123
+pnpm dev                        # open http://localhost:3000 (proxies /api and /admin like production)
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Checks: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`. E2E: see `playwright.config.ts` (projects `site`, `admin`; start the stack first).
+> Next.js 16 differs from older versions: see `AGENTS.md`.

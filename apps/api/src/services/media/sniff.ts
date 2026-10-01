@@ -13,7 +13,13 @@ export interface SniffedImage {
   /** null when the header could not be parsed (the file is still a structurally plausible image) */
   width: number | null;
   height: number | null;
+  /** present (true) when the header declares a canvas beyond `MAX_IMAGE_SIDE` / `MAX_IMAGE_PIXELS` (decompression-bomb guard): callers must reject it */
+  oversized?: boolean;
 }
+
+/** Longest accepted image side and pixel count (a 100 MP bitmap is ~400 MB once decoded; next/image & browsers choke well before). */
+export const MAX_IMAGE_SIDE = 16_384;
+export const MAX_IMAGE_PIXELS = 100_000_000;
 
 const EXT: Record<ImageMime, SniffedImage["ext"]> = {
   "image/jpeg": "jpg",
@@ -25,12 +31,13 @@ const EXT: Record<ImageMime, SniffedImage["ext"]> = {
 
 const ascii = (b: Buffer, start: number, end: number): string => b.toString("latin1", start, end);
 
-function dims(width: number, height: number): { width: number | null; height: number | null } {
+function dims(width: number, height: number): { width: number | null; height: number | null; oversized?: boolean } {
   // sanity: 0 or absurd values mean the header was misparsed or hostile
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > 100_000 || height > 100_000) {
-    return { width: null, height: null };
-  }
-  return { width, height };
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) return { width: null, height: null };
+  const oversized = width > MAX_IMAGE_SIDE || height > MAX_IMAGE_SIDE || width * height > MAX_IMAGE_PIXELS;
+  const flag = oversized ? { oversized: true } : {};
+  if (width > 100_000 || height > 100_000) return { width: null, height: null, ...flag };
+  return { width, height, ...flag };
 }
 
 function png(b: Buffer): SniffedImage | null {
@@ -80,7 +87,7 @@ function jpeg(b: Buffer): SniffedImage | null {
 function webp(b: Buffer): SniffedImage | null {
   if (b.length < 16 || ascii(b, 0, 4) !== "RIFF" || ascii(b, 8, 12) !== "WEBP") return null;
   const chunk = ascii(b, 12, 16);
-  let d: { width: number | null; height: number | null } = { width: null, height: null };
+  let d: { width: number | null; height: number | null; oversized?: boolean } = { width: null, height: null };
   if (chunk === "VP8 " && b.length >= 30) {
     // lossy: frame header after the 3-byte frame tag; start code 9d 01 2a
     if (b[23] === 0x9d && b[24] === 0x01 && b[25] === 0x2a) d = dims(b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff);
@@ -106,7 +113,7 @@ function avif(b: Buffer): SniffedImage | null {
   if (!brands.some((x) => x === "avif" || x === "avis")) return null;
   // first `ispe` (image spatial extents) box: fourcc, version/flags (4), width (u32 BE), height (u32 BE)
   const idx = b.indexOf("ispe", end, "latin1");
-  let d: { width: number | null; height: number | null } = { width: null, height: null };
+  let d: { width: number | null; height: number | null; oversized?: boolean } = { width: null, height: null };
   if (idx >= 0 && idx + 16 <= b.length) d = dims(b.readUInt32BE(idx + 8), b.readUInt32BE(idx + 12));
   return { mime: "image/avif", ext: "avif", ...d };
 }

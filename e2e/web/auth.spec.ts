@@ -115,7 +115,7 @@ test.describe("sign up, verify, sign in, account", () => {
   });
 
   test("?next= only honours same-origin paths (open-redirect protection)", async ({ page }) => {
-    for (const evil of ["//evil.example.com", "https://evil.example.com", "/\\evil.example.com", "javascript:alert(1)"]) {
+    for (const evil of ["//evil.example.com", "https://evil.example.com", "/\\evil.example.com", "javascript:alert(1)", "/.//evil.example.com", "/a/..//evil.example.com"]) {
       await signIn(page, READER.email, READER.password, evil);
       const url = new URL(page.url());
       expect(url.origin).toBe(new URL(page.url()).origin);

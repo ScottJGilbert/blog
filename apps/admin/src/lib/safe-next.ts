@@ -26,6 +26,16 @@ export function safeNext(value: string | string[] | null | undefined, fallback: 
   } catch {
     return fallback;
   }
+  // Dot segments collapse in the URL parser (`/.//evil.example` -> `//evil.example`): re-check the normalised path.
+  try {
+    const base = "http://internal.invalid";
+    const url = new URL(v, base);
+    const out = url.pathname + url.search + url.hash;
+    if (url.origin !== base || !out.startsWith("/") || out.startsWith("//") || out.startsWith("/\\")) return fallback;
+    v = out;
+  } catch {
+    return fallback;
+  }
   // Never bounce back to the login page itself.
   if (v === "/login" || v.startsWith("/login?") || v.startsWith("/login/")) return fallback;
   return v;

@@ -20,7 +20,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps<"/re
     >
       {invalid ? (
         <p>
-          <Link href="/forgot-password" className={linkClass}>
+          <Link prefetch={false} href="/forgot-password" className={linkClass}>
             Request a new reset link
           </Link>
         </p>

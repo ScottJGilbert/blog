@@ -7,7 +7,7 @@ import { HttpError, notFound } from "../../errors";
 import { ok, paginated } from "../../lib/pagination";
 import { parseQuery } from "../../lib/validate";
 import { createPostsService } from "../../services/posts";
-import { apiKeyAuth, requireScope } from "./api-key-auth";
+import { apiKeyAuth, presentedKey, requireScope } from "./api-key-auth";
 import { buildOpenApiDocument } from "./openapi";
 
 export const V1_CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300";
@@ -54,6 +54,8 @@ export function v1Router(deps: Deps): Router {
     res.json(buildOpenApiDocument(deps.config));
   });
 
+  // requests that present a key are throttled per IP before the (database) key lookup
+  router.use((req, res, next) => (presentedKey(req.headers) === undefined ? next() : deps.limiters.apiKeyAttempt(req, res, next)));
   router.use(apiKeyAuth(deps));
   router.use(deps.limiters.publicRead);
   router.use(rateLimitHeaders);

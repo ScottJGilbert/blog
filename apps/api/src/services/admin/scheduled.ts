@@ -19,16 +19,21 @@ export interface PublishDueResult {
  */
 export async function publishDuePosts(deps: Deps): Promise<PublishDueResult> {
   const now = deps.now();
-  const rows = await deps.db
-    .update(post)
-    .set({ status: "published", publishedAt: sql`${post.scheduledFor}`, scheduledFor: null, updatedAt: sql`now()` })
-    .where(sql`${post.status} = 'scheduled' AND ${post.scheduledFor} <= ${now.toISOString()}::timestamptz`)
-    .returning({ id: post.id, slug: post.slug, section: post.section });
+  // claim + audit trail in ONE transaction: a failing audit insert rolls the claim back, so the next run retries instead of
+  // leaving posts published without ever being revalidated / embedded
+  const rows = await deps.db.transaction(async (tx) => {
+    const claimed = await tx
+      .update(post)
+      .set({ status: "published", publishedAt: sql`${post.scheduledFor}`, scheduledFor: null, updatedAt: sql`now()` })
+      .where(sql`${post.status} = 'scheduled' AND ${post.scheduledFor} <= ${now.toISOString()}::timestamptz`)
+      .returning({ id: post.id, slug: post.slug, section: post.section });
+    for (const r of claimed) {
+      await audit(tx, null, { action: "post.publish_scheduled", targetType: "post", targetId: r.id, meta: { slug: r.slug } });
+    }
+    return claimed;
+  });
   if (rows.length === 0) return { published: 0, slugs: [] };
 
-  for (const r of rows) {
-    await audit(deps.db, null, { action: "post.publish_scheduled", targetType: "post", targetId: r.id, meta: { slug: r.slug } });
-  }
   const tags = new Set<string>(["tags"]);
   for (const r of rows) for (const t of postTags(r)) tags.add(t);
   await deps.revalidate([...tags]);

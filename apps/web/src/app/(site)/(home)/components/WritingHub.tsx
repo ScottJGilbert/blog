@@ -78,6 +78,7 @@ export default function WritingHub() {
           className="lg:col-span-8"
         >
           <Link
+            prefetch={false}
             href="/personal"
             className={clsx(buttonStyles({ size: "lg" }), stretched)}
           >
@@ -95,6 +96,7 @@ export default function WritingHub() {
           className="lg:col-span-4"
         >
           <Link
+            prefetch={false}
             href="/engineering"
             className={clsx(buttonStyles({ size: "lg" }), stretched)}
           >

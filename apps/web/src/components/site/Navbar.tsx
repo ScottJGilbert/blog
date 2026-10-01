@@ -63,6 +63,7 @@ export default function Navbar() {
         className="flex h-(--spacing-header) items-center justify-between gap-2"
       >
         <Link
+          prefetch={false}
           href="/"
           aria-label={`${SITE_DOMAIN}, home`}
           className="inline-flex min-h-11 min-w-0 items-center truncate font-display text-[0.9375rem] font-extrabold tracking-tight text-accent sm:text-xl"
@@ -83,6 +84,7 @@ export default function Navbar() {
               {SECTIONS.map((link) => (
                 <li key={link.id}>
                   <Link
+                    prefetch={false}
                     href={link.href}
                     aria-current={
                       isActivePath(pathname, link.href) ? "page" : undefined
@@ -96,6 +98,7 @@ export default function Navbar() {
               {/* Account lives in the menu panel below md; md+ shows it as the header pill next to the toggle. */}
               <li className="md:hidden">
                 <Link
+                  prefetch={false}
                   href="/search"
                   aria-current={pathname === "/search" ? "page" : undefined}
                   className="flex min-h-11 items-center gap-2 rounded-full px-4 text-base font-semibold text-fg transition-colors hover:bg-surface-2 aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent-soft-fg"
@@ -111,6 +114,7 @@ export default function Navbar() {
           </nav>
 
           <Link
+            prefetch={false}
             href="/search"
             aria-label="Search"
             aria-current={pathname === "/search" ? "page" : undefined}

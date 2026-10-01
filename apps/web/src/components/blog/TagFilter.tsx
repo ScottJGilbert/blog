@@ -35,6 +35,7 @@ export function TagFilter({
       <ul className="flex flex-wrap gap-2">
         {showAll && <li>
           <Link
+            prefetch={false}
             href={listingHref(base, extra)}
             aria-current={active ? undefined : "true"}
             className={clsx(
@@ -50,6 +51,7 @@ export function TagFilter({
           return (
             <li key={tag.slug}>
               <Link
+                prefetch={false}
                 href={listingHref(base, { ...extra, tag: tag.slug })}
                 aria-current={isActive ? "true" : undefined}
                 className={clsx(

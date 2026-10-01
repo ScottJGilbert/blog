@@ -230,7 +230,7 @@ function PasswordPanel() {
       </form>
       <p className="mt-4 text-sm text-muted">
         Signed up with Google or GitHub? You don&rsquo;t have a password; use{" "}
-        <Link href="/forgot-password" className="font-semibold text-accent underline underline-offset-4">
+        <Link prefetch={false} href="/forgot-password" className="font-semibold text-accent underline underline-offset-4">
           reset password
         </Link>{" "}
         to set one.

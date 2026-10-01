@@ -90,16 +90,20 @@ export async function SectionListing({ section, page, tag }: { section: Section;
             />
           </>
         ) : tag || page > 1 ? (
-          <EmptyState
-            icon={copy.emptyIcon}
-            title={tag ? `No posts tagged “${activeName}”` : "That page doesn’t exist"}
-            description={tag ? "Try another tag, or browse everything." : "There aren’t that many posts yet."}
-            action={
-              <ButtonLink href={base} variant="secondary">
-                {tag ? "Clear filter" : `Back to ${copy.title.toLowerCase()}`}
-              </ButtonLink>
-            }
-          />
+          <>
+            {/* A page past the last one is a soft 404: keep it out of search indexes (React hoists <meta> into <head>). */}
+            {!tag && <meta name="robots" content="noindex" />}
+            <EmptyState
+              icon={copy.emptyIcon}
+              title={tag ? `No posts tagged “${activeName}”` : "That page doesn’t exist"}
+              description={tag ? "Try another tag, or browse everything." : "There aren’t that many posts yet."}
+              action={
+                <ButtonLink href={base} variant="secondary">
+                  {tag ? "Clear filter" : `Back to ${copy.title.toLowerCase()}`}
+                </ButtonLink>
+              }
+            />
+          </>
         ) : (
           <EmptyState
             icon={copy.emptyIcon}

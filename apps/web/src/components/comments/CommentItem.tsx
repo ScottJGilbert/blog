@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CommentReply } from "@blog/shared";
 import { COMMENT_EDIT_WINDOW_MINUTES } from "@/lib/constants";
 import { clsx } from "clsx";
@@ -53,16 +53,33 @@ export function CommentItem({
   children?: React.ReactNode;
 }) {
   const [mode, setMode] = useState<"view" | "reply" | "edit">("view");
+  // Closing the reply/edit form unmounts the control that opened it: hand focus back to that button (or the comment).
+  const articleRef = useRef<HTMLElement>(null);
+  const replyRef = useRef<HTMLButtonElement>(null);
+  const editRef = useRef<HTMLButtonElement>(null);
+  const returnTo = useRef<"reply" | "edit" | null>(null);
+  const open = (next: "reply" | "edit") => {
+    returnTo.current = next;
+    setMode(next);
+  };
+  useEffect(() => {
+    if (mode !== "view" || !returnTo.current) return;
+    const target = returnTo.current === "reply" ? replyRef.current : editRef.current;
+    returnTo.current = null;
+    (target ?? articleRef.current)?.focus();
+  }, [mode]);
   const deleted = comment.status === "deleted";
   const pending = comment.pending === true;
   const editable = comment.canEdit && !pending && !deleted && withinEditWindow(comment);
 
   return (
     <article
+      ref={articleRef}
+      tabIndex={-1}
       aria-label={`Comment by ${comment.author.name}`}
       aria-busy={pending || undefined}
       id={pending ? undefined : `comment-${comment.id}`}
-      className={clsx("flex gap-3 sm:gap-4", pending && "opacity-70")}
+      className={clsx("flex gap-3 outline-none sm:gap-4", pending && "opacity-70")}
     >
       <span
         aria-hidden
@@ -104,13 +121,13 @@ export function CommentItem({
         {mode === "view" && !deleted && !pending && (
           <div className="-ml-2 flex flex-wrap items-center">
             {canInteract && onReply && (
-              <button type="button" className={action} onClick={() => setMode("reply")}>
+              <button ref={replyRef} type="button" className={action} onClick={() => open("reply")}>
                 <LuCornerDownRight aria-hidden className="size-4" />
                 Reply<span className="sr-only"> to {comment.author.name}</span>
               </button>
             )}
             {editable && (
-              <button type="button" className={action} onClick={() => setMode("edit")}>
+              <button ref={editRef} type="button" className={action} onClick={() => open("edit")}>
                 <LuPencil aria-hidden className="size-4" />
                 Edit<span className="sr-only"> your comment</span>
               </button>

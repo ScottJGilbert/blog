@@ -63,7 +63,7 @@ export function api(page: Page): APIRequestContext {
   return page.context().request;
 }
 export async function apiJson<T = unknown>(page: Page, method: "GET" | "POST" | "PATCH" | "DELETE", path: string, data?: unknown): Promise<T> {
-  const origin = new URL(page.url() === "about:blank" ? "http://localhost:3104" : page.url()).origin;
+  const origin = new URL(page.url() === "about:blank" ? (process.env.ADMIN_BASE_URL ?? "http://localhost:3104") : page.url()).origin;
   const res = await api(page).fetch(`/api${path}`, { method, data, headers: { origin } });
   if (!res.ok()) throw new Error(`${method} ${path} -> ${res.status()} ${await res.text()}`);
   if (res.status() === 204) return undefined as T;

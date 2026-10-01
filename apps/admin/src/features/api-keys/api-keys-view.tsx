@@ -12,7 +12,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { EmptyState, ErrorState } from "@/components/ui/empty-state";
 import { Checkbox, FormError, Input } from "@/components/ui/form";
 import { TableSkeleton } from "@/components/ui/skeleton";
-import { Table, TableScroll, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
+import { Table, TableScroll, TBody, Td, Th, THead, Tr, STICKY_ACTION_TD, STICKY_ACTION_TH } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { copyText } from "@/lib/clipboard";
@@ -77,7 +77,7 @@ export function ApiKeysView() {
                   <Th>Scopes</Th>
                   <Th>Last used</Th>
                   <Th>Status</Th>
-                  <Th className="w-24">
+                  <Th className={`w-24 ${STICKY_ACTION_TH}`}>
                     <span className="sr-only">Actions</span>
                   </Th>
                 </tr>
@@ -97,7 +97,7 @@ export function ApiKeysView() {
                     </Td>
                     <Td className="whitespace-nowrap text-muted">{k.lastUsedAt ? formatRelative(k.lastUsedAt) : "Never"}</Td>
                     <Td>{k.revokedAt ? <Badge tone="danger">Revoked</Badge> : <Badge tone="ok">Active</Badge>}</Td>
-                    <Td>
+                    <Td className={STICKY_ACTION_TD}>
                       {!k.revokedAt ? (
                         <Button size="sm" variant="danger-outline" onClick={() => revoke(k)} aria-label={`Revoke ${k.name}`}>
                           Revoke

@@ -28,3 +28,10 @@ export function Th({ className, scope = "col", ...rest }: ComponentProps<"th">) 
 export function Td({ className, ...rest }: ComponentProps<"td">) {
   return <td className={cn("px-4 py-3", className)} {...rest} />;
 }
+
+/**
+ * Classes for the trailing "Actions" column of a wide table: it stays pinned to the right edge of the scroll region, so
+ * on a phone the row menu / delete button is reachable without scrolling sideways first.
+ */
+export const STICKY_ACTION_TH = "sticky right-0 z-[1] bg-panel-2";
+export const STICKY_ACTION_TD = "sticky right-0 bg-panel shadow-[-6px_0_6px_-6px_rgb(0_0_0/0.15)]";

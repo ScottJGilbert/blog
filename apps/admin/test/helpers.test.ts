@@ -26,6 +26,8 @@ describe("safeNext (open-redirect safety)", () => {
     "evil",
     "",
     "/%2F%2Fevil.example",
+    "/.//evil.example",
+    "/admin/..//evil.example",
     "/\u0000x",
     "/login",
     "/login?next=/x",

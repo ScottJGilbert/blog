@@ -14,6 +14,11 @@ export function prepareContentHtml(html: string): string {
       .replace(/<table(?=[\s>])/g, '<div class="post-table-wrap" role="region" aria-label="Table" tabindex="0"><table')
       .replace(/<\/table>/g, "</table></div>");
   }
+  if (out.includes("web-share")) {
+    // Chrome logs "Unrecognized feature: 'web-share'" to the console for the Permissions-Policy token the renderer puts
+    // on embeds; the feature is not needed for an embedded player, so drop it from `allow=`.
+    out = out.replace(/(\sallow="[^"]*?);?\s*web-share\b/g, "$1");
+  }
   return out;
 }
 

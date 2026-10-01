@@ -191,12 +191,14 @@ export function Comments({ slug }: { slug: string }) {
             <p className="text-muted">Sign in with a verified email address to leave a comment.</p>
             <div className="flex flex-wrap gap-3">
               <Link
+                prefetch={false}
                 href={`/login?next=${redirectNext}`}
                 className="inline-flex min-h-11 items-center rounded-control bg-accent px-5 text-sm font-bold text-accent-fg hover:bg-accent-hover"
               >
                 Sign in
               </Link>
               <Link
+                prefetch={false}
                 href={`/signup?next=${redirectNext}`}
                 className="inline-flex min-h-11 items-center rounded-control border border-border-strong px-5 text-sm font-bold hover:bg-surface-2"
               >
@@ -211,6 +213,7 @@ export function Comments({ slug }: { slug: string }) {
               We sent a link to <strong className="break-all">{me?.email}</strong> when you signed up.
             </p>
             <Link
+              prefetch={false}
               href={`/verify-email?email=${encodeURIComponent(me?.email ?? "")}&next=${redirectNext}`}
               className="inline-flex min-h-11 items-center rounded-control border border-border-strong px-5 text-sm font-bold hover:bg-surface-2"
             >

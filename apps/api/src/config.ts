@@ -29,7 +29,12 @@ const EnvSchema = z.object({
   API_INTERNAL_URL: str.default("http://localhost:4000"),
   /** extra browser origins allowed for CSRF / Better Auth callbacks (comma list) */
   TRUSTED_ORIGINS: csv,
-  /** number of reverse-proxy hops to trust for client IPs (Express `trust proxy`) */
+  /**
+   * Number of reverse-proxy hops to trust for client IPs (Express `trust proxy`, hop-count form). With N hops Express reads the
+   * Nth entry FROM THE RIGHT of X-Forwarded-For, so a client-supplied prefix can never choose its own rate-limit identity.
+   * Vercel: 1 (it overwrites X-Forwarded-For with the real client address). Directly exposed Node server (no proxy at all): 0,
+   * otherwise a client can set the header itself and dodge every per-IP limit.
+   */
   TRUST_PROXY: int(1),
   ADMIN_EMAILS: csv,
   REQUIRE_EMAIL_VERIFICATION: flag(true),
@@ -130,6 +135,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     authSecret = DEV_AUTH_SECRET;
   } else if (isProd && authSecret.length < 32) {
     throw new Error("BETTER_AUTH_SECRET must be at least 32 characters in production.");
+  } else if (isProd && (authSecret === DEV_AUTH_SECRET || /^(change-?me|changeme|secret$|password$)/i.test(authSecret))) {
+    // the placeholder values shipped in .env.example / dev defaults are public: sessions signed with them can be forged
+    throw new Error("BETTER_AUTH_SECRET is still a placeholder value; generate a real one (openssl rand -base64 32).");
   }
 
   const devOrigins = isProd ? [] : ["http://localhost:3000", "http://localhost:3001", "http://localhost:4000"];
@@ -197,4 +205,23 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     rateLimit: { enabled: e.RATE_LIMIT_ENABLED ? !["0", "false", "no", "off"].includes(e.RATE_LIMIT_ENABLED.toLowerCase()) : !isTest },
     logLevel: e.LOG_LEVEL ?? (isTest ? "silent" : isProd ? "info" : "debug"),
   };
+}
+
+/**
+ * Non-fatal production misconfigurations worth a log line at startup (the app still boots: optional integrations must
+ * degrade gracefully). Returned as plain strings so they are easy to test.
+ */
+export function configWarnings(config: Config, env: Record<string, string | undefined> = process.env): string[] {
+  if (!config.isProd) return [];
+  const out: string[] = [];
+  const local = (u: string) => /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(u);
+  if (local(config.siteUrl)) out.push("SITE_URL points at localhost in production: links in emails, RSS and CSRF/trusted origins will be wrong.");
+  if (local(config.authUrl)) out.push("BETTER_AUTH_URL points at localhost in production: verification / reset links and cookies will not work for real visitors.");
+  if (!env.DATABASE_URL || local(config.databaseUrl)) out.push("DATABASE_URL is unset or points at localhost in production.");
+  if (!config.cronSecret) out.push("CRON_SECRET is not set: /cron/* answers 503, so scheduled posts and newsletters are never published.");
+  if (config.mailer.driver === "console") out.push("MAILER_DRIVER=console in production: no email (verification, password reset, newsletter confirmation) is delivered.");
+  if (config.storage.driver === "local") out.push("STORAGE_DRIVER=local in production: uploads live on the (ephemeral) function filesystem; use vercel-blob.");
+  if (config.listmonk.enabled && !config.listmonk.webhookSecret) out.push("LISTMONK_WEBHOOK_SECRET is not set: listmonk bounce/unsubscribe webhooks are rejected.");
+  if (config.revalidate.url && !config.revalidate.secret) out.push("WEB_REVALIDATE_URL is set without REVALIDATE_SECRET: the web app will (rightly) reject cache revalidation.");
+  return out;
 }

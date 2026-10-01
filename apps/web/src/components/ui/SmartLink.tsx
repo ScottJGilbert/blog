@@ -23,7 +23,7 @@ export function SmartLink({
 }: SmartLinkProps) {
   if (!isExternalHref(href)) {
     return (
-      <Link href={href} {...rest}>
+      <Link prefetch={false} href={href} {...rest}>
         {children}
       </Link>
     );

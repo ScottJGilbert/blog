@@ -7,6 +7,7 @@ function NavCard({ post, dir }: { post: PostNavRef; dir: "prev" | "next" }) {
   const Icon = dir === "prev" ? LuArrowLeft : LuArrowRight;
   return (
     <Link
+      prefetch={false}
       href={postHref(post.section, post.slug)}
       rel={dir}
       className={`group flex min-h-24 flex-col justify-center gap-1 rounded-card border border-border bg-surface p-4 transition-colors hover:border-accent sm:p-5 ${

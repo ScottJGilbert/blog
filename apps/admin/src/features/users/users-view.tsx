@@ -14,7 +14,7 @@ import { EmptyState, ErrorState } from "@/components/ui/empty-state";
 import { FormError, Input, Select, Textarea } from "@/components/ui/form";
 import { Pagination } from "@/components/ui/pagination";
 import { TableSkeleton } from "@/components/ui/skeleton";
-import { Table, TableScroll, TBody, Td, Th, THead, Tr } from "@/components/ui/table";
+import { Table, TableScroll, TBody, Td, Th, THead, Tr, STICKY_ACTION_TD, STICKY_ACTION_TH } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
@@ -113,11 +113,11 @@ export function UsersView() {
               <Table>
                 <THead>
                   <tr>
-                    <Th className="w-[34%]">User</Th>
+                    <Th className="w-[34%] min-w-[12rem]">User</Th>
                     <Th>Role</Th>
                     <Th>Status</Th>
                     <Th>Joined</Th>
-                    <Th className="w-12">
+                    <Th className={`w-12 ${STICKY_ACTION_TH}`}>
                       <span className="sr-only">Actions</span>
                     </Th>
                   </tr>
@@ -145,7 +145,7 @@ export function UsersView() {
                           {u.banned && u.banReason ? <p className="mt-1 max-w-56 truncate text-xs text-muted" title={u.banReason}>Reason: {u.banReason}</p> : null}
                         </Td>
                         <Td className="whitespace-nowrap text-muted">{formatDate(u.createdAt)}</Td>
-                        <Td>
+                        <Td className={STICKY_ACTION_TD}>
                           <DropdownMenu
                             label={`Actions for ${u.name}`}
                             triggerClassName="grid size-9 place-items-center rounded-ctl text-muted hover:bg-panel-2 hover:text-ink pointer-coarse:size-11"

@@ -47,7 +47,7 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
           name="email"
           label="Email address"
           type="email"
-          autoComplete="email"
+          autoComplete="username"
           inputMode="email"
           required
           value={email}
@@ -59,7 +59,7 @@ export function LoginForm({ next, initialError }: { next: string; initialError?:
           {busy ? "Signing in…" : "Sign in"}
         </Button>
         <p className="text-center text-sm">
-          <Link href="/forgot-password" className={linkClass}>
+          <Link prefetch={false} href="/forgot-password" className={linkClass}>
             Forgot your password?
           </Link>
         </p>

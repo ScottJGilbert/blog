@@ -13,8 +13,12 @@ export function safeNext(value: string | string[] | null | undefined, fallback =
     const base = "http://internal.invalid";
     const url = new URL(raw, base);
     if (url.origin !== base) return fallback;
-    if (/^\/(login|signup|forgot-password|reset-password|verify-email)(\/|$)/.test(url.pathname)) return fallback;
-    return url.pathname + url.search + url.hash;
+    // Dot segments are collapsed by the URL parser: `/.//evil.com` becomes `//evil.com`, which a browser (and
+    // router.replace) would treat as a protocol-relative URL. Re-check the NORMALISED result.
+    const out = url.pathname + url.search + url.hash;
+    if (!out.startsWith("/") || out.startsWith("//") || out.startsWith("/\\")) return fallback;
+    if (/^\/(login|signup|forgot-password|reset-password|verify-email|auth)(\/|$)/i.test(url.pathname)) return fallback;
+    return out;
   } catch {
     return fallback;
   }

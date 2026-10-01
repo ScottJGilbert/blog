@@ -105,6 +105,12 @@ it("admin only", async () => {
 * Agents keep cookies and send `Origin: t.origin` (needed for cookie-authenticated writes). `t.reset()` also deletes sessions, so sign in again after it.
 * Each test file gets its own database (`@blog/db/testing`), so files run in parallel; `TEST_DB_SHARED=1` uses `TEST_DATABASE_URL` directly.
 
+## Security notes
+* Request bodies: 1 MB JSON everywhere; 4 MB only for `/admin/posts…` and `/admin/newsletters…` and only AFTER `requireAdmin`; Better Auth routes 64 KB; uploads 8 MB (multer) plus a pixel guard (≤ 16384 px per side, ≤ 100 MP).
+* CSRF: `routes/index.ts` checks `Origin` (else `Referer`) on every cookie-carrying write; Better Auth's own Origin / callback-URL validation is forced on in all environments (`disableOriginCheck: false`), so tests exercise what production runs.
+* Database rejections caused by client data (NUL bytes, over-long values, constraint violations) are mapped to 4xx by the error handler, never a 500.
+* `TRUST_PROXY` is a hop count (Vercel: 1, no proxy at all: 0) — see the comment in `config.ts`. Production refuses placeholder `BETTER_AUTH_SECRET`s and logs `configWarnings()` at startup.
+
 ## Auth notes
 * Better Auth is mounted at `<API_BASE_PATH>/auth/*`; clients use `better-auth/client` with `baseURL` = the site origin.
 * Email+password; verification is required to sign in (`REQUIRE_EMAIL_VERIFICATION=false` relaxes it). Emails go through `Mailer`.

@@ -16,14 +16,20 @@ test.describe("newsletter", () => {
 
     const link = await mailLink(email, /newsletter\/confirm\?token=/);
     await page.goto(link);
-    await expect(page.getByRole("heading", { name: "You're subscribed" })).toBeVisible();
+    // opening the link changes nothing (mail scanners open links): the visitor confirms with a button
+    await expect(page.getByRole("heading", { name: "Confirm your subscription" })).toBeVisible();
+    await page.getByRole("button", { name: "Confirm subscription" }).click();
+    await expect(page.getByRole("heading", { name: "You're subscribed" })).toBeFocused();
     // a second visit with a spent token is a clear error, not a crash
     await page.goto(link);
+    await page.getByRole("button", { name: "Confirm subscription" }).click();
     await expect(page.getByRole("heading", { name: /You're subscribed|This link didn't work/ })).toBeVisible();
 
-    // the confirmation email also carries the one-click unsubscribe link
+    // the confirmation email also carries the unsubscribe link (same two-step flow)
     const unsubscribe = await mailLink(email, /newsletter\/unsubscribe\?token=/);
     await page.goto(unsubscribe);
+    await expect(page.getByRole("heading", { name: "Unsubscribe from the newsletter?" })).toBeVisible();
+    await page.getByRole("button", { name: "Unsubscribe" }).click();
     await expect(page.getByRole("heading", { name: "You're unsubscribed" })).toBeVisible();
   });
 
@@ -47,10 +53,12 @@ test.describe("newsletter", () => {
 
   test("invalid confirm/unsubscribe links show clear error states", async ({ page }) => {
     await page.goto("/newsletter/confirm?token=definitely-not-valid");
+    await page.getByRole("button", { name: "Confirm subscription" }).click();
     await expect(page.getByRole("heading", { name: "This link didn't work" })).toBeVisible();
     await page.goto("/newsletter/confirm");
     await expect(page.getByRole("heading", { name: "This link didn't work" })).toBeVisible();
     await page.goto("/newsletter/unsubscribe?token=definitely-not-valid");
+    await page.getByRole("button", { name: "Unsubscribe" }).click();
     await expect(page.getByRole("heading", { name: "This link didn't work" })).toBeVisible();
   });
 });

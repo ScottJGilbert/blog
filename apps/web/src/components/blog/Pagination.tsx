@@ -59,6 +59,7 @@ export function Pagination({
     );
     return enabled ? (
       <Link
+        prefetch={false}
         href={getHref(page)}
         rel={dir}
         aria-label={`${text} page`}
@@ -102,6 +103,7 @@ export function Pagination({
           ) : (
             <li key={item} className="hidden sm:block">
               <Link
+                prefetch={false}
                 href={getHref(item)}
                 aria-label={`Page ${item}`}
                 aria-current={item === current ? "page" : undefined}
