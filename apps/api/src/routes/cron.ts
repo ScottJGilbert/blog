@@ -30,10 +30,15 @@ export function cronRouter(deps: Deps): Router {
 
   const handler = async (req: Request, res: Response) => {
     authorize(req);
-    const posts = await publishDuePosts(deps);
-    const newsletterResult = await newsletters.sendDue();
+    // the two jobs are independent: a failure in one must not starve the other (the first error is rethrown afterwards → 500)
+    const [posts, newsletterResult] = await Promise.allSettled([publishDuePosts(deps), newsletters.sendDue()]);
+    if (posts.status === "rejected" || newsletterResult.status === "rejected") {
+      const reason = posts.status === "rejected" ? posts.reason : (newsletterResult as PromiseRejectedResult).reason;
+      deps.logger.error({ err: reason instanceof Error ? reason.message : String(reason) }, "cron job failed");
+      throw reason;
+    }
     res.set("cache-control", "no-store");
-    res.json({ data: { posts, newsletters: newsletterResult } });
+    res.json({ data: { posts: posts.value, newsletters: newsletterResult.value } });
   };
 
   router.get("/publish-scheduled", handler);

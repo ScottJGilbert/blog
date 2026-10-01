@@ -1,7 +1,22 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-const PAGES = ["/", "/personal", "/engineering", "/about", "/does-not-exist"];
+// Seeded demo posts (pnpm db:seed) cover the post page in the personal and engineering themes.
+const PAGES = [
+  "/",
+  "/personal",
+  "/engineering",
+  "/about",
+  "/does-not-exist",
+  "/search",
+  "/search?q=postgres",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/verify-email",
+  "/personal/notes-from-a-slow-morning",
+  "/engineering/hybrid-search-fusing-full-text-and-vectors",
+];
 const MODES = ["light", "dark"] as const;
 const THEME_KEY = "blog-theme";
 
@@ -134,7 +149,7 @@ test("touch targets are at least 44px on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/");
   await page.getByRole("button", { name: "Menu" }).click();
-  const targets = page.locator("header a, header button");
+  const targets = page.locator("header a:visible, header button:visible");
   for (const el of await targets.all()) {
     const box = await el.boundingBox();
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(43.5);

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { FormStatus, TextAreaField } from "@/components/ui/Field";
 import { useAuth } from "@/lib/auth-store";
-import { browserApi } from "@/lib/browser-api";
+import { getBrowserApi } from "@/lib/browser-api";
 import { CommentForm } from "./CommentForm";
 import { CommentItem, type ReplyItem } from "./CommentItem";
 import { commentErrorMessage } from "./errors";
@@ -25,7 +25,8 @@ let tempCounter = 0;
 
 /**
  * Comments island. The thread is fetched on the client (it is viewer-specific: canEdit/canDelete, and always fresh),
- * lazily, when the section approaches the viewport, into a box of reserved height. Posting, editing, deleting are
+ * and this module is itself only downloaded when the section approaches the viewport (see CommentsLazy), into a box
+ * of reserved height. Posting, editing, deleting are
  * optimistic and roll back on failure.
  */
 export function Comments({ slug }: { slug: string }) {
@@ -34,19 +35,18 @@ export function Comments({ slug }: { slug: string }) {
   const me = auth.me;
   const canComment = auth.status === "authenticated" && auth.me.emailVerified;
 
-  const [phase, setPhase] = useState<Phase>("idle");
+  const [phase, setPhase] = useState<Phase>("loading");
   const [items, setItems] = useState<Item[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [notice, setNotice] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
-  const rootRef = useRef<HTMLElement>(null);
   const started = useRef(false);
 
   const load = useCallback(
     async (page: number) => {
       try {
-        const res = await browserApi.comments(slug, { page, pageSize: PAGE_SIZE }, { cache: "no-store" });
+        const res = await (await getBrowserApi()).comments(slug, { page, pageSize: PAGE_SIZE }, { cache: "no-store" });
         setItems((prev) => {
           const seen = new Set(prev.map((c) => c.id));
           return page === 1 ? res.data : [...prev, ...res.data.filter((c) => !seen.has(c.id))];
@@ -61,33 +61,11 @@ export function Comments({ slug }: { slug: string }) {
     [slug],
   );
 
-  // Start loading when the section is within ~600px of the viewport.
+  // Mounted by CommentsLazy only once the section is near the viewport: fetch right away.
   useEffect(() => {
-    const el = rootRef.current;
-    if (!el || started.current) return;
-    const start = () => {
-      if (started.current) return;
-      started.current = true;
-      setPhase("loading");
-      void load(1);
-    };
-    if (typeof IntersectionObserver === "undefined") {
-      start();
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          start();
-          io.disconnect();
-        }
-      },
-      { rootMargin: "600px 0px" },
-    );
-    io.observe(el);
-    // Deep link (#comments / #comment-<id>) → load immediately.
-    if (location.hash.startsWith("#comment")) start();
-    return () => io.disconnect();
+    if (started.current) return;
+    started.current = true;
+    void load(1);
   }, [load]);
 
   function retry() {
@@ -126,7 +104,7 @@ export function Comments({ slug }: { slug: string }) {
       parentId ? prev.map((c) => (c.id === parentId ? { ...c, replies: [...c.replies, temp] } : c)) : [temp, ...prev],
     );
     try {
-      const created = await browserApi.createComment(slug, { body, parentId: parentId ?? undefined });
+      const created = await (await getBrowserApi()).createComment(slug, { body, parentId: parentId ?? undefined });
       setItems((prev) =>
         parentId
           ? prev.map((c) => (c.id === parentId ? { ...c, replies: c.replies.map((r) => (r.id === tempId ? created : r)) } : c))
@@ -158,7 +136,7 @@ export function Comments({ slug }: { slug: string }) {
       return { ...c, body, editedAt: new Date().toISOString() };
     });
     try {
-      const updated = await browserApi.updateComment(id, { body });
+      const updated = await (await getBrowserApi()).updateComment(id, { body });
       patch((c) => ({ ...c, ...updated }));
       setNotice({ kind: "success", text: "Comment updated." });
     } catch (err) {
@@ -177,7 +155,7 @@ export function Comments({ slug }: { slug: string }) {
       );
     });
     try {
-      await browserApi.deleteComment(id);
+      await (await getBrowserApi()).deleteComment(id);
       if (!topId) setMeta((m) => (m ? { ...m, total: Math.max(0, m.total - 1) } : m));
       setNotice({ kind: "success", text: "Comment deleted." });
     } catch (err) {
@@ -192,7 +170,6 @@ export function Comments({ slug }: { slug: string }) {
 
   return (
     <section
-      ref={rootRef}
       id="comments"
       aria-labelledby="comments-title"
       className={phase === "ready" ? undefined : RESERVED}
@@ -362,7 +339,7 @@ function ConfirmDialogs({
     setBusy(true);
     setError(null);
     try {
-      await browserApi.reportComment(state.id, { reason: text });
+      await (await getBrowserApi()).reportComment(state.id, { reason: text });
       onReported();
       close();
     } catch (err) {
@@ -401,7 +378,7 @@ function ConfirmDialogs({
             rows={4}
             maxLength={500}
             required
-            autoFocus
+            data-autofocus
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             error={error}

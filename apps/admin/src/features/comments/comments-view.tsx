@@ -37,12 +37,12 @@ export function CommentsView() {
     api.admin.comments.list({
       page,
       pageSize: PAGE_SIZE,
-      ...(tab === "reported" ? { reported: true } : {}),
+      ...(tab === "reported" ? { reported: "true" } : {}),
       ...(tab === "hidden" ? { status: "hidden" as const } : {}),
     }),
   );
   // counts for the tab badges
-  const { data: reportedCount } = useSWR(["comments", "count-reported"], () => api.admin.comments.list({ reported: true, pageSize: 1 }).then((r) => r.meta.total));
+  const { data: reportedCount } = useSWR(["comments", "count-reported"], () => api.admin.comments.list({ reported: "true", pageSize: 1 }).then((r) => r.meta.total));
   const { data: hiddenCount } = useSWR(["comments", "count-hidden"], () => api.admin.comments.list({ status: "hidden", pageSize: 1 }).then((r) => r.meta.total));
 
   /** Optimistic status change with rollback. */

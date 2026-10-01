@@ -102,6 +102,7 @@ export function PostCard({
                 : "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw")
             }
             preload={priority}
+            fetchPriority={priority ? "high" : undefined}
             unoptimized={cover.unoptimized}
             className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:scale-[1.03]"
           />

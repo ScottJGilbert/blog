@@ -81,6 +81,7 @@ export function PostHeader({ post }: { post: PostDetail }) {
             height={900}
             sizes="(min-width: 1280px) 704px, (min-width: 768px) 720px, 100vw"
             preload
+            fetchPriority="high"
             unoptimized={cover.unoptimized}
             className="size-full object-cover"
           />

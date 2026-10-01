@@ -11,7 +11,6 @@ export function safeNext(value: string | string[] | null | undefined, fallback: 
   let v = raw.trim();
   if (!v || v.length > 2000) return fallback;
   // Reject control characters and backslashes (browsers treat `\` like `/`).
-  // eslint-disable-next-line no-control-regex
   if (/[\u0000-\u001f\u007f\\]/.test(v)) return fallback;
   // Must be a single-slash absolute path: no scheme, no protocol-relative `//host`.
   if (!v.startsWith("/") || v.startsWith("//")) return fallback;

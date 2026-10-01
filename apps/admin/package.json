@@ -3,30 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build",
+    "dev": "next dev --webpack -p 3001",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@blog/content": "workspace:*",
+    "@blog/shared": "workspace:*",
+    "@scottjgilbert/lexical-blog-editor": "^1.1.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/forms": "^0.5.11",
     "@vercel/analytics": "^2.0.1",
     "autoprefixer": "^10.5.4",
+    "better-auth": "^1",
     "clsx": "^2.1.1",
+    "lexical": "^0.40.0",
     "next": "16.2.4",
     "postcss": "^8.5.25",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-icons": "^5.7.0",
-    "@blog/shared": "workspace:*",
-    "@blog/content": "workspace:*",
-    "better-auth": "^1",
-    "zod": "^4",
-    "@scottjgilbert/lexical-blog-editor": "^1.1.0",
-    "lexical": "^0.40.0",
-    "swr": "^2"
+    "swr": "^2",
+    "zod": "^4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -36,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

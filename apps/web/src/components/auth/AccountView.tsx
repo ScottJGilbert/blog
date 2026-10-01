@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isApiError } from "@blog/shared/client";
+import { isApiError } from "@/lib/api-error";
 import { LuBadgeCheck, LuTriangleAlert } from "react-icons/lu";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { FormStatus, TextField } from "@/components/ui/Field";
 import { authErrorMessage, getAuthClient } from "@/lib/auth-client";
 import { markSignedOut, setMe, useAuth } from "@/lib/auth-store";
-import { browserApi } from "@/lib/browser-api";
+import { getBrowserApi } from "@/lib/browser-api";
 import { PASSWORD_MIN, PasswordField } from "./PasswordField";
 import { ResendVerification } from "./ResendVerification";
 
@@ -25,12 +25,18 @@ function Panel({ title, id, children }: { title: string; id: string; children: R
   );
 }
 
+/** Set while we navigate away on purpose (sign out / delete) so the anonymous state doesn't bounce to /login. */
+let leaving = false;
+
 export function AccountView() {
   const router = useRouter();
   const auth = useAuth({ force: true });
 
   useEffect(() => {
-    if (auth.status === "anonymous") router.replace("/login?next=/account");
+    leaving = false;
+  }, []);
+  useEffect(() => {
+    if (auth.status === "anonymous" && !leaving) router.replace(`/login?next=${encodeURIComponent("/account")}`);
   }, [auth.status, router]);
 
   // Fixed-height placeholder: the page frame is identical before and after the lookup.
@@ -78,10 +84,10 @@ function ProfilePanel() {
     setBusy(true);
     setStatus(null);
     try {
-      setMe(await browserApi.updateMe({ name: trimmed }));
+      setMe(await (await getBrowserApi()).updateMe({ name: trimmed }));
       setStatus({ kind: "success", text: "Profile saved." });
     } catch (err) {
-      setStatus({ kind: "error", text: isApiError(err) && err.isValidation ? "That name isn't valid." : "Couldn't save your profile. Please try again." });
+      setStatus({ kind: "error", text: isApiError(err) && err.code === "validation_error" ? "That name isn't valid." : "Couldn't save your profile. Please try again." });
     } finally {
       setBusy(false);
     }
@@ -146,14 +152,14 @@ function NewsletterPanel({ verified, status }: { verified: boolean; status: "pen
     setBusy(true);
     setMessage(null);
     try {
-      await browserApi.subscription.set(!subscribed);
+      await (await getBrowserApi()).subscription.set(!subscribed);
       // Refresh the cached profile so the header/comments see the new state.
-      setMe(await browserApi.me({ cache: "no-store" }));
+      setMe(await (await getBrowserApi()).me({ cache: "no-store" }));
       setMessage({ kind: "success", text: subscribed ? "You've been unsubscribed." : "You're subscribed. Thanks!" });
     } catch (err) {
       setMessage({
         kind: "error",
-        text: isApiError(err) && err.isForbidden ? "Verify your email address first." : "Couldn't update your subscription. Please try again.",
+        text: isApiError(err) && err.status === 403 ? "Verify your email address first." : "Couldn't update your subscription. Please try again.",
       });
     } finally {
       setBusy(false);
@@ -242,6 +248,7 @@ function SignOutButton({ onDone }: { onDone: () => void }) {
       onClick={async () => {
         setBusy(true);
         await getAuthClient().signOut();
+        leaving = true;
         markSignedOut();
         onDone();
       }}
@@ -262,13 +269,14 @@ function DeletePanel({ email, isAdmin }: { email: string; isAdmin: boolean }) {
     setBusy(true);
     setError(null);
     try {
-      await browserApi.deleteMe();
+      await (await getBrowserApi()).deleteMe();
+      leaving = true;
       markSignedOut();
       router.push("/");
     } catch (err) {
       setBusy(false);
       setError(
-        isApiError(err) && err.isForbidden
+        isApiError(err) && err.status === 403
           ? "Administrators can't delete their own account. Ask another administrator to demote you first."
           : "Couldn't delete your account. Please try again.",
       );

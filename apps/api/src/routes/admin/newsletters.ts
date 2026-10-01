@@ -33,7 +33,7 @@ export function adminNewslettersRouter(deps: Deps): Router {
   const testLimiter = makeLimiter(deps.config.rateLimit.enabled, {
     windowMs: 60_000,
     limit: 5,
-    key: (req) => `newsletter-test:${req.user?.id ?? req.ip}`,
+    key: (req) => `newsletter-test:${req.user?.id ?? "unknown"}`, // always set: this router sits behind requireAdmin
     message: "Too many test sends, please wait a minute.",
   });
 

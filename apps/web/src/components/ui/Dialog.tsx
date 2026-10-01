@@ -27,7 +27,11 @@ export function Dialog({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (open && !el.open) el.showModal();
+    if (open && !el.open) {
+      el.showModal();
+      // Prefer an explicit initial focus target (React's autoFocus runs before the dialog is modal).
+      el.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+    }
     if (!open && el.open) el.close();
   }, [open]);
 
@@ -37,6 +41,26 @@ export function Dialog({
       aria-labelledby={titleId}
       aria-describedby={description ? descId : undefined}
       onClose={onClose}
+      onKeyDown={(event) => {
+        // Keep Tab / Shift+Tab inside the dialog (native modals can otherwise hand focus to the browser UI).
+        if (event.key !== "Tab") return;
+        const focusable = Array.from(
+          event.currentTarget.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((el) => el.offsetParent !== null);
+        if (focusable.length === 0) return;
+        const first = focusable[0]!;
+        const last = focusable[focusable.length - 1]!;
+        const active = document.activeElement;
+        if (event.shiftKey && (active === first || !event.currentTarget.contains(active))) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && (active === last || !event.currentTarget.contains(active))) {
+          event.preventDefault();
+          first.focus();
+        }
+      }}
       onClick={(event) => {
         // Click on the backdrop (the dialog element itself, outside its padded content box).
         if (event.target === ref.current) onClose();

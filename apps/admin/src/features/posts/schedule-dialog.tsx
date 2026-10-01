@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Field, FormError } from "@/components/ui/form";
 import { errorMessage } from "@/lib/errors";
-import { formatDateTime, timeZoneLabel, toLocalInputValue } from "@/lib/format";
+import { formatDateTime, nowMs, timeZoneLabel, toLocalInputValue } from "@/lib/format";
 
 /** Date/time picker (local time, with the time zone shown explicitly) that resolves to an ISO UTC timestamp. */
 export function ScheduleDialog({
@@ -62,7 +62,7 @@ function ScheduleForm({
       setError("Choose a valid date and time.");
       return;
     }
-    if (date.getTime() <= Date.now() + 30_000) {
+    if (date.getTime() <= nowMs() + 30_000) {
       setError("Choose a time in the future.");
       return;
     }

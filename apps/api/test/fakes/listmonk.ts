@@ -65,6 +65,8 @@ export interface FakeListmonk {
   failNext(key: string, status: number, times?: number, opts?: { drop?: boolean }): void;
   /** requests whose "METHOD /path" starts with `prefix` */
   count(prefix: string): number;
+  /** forget all state, recorded requests and injected failures; ids start at 1 again */
+  reset(): void;
   setCampaignStats(id: number, stats: Partial<Pick<FakeCampaign, "sent" | "to_send" | "views" | "clicks" | "bounces" | "status">>): void;
   close(): Promise<void>;
 }
@@ -92,7 +94,7 @@ export async function startFakeListmonk(options: FakeListmonkOptions = {}): Prom
   const user = options.user ?? "blog";
   const token = options.token ?? "test-token";
   const scheme = options.scheme ?? "token";
-  const state: Omit<FakeListmonk, "url" | "failNext" | "count" | "setCampaignStats" | "close"> = {
+  const state: Omit<FakeListmonk, "url" | "failNext" | "count" | "reset" | "setCampaignStats" | "close"> = {
     requests: [],
     lists: [],
     subscribers: [],
@@ -271,6 +273,16 @@ export async function startFakeListmonk(options: FakeListmonkOptions = {}): Prom
     url: `http://127.0.0.1:${port}`,
     failNext(key: string, status: number, times = 1, opts: { drop?: boolean } = {}) {
       failures.push({ key, status, remaining: times, drop: opts.drop });
+    },
+    reset() {
+      state.requests.length = 0;
+      state.lists.length = 0;
+      state.subscribers.length = 0;
+      state.templates.length = 0;
+      state.campaigns.length = 0;
+      state.tests.length = 0;
+      failures.length = 0;
+      seq = { list: 0, sub: 0, tpl: 0, camp: 0 };
     },
     count(prefix: string) {
       return state.requests.filter((r) => `${r.method} ${r.path}`.startsWith(prefix)).length;

@@ -94,6 +94,5 @@ export function AnchorButton({
   className,
   ...rest
 }: ComponentProps<"a"> & { variant?: Variant; size?: Size }) {
-  // eslint-disable-next-line jsx-a11y/anchor-has-content
   return <a className={buttonClass(variant, size, className)} {...rest} />;
 }

@@ -7,6 +7,8 @@ const dateTimeFmt = new Intl.DateTimeFormat("en", {
   minute: "2-digit",
 });
 
+export const nowMs = (): number => Date.now();
+
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso);

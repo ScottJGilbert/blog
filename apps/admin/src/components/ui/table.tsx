@@ -4,7 +4,7 @@ import { cn } from "./cn";
 /** Horizontally scrollable, keyboard-focusable and labelled region around a wide table (WCAG 2.1.1 / axe scrollable-region-focusable). */
 export function TableScroll({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
-    <div role="region" aria-label={label} tabIndex={0} className={cn("overflow-x-auto overscroll-x-contain", className)}>
+    <div role="region" aria-label={label} tabIndex={0} className={cn("relative overflow-x-auto overscroll-x-contain", className)}>
       {children}
     </div>
   );

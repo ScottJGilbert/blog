@@ -2,7 +2,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import type { Section } from "@blog/shared";
 import { api, getPost, getRelated } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { Comments } from "@/components/comments/Comments";
+import { CommentsLazy } from "@/components/comments/CommentsLazy";
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
 import { postHref } from "@/lib/paths";
 import { SITE_URL } from "@/lib/site-url";
@@ -77,7 +77,7 @@ export async function PostPage({ section, slug }: { section: Section; slug: stri
             </section>
           )}
 
-          <Comments slug={post.slug} />
+          <CommentsLazy slug={post.slug} />
         </div>
       </PageContainer>
     </>

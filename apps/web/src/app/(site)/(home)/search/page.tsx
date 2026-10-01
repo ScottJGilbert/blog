@@ -14,12 +14,17 @@ import { getPosts, getTags, isApiError, searchPosts } from "@/lib/api";
 import { listingHref, parsePage, parseSection, parseTag } from "@/lib/paths";
 import { renderSnippet } from "@/lib/snippet";
 
-export const metadata: Metadata = {
-  title: "Search",
-  description: "Search every post on the blog.",
-  alternates: { canonical: "/search" },
-  robots: { index: false, follow: true },
-};
+export async function generateMetadata({ searchParams }: PageProps<"/search">): Promise<Metadata> {
+  const sp = await searchParams;
+  const filtered = Boolean(sp.q || sp.tag || sp.section || sp.page);
+  return {
+    title: "Search",
+    description: "Search every post on the blog.",
+    alternates: { canonical: "/search" },
+    // The bare search page is a normal landing page; result pages are infinite, thin and not worth indexing.
+    ...(filtered ? { robots: { index: false, follow: true } } : {}),
+  };
+}
 
 const PAGE_SIZE = 9;
 

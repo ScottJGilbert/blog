@@ -8,7 +8,6 @@ export const metadata: Metadata = {
   title: "Sign in",
   description: "Sign in to comment and manage your newsletter subscription.",
   alternates: { canonical: "/login" },
-  robots: { index: false, follow: true },
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {

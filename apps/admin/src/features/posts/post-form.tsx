@@ -173,11 +173,19 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
     savedRef.current = { ...savedRef.current, contentStr: json };
     setSavedSnap(snapshot(savedRef.current));
   }, []);
-  const onEditorChange = useCallback((json: string) => update({ contentStr: json }), [update]);
+  const editorFlush = useRef<(() => void) | null>(null);
+  const onEditorChange = useCallback(
+    (json: string) => {
+      draftRef.current = { ...draftRef.current, contentStr: json }; // visible to a save that runs before the next render
+      update({ contentStr: json });
+    },
+    [update],
+  );
 
   // ----- saving -----------------------------------------------------------------------------------------------------
   const doSave = useCallback(
     async (reason: "auto" | "manual" | "publish"): Promise<AdminPostDetail | null> => {
+      editorFlush.current?.();
       const d = draftRef.current;
       const errs = validateDraft(d);
       if (Object.keys(errs).length > 0) {
@@ -266,6 +274,7 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
   );
 
   const ensureSaved = useCallback(async (): Promise<AdminPostDetail | null> => {
+    editorFlush.current?.();
     const d = draftRef.current;
     if (postRef.current && snapshot(d) === snapshot(savedRef.current)) return postRef.current;
     return save("publish");
@@ -478,7 +487,7 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
         </div>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="xl:col-start-1 xl:row-start-1">
           <Input
             label="Title"
@@ -632,12 +641,13 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
                 initialContent={editorSeed.content}
                 onChange={onEditorChange}
                 onBaseline={onEditorBaseline}
+                flushRef={editorFlush}
                 placeholder="Start writing your post…"
               />
             </div>
           </Card>
           <p className="text-[0.8125rem] text-muted">
-            <Link href="/media" className="text-brand hover:underline">
+            <Link href="/media" className="text-brand underline underline-offset-2">
               Open the media library
             </Link>{" "}
             to manage uploaded images.

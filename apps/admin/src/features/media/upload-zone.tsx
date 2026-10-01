@@ -88,6 +88,7 @@ export function UploadZone({ onUploaded, compact = false }: { onUploaded: (media
         <input
           ref={inputRef}
           id={inputId}
+          aria-label="Choose image files to upload"
           type="file"
           multiple
           accept="image/jpeg,image/png,image/webp,image/gif,image/avif"

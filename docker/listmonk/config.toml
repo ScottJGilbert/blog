@@ -1,0 +1,18 @@
+# listmonk configuration for local development (mounted read-only by docker-compose.yml).
+# Any value can be overridden with an environment variable LISTMONK_<section>__<key>, e.g. LISTMONK_db__password.
+# See https://listmonk.app/docs/configuration/ . DEV ONLY: change the passwords for anything public.
+
+[app]
+address = "0.0.0.0:9000"
+
+[db]
+host = "listmonk-db"
+port = 5432
+user = "listmonk"
+password = "listmonk"
+database = "listmonk"
+ssl_mode = "disable"
+max_open = 25
+max_idle = 25
+max_lifetime = "300s"
+params = ""

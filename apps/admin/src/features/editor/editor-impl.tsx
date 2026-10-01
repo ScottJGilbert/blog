@@ -25,9 +25,11 @@ export interface RichEditorProps {
   /** first snapshot after load, before the user touched anything (normalised form of `initialContent`) */
   onBaseline: (json: string) => void;
   placeholder?: string;
+  /** set by the editor: call to serialise + report any pending (debounced) change immediately (e.g. right before saving) */
+  flushRef?: { current: (() => void) | null };
 }
 
-export default function EditorImpl({ initialContent, onChange, onBaseline, placeholder }: RichEditorProps) {
+export default function EditorImpl({ initialContent, onChange, onBaseline, placeholder, flushRef }: RichEditorProps) {
   // Stable identity for the lifetime of this mount (see header comment).
   const initialState = useMemo(() => initialContent as unknown as EditorState, []); // eslint-disable-line react-hooks/exhaustive-deps
   const touched = useRef(false);
@@ -40,22 +42,58 @@ export default function EditorImpl({ initialContent, onChange, onBaseline, place
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  const handle = useMemo(
-    () => (state: EditorState) => {
-      window.clearTimeout(timer.current);
-      // first report immediately (baseline), later ones debounced to avoid serialising on every keystroke
-      const delay = last.current === null ? 0 : 250;
-      timer.current = window.setTimeout(() => {
-        const json = JSON.stringify(state.toJSON());
-        if (json === last.current) return;
-        const first = last.current === null;
-        last.current = json;
-        if (first && !touched.current) cbs.current.onBaseline(json);
-        else cbs.current.onChange(json);
-      }, delay);
+  const latest = useRef<EditorState | null>(null);
+  const report = useMemo(
+    () => () => {
+      const state = latest.current;
+      if (!state) return;
+      latest.current = null;
+      const json = JSON.stringify(state.toJSON());
+      if (json === last.current) return;
+      const first = last.current === null;
+      last.current = json;
+      if (first && !touched.current) cbs.current.onBaseline(json);
+      else cbs.current.onChange(json);
     },
     [],
   );
+  useEffect(() => {
+    if (!flushRef) return;
+    flushRef.current = () => {
+      window.clearTimeout(timer.current);
+      report();
+    };
+    return () => {
+      flushRef.current = null;
+    };
+  }, [flushRef, report]);
+
+  const handle = useMemo(
+    () => (state: EditorState) => {
+      latest.current = state;
+      window.clearTimeout(timer.current);
+      // first report immediately (baseline), later ones debounced to avoid serialising on every keystroke
+      const delay = last.current === null ? 0 : 250;
+      timer.current = window.setTimeout(report, delay);
+    },
+    [report],
+  );
+
+  // The package's contenteditable has no accessible name; name it without touching the package.
+  const hostRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const name = () => {
+      const el = host.querySelector<HTMLElement>('[contenteditable="true"][role="textbox"], [contenteditable="true"]');
+      if (el && !el.getAttribute("aria-label")) el.setAttribute("aria-label", placeholder ?? "Rich text content");
+      return Boolean(el);
+    };
+    if (name()) return;
+    const mo = new MutationObserver(() => name() && mo.disconnect());
+    mo.observe(host, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, [placeholder]);
 
   const mark = () => {
     touched.current = true;
@@ -63,6 +101,7 @@ export default function EditorImpl({ initialContent, onChange, onBaseline, place
 
   return (
     <div
+      ref={hostRef}
       className="editor-host"
       onKeyDownCapture={mark}
       onPointerDownCapture={mark}

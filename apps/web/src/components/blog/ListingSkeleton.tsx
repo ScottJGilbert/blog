@@ -15,6 +15,11 @@ export function ListingSkeleton({ cards = 6 }: { cards?: number }) {
           <Skeleton className="h-10 w-3/4 max-w-md sm:h-12" />
           <Skeleton className="mt-4 h-14 w-full max-w-2xl" />
         </div>
+        <div className="flex flex-wrap gap-2 pb-8" aria-hidden>
+          {[16, 24, 20, 28].map((w) => (
+            <Skeleton key={w} className="h-11 rounded-full" style={{ width: `${w * 4}px` }} />
+          ))}
+        </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-hidden>
           {Array.from({ length: cards }, (_, i) => (
             <PostCardSkeleton key={i} />

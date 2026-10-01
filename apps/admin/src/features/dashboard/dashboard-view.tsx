@@ -80,8 +80,8 @@ export function DashboardView() {
             )}
           </section>
 
-          <div className="grid gap-5 xl:grid-cols-2">
-            <Card aria-labelledby="recent-posts-h">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+            <Card aria-labelledby="recent-posts-h" className="min-w-0">
               <div className="flex items-center justify-between border-b border-edge px-4 py-3">
                 <h2 id="recent-posts-h" className="text-sm font-semibold">
                   Recent posts
@@ -122,7 +122,7 @@ export function DashboardView() {
               )}
             </Card>
 
-            <Card aria-labelledby="recent-comments-h">
+            <Card aria-labelledby="recent-comments-h" className="min-w-0">
               <div className="flex items-center justify-between border-b border-edge px-4 py-3">
                 <h2 id="recent-comments-h" className="text-sm font-semibold">
                   Recent comments

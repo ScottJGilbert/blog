@@ -24,4 +24,15 @@ export default defineConfig({
       args: ["--no-sandbox"],
     },
   },
+  // Projects: the public-site specs (BASE_URL) and the admin specs in e2e/admin (ADMIN_BASE_URL, default :3104;
+  // start the API (:4104) and the admin (:3104) first, see e2e/admin/helpers.ts).
+  projects: [
+    { name: "site", testIgnore: "**/admin/**" },
+    {
+      name: "admin",
+      testMatch: "admin/**/*.spec.ts",
+      workers: 1,
+      use: { baseURL: process.env.ADMIN_BASE_URL ?? "http://localhost:3104" },
+    },
+  ],
 });

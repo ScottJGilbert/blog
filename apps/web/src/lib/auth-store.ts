@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
-import { isApiError, type Me } from "@blog/shared/client";
-import { browserApi } from "./browser-api";
+import type { Me } from "@blog/shared";
+import { isApiError } from "./api-error";
+import { getBrowserApi } from "./browser-api";
 
 /**
  * Tiny client-side session store shared by the header, comments and account pages.
@@ -55,8 +56,8 @@ export function refreshAuth({ force = false }: { force?: boolean } = {}): Promis
     if (state.status === "unknown") emit(ANONYMOUS);
     return Promise.resolve();
   }
-  inflight ??= browserApi
-    .me({ cache: "no-store" })
+  inflight ??= getBrowserApi()
+    .then((api) => api.me({ cache: "no-store" }))
     .then((me) => {
       setHint(true);
       emit({ status: "authenticated", me });

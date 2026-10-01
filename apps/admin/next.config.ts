@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 /**
@@ -24,6 +25,16 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   transpilePackages: ["@blog/shared", "@blog/content"],
+  // Webpack (not Turbopack) because Turbopack cannot run loaders over CSS; see build-tools/strip-remote-css-imports.cjs.
+  webpack(config) {
+    config.module.rules.unshift({
+      // (no `test: /\.css$/`: Next disables its built-in CSS support when it sees a custom CSS rule)
+      include: /lexical-blog-editor[\\/]build[\\/].*\.css$/,
+      enforce: "pre",
+      use: [{ loader: path.join(process.cwd(), "build-tools/strip-remote-css-imports.cjs") }],
+    });
+    return config;
+  },
   async rewrites() {
     return [
       // `basePath: false` => matches `/api/...` (not `/admin/api/...`); the API owns the whole `/api` prefix.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { COMMENT_MAX_LENGTH } from "@blog/shared";
+import { COMMENT_MAX_LENGTH } from "@/lib/constants";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/Button";
 import { inputClass } from "@/components/ui/Field";

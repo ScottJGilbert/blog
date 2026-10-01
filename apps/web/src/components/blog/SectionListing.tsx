@@ -71,7 +71,7 @@ export async function SectionListing({ section, page, tag }: { section: Section;
 
         {list.data.length > 0 ? (
           <>
-            <p className="sr-only" role="status">
+            <p className="sr-only">
               {tag ? `${total} ${total === 1 ? "post" : "posts"} tagged ${activeName}` : `${total} ${total === 1 ? "post" : "posts"}`}
               {totalPages > 1 ? `, page ${page} of ${totalPages}` : ""}
             </p>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CommentReply } from "@blog/shared";
-import { COMMENT_EDIT_WINDOW_MINUTES } from "@blog/shared";
+import { COMMENT_EDIT_WINDOW_MINUTES } from "@/lib/constants";
 import { clsx } from "clsx";
 import { LuCornerDownRight, LuFlag, LuPencil, LuTrash2 } from "react-icons/lu";
 import { formatDateTime, relativeTime } from "@/lib/format";

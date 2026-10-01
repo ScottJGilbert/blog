@@ -82,7 +82,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         ref={listRef}
         popover="manual"
         aria-label="Notifications"
-        className="fixed inset-auto bottom-4 left-auto right-4 m-0 flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-2 overflow-visible border-0 bg-transparent p-0 max-sm:inset-x-4 max-sm:w-auto"
+        role="region"
+        className="fixed inset-auto bottom-4 left-auto right-4 m-0 w-[min(24rem,calc(100vw-2rem))] flex-col gap-2 overflow-visible border-0 bg-transparent p-0 max-sm:inset-x-4 max-sm:w-auto [&:popover-open]:flex"
       >
         {items.map((t) => {
           const Icon = icons[t.kind];

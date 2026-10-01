@@ -64,14 +64,14 @@ describe("error envelope", () => {
 });
 
 describe("auth middleware", () => {
-  it("/api/admin: 401 anonymous, 403 reader, passes for admin (stub router ⇒ 404)", async () => {
+  it("/api/admin: 401 anonymous, 403 reader, passes for admin", async () => {
     const anon = await anonAgent(t).get("/api/admin/stats").expect(401);
     expect(anon.body.error.code).toBe("unauthorized");
     const reader = await signUpAndSignIn(t, { role: "reader" });
     const forbidden = await reader.agent.get("/api/admin/stats").expect(403);
     expect(forbidden.body.error.code).toBe("forbidden");
     const admin = await signUpAndSignIn(t, { role: "admin" });
-    await admin.agent.get("/api/admin/stats").expect(404); // not implemented in the skeleton, but authorised
+    await admin.agent.get("/api/admin/stats").expect(200);
   });
 
   it("banned admin is locked out", async () => {

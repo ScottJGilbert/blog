@@ -1,0 +1,71 @@
+# Local services for the blog platform.
+#
+#   docker compose up -d db                 app database only (what `pnpm dev` + tests need)
+#   docker compose up -d                    + listmonk (newsletters) on http://localhost:9000
+#   docker compose down -v                  stop and delete all data
+#
+# App database : postgres://blog:blog@localhost:5432/blog      (tests: .../blog_test), pgvector enabled
+# listmonk     : http://localhost:9000  admin / listmonk-admin (DEV ONLY, see docs/NEWSLETTERS.md to create the API user)
+#
+# Everything here is for development. Production uses Neon (app DB) and a hosted listmonk container, see docs/NEWSLETTERS.md.
+
+name: blog
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: blog
+      POSTGRES_PASSWORD: blog
+      POSTGRES_DB: blog
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # *.sql / *.sh in this directory run once on first start: creates blog_test and the `vector` extension
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog -d blog"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  listmonk-db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: listmonk
+      POSTGRES_PASSWORD: listmonk
+      POSTGRES_DB: listmonk
+    volumes:
+      - listmonk-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U listmonk -d listmonk"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  listmonk:
+    image: listmonk/listmonk:latest
+    restart: unless-stopped
+    depends_on:
+      listmonk-db:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./docker/listmonk/config.toml:/listmonk/config.toml:ro
+      - listmonk-uploads:/listmonk/uploads
+    environment:
+      # First-run super admin (listmonk >= 5). With older images create the admin in the web UI on first visit.
+      LISTMONK_ADMIN_USER: admin
+      LISTMONK_ADMIN_PASSWORD: listmonk-admin
+      TZ: Etc/UTC
+    # --install --idempotent: create the schema when missing, do nothing when it exists; --yes: no prompt.
+    command: [sh, -c, "./listmonk --install --idempotent --yes --config config.toml && ./listmonk --config config.toml"]
+
+volumes:
+  db-data:
+  listmonk-db-data:
+  listmonk-uploads:
