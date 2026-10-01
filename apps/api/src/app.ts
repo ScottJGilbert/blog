@@ -54,7 +54,13 @@ export function createAppWithDeps(overrides: DepsOverrides = {}): AppWithDeps {
     await authNode(req, res);
   });
 
-  app.use(express.json({ limit: "1mb" }));
+  // Post/newsletter bodies may carry inline `data:` images from the editor (externalised server-side), so those
+  // routes get a larger limit (Vercel's request cap is 4.5 MB); everything else stays at 1 MB.
+  const largeJson = express.json({ limit: "4mb" });
+  const smallJson = express.json({ limit: "1mb" });
+  app.use((req, res, next) =>
+    /\/admin\/(posts|newsletters)(\/|$)/.test(req.path) ? largeJson(req, res, next) : smallJson(req, res, next),
+  );
 
   const router = buildRouter(deps);
   app.use(config.basePath || "/", router);

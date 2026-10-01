@@ -126,7 +126,9 @@ export function createApiClient(options: ApiClientOptions) {
       preview: (id: string, init?: Init) =>
         http.data("POST", `/admin/newsletters/${enc(id)}/preview`, S.NewsletterPreviewSchema, { init }),
       test: (id: string, input: TestNewsletterInput, init?: Init) =>
-        http.void("POST", `/admin/newsletters/${enc(id)}/test`, { body: input, init }),
+        http.data("POST", `/admin/newsletters/${enc(id)}/test`, S.TestNewsletterResultSchema, { body: input, init }),
+      unschedule: (id: string, init?: Init) =>
+        http.data("POST", `/admin/newsletters/${enc(id)}/unschedule`, S.NewsletterSchema, { init }),
       send: (id: string, init?: Init) =>
         http.data("POST", `/admin/newsletters/${enc(id)}/send`, S.SendNewsletterResultSchema, { init }),
       schedule: (id: string, input: ScheduleNewsletterInput, init?: Init) =>

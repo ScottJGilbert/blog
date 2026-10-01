@@ -20,7 +20,6 @@ import { ScheduleDialog } from "@/features/posts/schedule-dialog";
 import { api } from "@/lib/api";
 import { errorMessage, fieldErrorsFromApi, type FieldErrors } from "@/lib/errors";
 import { formatDateTime } from "@/lib/format";
-import { testNewsletter, unscheduleNewsletter } from "@/lib/raw";
 import { useUnsavedGuard } from "@/lib/unsaved-guard";
 import { emptyContentDoc } from "./empty-doc";
 
@@ -205,7 +204,7 @@ function Form({ initial, onUpdated }: { initial: Newsletter; onUpdated: (n: News
     try {
       const saved = await save();
       if (!saved) return;
-      const r = await testNewsletter(saved.id, email);
+      const r = await api.admin.newsletters.test(saved.id, { email });
       if (r.warning) setNotice({ tone: "warn", text: r.warning });
       else setNotice({ tone: "ok", text: `Test email sent to ${email}.` });
       toast[r.warning ? "info" : "success"](r.warning ?? `Test email sent to ${email}`);
@@ -263,7 +262,7 @@ function Form({ initial, onUpdated }: { initial: Newsletter; onUpdated: (n: News
 
   async function unschedule() {
     try {
-      const res = await unscheduleNewsletter(nl.id);
+      const res = await api.admin.newsletters.unschedule(nl.id);
       setNl(res);
       onUpdated(res);
       toast.success("Schedule cancelled — back to draft");

@@ -45,3 +45,7 @@ next-env.d.ts
 # local uploads / data
 .data/
 !.env.example
+
+# playwright
+test-results/
+playwright-report/

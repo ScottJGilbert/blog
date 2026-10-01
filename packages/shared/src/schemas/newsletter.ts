@@ -93,6 +93,13 @@ export const UpdateNewsletterInputSchema = CreateNewsletterInputSchema.omit({ po
   postId: UuidSchema.nullable().optional(),
 });
 export const NewsletterPreviewSchema = z.object({ html: z.string() });
+export const TestNewsletterResultSchema = z.object({
+  sent: z.boolean(),
+  provider: z.enum(["listmonk", "noop"]),
+  warning: z.string().nullable(),
+});
+export type TestNewsletterResult = z.infer<typeof TestNewsletterResultSchema>;
+
 export const TestNewsletterInputSchema = z.object({ email: EmailSchema });
 export const ScheduleNewsletterInputSchema = z.object({ scheduledFor: IsoDateSchema });
 export const SendNewsletterResultSchema = z.object({

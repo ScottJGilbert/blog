@@ -1,0 +1,23 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "experimentalServices": {
+    "web": {
+      "entrypoint": "apps/web",
+      "routePrefix": "/",
+      "framework": "nextjs"
+    },
+    "admin": {
+      "entrypoint": "apps/admin",
+      "routePrefix": "/admin",
+      "framework": "nextjs"
+    },
+    "api": {
+      "entrypoint": "apps/api/src/index.ts",
+      "routePrefix": "/api",
+      "framework": "express"
+    }
+  },
+  "crons": [
+    { "path": "/api/cron/publish-scheduled", "schedule": "0 6 * * *" }
+  ]
+}
