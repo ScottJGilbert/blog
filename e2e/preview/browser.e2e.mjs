@@ -71,7 +71,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.getByRole("button", { name: /^sign in$/i }).click();
   await page.waitForURL((u) => !/\/admin\/login/.test(u.pathname), { timeout: 25000 }).catch(() => {});
   ok("admin login form -> dashboard", /\/admin\/?$/.test(new URL(page.url()).pathname), page.url());
-  ok("dashboard shows stats", /published/i.test(await page.locator("main").innerText()), (await page.locator("main").innerText()).slice(0, 120));
+  await page.getByText(/^Loading statistics/).first().waitFor({ state: "detached", timeout: 20000 }).catch(() => {});
+  ok("dashboard shows stats", /published/i.test(await page.locator("main").innerText()), (await page.locator("main").innerText()).slice(0, 200));
   await page.goto(`${BASE}/admin/posts`, { waitUntil: "networkidle" }); ok("posts table lists seed posts", (await page.locator("table tbody tr").count()) >= 6, String(await page.locator("table tbody tr").count()));
   // editor
   await page.goto(`${BASE}/admin/posts/new`, { waitUntil: "networkidle" });
