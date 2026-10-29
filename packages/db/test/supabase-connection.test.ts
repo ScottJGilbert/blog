@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import pg from "pg";
+import { SUPABASE_ROOT_CA_2021 } from "../src/supabase-ca";
 import {
   cleanConnectionString,
   createDb,
@@ -58,10 +59,10 @@ describe("TLS", () => {
 
   it("Supabase host without a CA: TLS, not verified, with a warning", () => {
     const warn = vi.fn();
-    expect(resolveSsl(POOLED, {}, warn)).toEqual({ rejectUnauthorized: false });
+    expect(resolveSsl(POOLED, {}, warn)).toEqual({ ca: SUPABASE_ROOT_CA_2021, rejectUnauthorized: true }); // bundled root, verified
     expect(resolveSsl(DIRECT, {}, warn)).toEqual({ rejectUnauthorized: false }); // no sslmode in the URL at all
-    expect(warn).toHaveBeenCalledTimes(2);
-    expect(warn.mock.calls[0]![0]).toMatch(/NOT verified/);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]![0]).toMatch(/NOT verified/); // only the direct host (different cert name) stays unverified
   });
 
   it("DATABASE_SSL_CA (PEM or base64 PEM) turns on full verification", () => {
@@ -109,7 +110,7 @@ describe("connection string", () => {
     const h = createDb(POOLED);
     const o = h.pool.options as { connectionString: string; ssl: unknown };
     expect(o.connectionString).not.toMatch(/supa=|sslmode|pgbouncer/);
-    expect(o.ssl).toEqual({ rejectUnauthorized: false });
+    expect(o.ssl).toEqual({ ca: SUPABASE_ROOT_CA_2021, rejectUnauthorized: true });
     expect(h.pool.options).not.toHaveProperty("application_name");
     await h.close();
     const session = createDb(SESSION);

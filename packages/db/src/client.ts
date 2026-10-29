@@ -1,3 +1,4 @@
+import { SUPABASE_ROOT_CA_2021 } from "./supabase-ca";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import type { ConnectionOptions } from "node:tls";
@@ -164,6 +165,8 @@ export function resolveSsl(url: string, env: Env = process.env, warn: (message: 
   if (noVerify) return { rejectUnauthorized: false };
   const ca = parseCa(env.DATABASE_SSL_CA);
   if (ca) return { ca, rejectUnauthorized: true, ...(override === "verify-ca" || mode === "verify-ca" ? { checkServerIdentity: () => undefined } : {}) };
+  // Pooler hosts present *.pooler.supabase.com certificates chained to the bundled root: verify properly.
+  if (supabase && /\.pooler\.supabase\.com$/i.test(u.hostname)) return { ca: SUPABASE_ROOT_CA_2021, rejectUnauthorized: true };
   if (supabase) {
     warn("database TLS: Supabase host without DATABASE_SSL_CA, connection is encrypted but the server certificate is NOT verified (set DATABASE_SSL_CA to verify)");
     return { rejectUnauthorized: false };
