@@ -5,29 +5,70 @@
       "root": "apps/web/",
       "framework": "nextjs",
       "bindings": [
-        { "type": "service", "service": "api", "format": "url", "env": "API_INTERNAL_URL" }
+        {
+          "type": "service",
+          "service": "api",
+          "format": "url",
+          "env": "API_INTERNAL_URL"
+        }
       ]
     },
     "admin": {
       "root": "apps/admin/",
       "framework": "nextjs",
       "bindings": [
-        { "type": "service", "service": "api", "format": "url", "env": "API_INTERNAL_URL" }
+        {
+          "type": "service",
+          "service": "api",
+          "format": "url",
+          "env": "API_INTERNAL_URL"
+        }
       ]
     },
     "api": {
       "root": "apps/api/",
       "framework": "express",
-      "entrypoint": "entry.cjs"
+      "entrypoint": "entry.cjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "web",
+          "format": "url",
+          "env": "WEB_INTERNAL_URL"
+        }
+      ]
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": { "service": "api" } },
-    { "source": "/admin", "destination": { "service": "admin" } },
-    { "source": "/admin/(.*)", "destination": { "service": "admin" } },
-    { "source": "/(.*)", "destination": { "service": "web" } }
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
+      "source": "/admin",
+      "destination": {
+        "service": "admin"
+      }
+    },
+    {
+      "source": "/admin/(.*)",
+      "destination": {
+        "service": "admin"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "web"
+      }
+    }
   ],
   "crons": [
-    { "path": "/api/cron/publish-scheduled", "schedule": "0 6 * * *" }
+    {
+      "path": "/api/cron/publish-scheduled",
+      "schedule": "0 6 * * *"
+    }
   ]
 }
