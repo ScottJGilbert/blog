@@ -21,6 +21,8 @@ async function req(path, { method = "GET", jar, body, headers = {}, origin = BAS
   let json; try { json = text ? JSON.parse(text) : undefined; } catch {}
   return { status: res.status, headers: res.headers, text, json, ms: Date.now() - t, res };
 }
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Better Auth ships its own per-instance limiter (sign-in/email: 3 per 10 s): space sign-ins out
 const signIn = async (jar, u, origin = BASE) => req("/api/auth/sign-in/email", { method: "POST", jar, body: u, origin });
 
 // ---------------------------------------------------------------- health / boot
@@ -30,7 +32,7 @@ r = await req("/api/health"); ok("health warm < 1500ms", r.ms < 1500, r.ms + "ms
 // ---------------------------------------------------------------- public API
 r = await req("/api/posts?pageSize=3"); ok("posts list", r.status === 200 && r.json?.data?.length > 0 && r.json?.meta?.total >= 6, r.text?.slice(0, 200));
 const first = r.json?.data?.[0];
-ok("posts cache-control public", /s-maxage/.test(r.headers.get("cache-control") ?? ""), r.headers.get("cache-control"));
+ok("posts cacheable at the CDN (s-maxage is consumed by Vercel: header shows public)", /public/.test(r.headers.get("cache-control") ?? ""), r.headers.get("cache-control"));
 r = await req(`/api/posts/${first.slug}`); ok("post detail has html+toc", r.status === 200 && r.json?.data?.contentHtml?.length > 50 && Array.isArray(r.json?.data?.toc), r.text?.slice(0, 120));
 r = await req(`/api/posts/${first.slug}/related`); ok("related", r.status === 200 && Array.isArray(r.json?.data), r.status);
 r = await req("/api/search?q=postgres"); ok("search", r.status === 200 && r.json?.data?.length > 0, r.text?.slice(0, 120));
@@ -59,6 +61,7 @@ r = await req("/admin/_next/static/chunks/nonexistent.js"); ok("admin asset 404 
 const aj = new Jar();
 r = await signIn(aj, { email: ADMIN.email, password: "wrong-password-123" }); ok("bad password rejected", r.status === 401 || r.status === 400, r.status + r.text?.slice(0, 100));
 r = await signIn(aj, ADMIN, "https://evil.example.com"); ok("sign-in from evil origin blocked", r.status === 403, r.status + " " + r.text?.slice(0, 100));
+await sleep(11000);
 r = await signIn(aj, ADMIN); ok("admin sign-in", r.status === 200 && aj.c.size > 0, r.status + " " + r.text?.slice(0, 160));
 const setCookie = r.headers.getSetCookie?.().join("\n") ?? "";
 ok("session cookie flags (Secure; HttpOnly; SameSite=Lax; host-only)", /Secure/i.test(setCookie) && /HttpOnly/i.test(setCookie) && /SameSite=Lax/i.test(setCookie) && !/Domain=/i.test(setCookie), setCookie.slice(0, 300));
@@ -70,15 +73,14 @@ r = await req("/api/admin/stats", { jar: aj }); ok("admin stats", r.status === 2
 r = await req("/api/admin/system", { jar: aj }); console.log("system:", JSON.stringify(r.json?.data));
 ok("system: db/storage/data-api", r.status === 200 && r.json?.data?.dataApiExposure === "locked" && r.json?.data?.storage === "vercel-blob", JSON.stringify(r.json?.data));
 // alias variant: sign in via the unique deployment URL host too is covered by BASE_ALT if set
+await sleep(11000);
 if (process.env.BASE_ALT) { const j2 = new Jar(); const saved = BASE; r = await fetch(process.env.BASE_ALT + "/api/auth/sign-in/email", { method: "POST", headers: { "x-vercel-protection-bypass": BYPASS, "content-type": "application/json", origin: process.env.BASE_ALT }, body: JSON.stringify(ADMIN) }); ok("sign-in via deployment-url origin", r.status === 200, String(r.status)); }
 const rj = new Jar();
+await sleep(11000);
 r = await signIn(rj, READER); ok("reader sign-in", r.status === 200, r.status + " " + r.text?.slice(0, 120));
 r = await req("/api/admin/stats", { jar: rj }); ok("reader forbidden on admin api", r.status === 403, r.status);
 r = await req("/admin", { jar: rj }); ok("reader sees not-authorised in admin", r.status === 200 && /Not authorised|not authorised/i.test(r.text) || [302, 307].includes(r.status), r.status);
 r = await req("/api/admin/stats"); ok("anon 401 on admin api", r.status === 401, r.status);
-
-// ---------------------------------------------------------------- rate limiting (shared PG store)
-{ const j = new Jar(); const codes = []; for (let i = 0; i < 14; i++) { const x = await signIn(j, { email: "nobody@example.com", password: "x".repeat(12) }); codes.push(x.status); } ok("auth rate limit kicks in (429)", codes.includes(429), codes.join(",")); }
 
 // ---------------------------------------------------------------- admin content lifecycle + revalidation chain + blob media
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
@@ -116,10 +118,17 @@ if (pid) { r = await req(`/api/admin/posts/${pid}`, { method: "DELETE", jar: aj 
 // cron
 r = await req("/api/cron/publish-scheduled"); ok("cron without secret rejected", r.status === 401, r.status);
 r = await req("/api/cron/publish-scheduled", { headers: { authorization: `Bearer ${CRON}` } }); ok("cron with secret", r.status === 200, r.status + " " + r.text?.slice(0, 120));
+// shared (Postgres-backed) comment limiter: 10/min/user, consistent across instances
+{ const made = []; const codes = []; for (let i = 0; i < 13; i++) { const x = await req(`/api/posts/${first.slug}/comments`, { method: "POST", jar: rj, body: { body: `limiter probe ${i} ${Date.now()}` } }); codes.push(x.status); if (x.status === 201) made.push(x.json.data.id); if (x.status === 429) ok("comment limiter envelope", x.json?.error?.code === "rate_limited", x.text?.slice(0, 120)); }
+  ok("comment limiter (PG store) caps at 10/min", codes.filter((c) => c === 201).length <= 10 && codes.includes(429), codes.join(","));
+  for (const id of made) await req(`/api/comments/${id}`, { method: "DELETE", jar: rj }); }
 // sign-out
+await sleep(11000);
 r = await req("/api/auth/sign-out", { method: "POST", jar: aj, body: {} }); ok("sign-out", r.status === 200, r.status);
 r = await req("/api/me", { jar: aj }); ok("/api/me after sign-out 401", r.status === 401, r.status);
 
+// last: auth endpoint hammering must end in 429 (burns this IP's budget for a minute)
+{ const j = new Jar(); const codes = []; for (let i = 0; i < 14; i++) { const x = await signIn(j, { email: "nobody@example.com", password: "x".repeat(12) }); codes.push(x.status); } ok("auth rate limit kicks in (429)", codes.includes(429), codes.join(",")); }
 const fails = results.filter((x) => x[0] === "FAIL");
 console.log(`\n${results.length - fails.length}/${results.length} passed`);
 if (fails.length) { console.log("FAILED:"); for (const f of fails) console.log(" -", f[1], f[2]); }
