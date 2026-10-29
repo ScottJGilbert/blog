@@ -63,7 +63,7 @@ await sleep(11000); r = await req("/api/auth/sign-in/email", { method: "POST", b
 // ---- misc protocol behaviour on the edge
 r = await req("/api/posts", { method: "OPTIONS" }); ok("OPTIONS handled (no 5xx)", r.status < 500, r.status);
 r = await fetch(BASE + "/api/posts?pageSize=1", { method: "HEAD", headers: { "x-vercel-protection-bypass": BYPASS } }); ok("HEAD ok", r.status === 200, r.status);
-r = await fetch(BASE + "/api/posts?pageSize=1", { headers: { "x-vercel-protection-bypass": BYPASS, "accept-encoding": "gzip, br" } }); ok("compressed responses", /br|gzip/.test(r.headers.get("content-encoding") ?? ""), r.headers.get("content-encoding"));
+r = await fetch(BASE + "/api/v1/openapi.json", { headers: { "x-vercel-protection-bypass": BYPASS, "accept-encoding": "gzip, br" } }); ok("compressed responses (large JSON)", /br|gzip/.test(r.headers.get("content-encoding") ?? ""), r.headers.get("content-encoding"));
 
 // ---- cleanup
 for (const id of [pid, dpid, sid]) if (id) await req(`/api/admin/posts/${id}`, { method: "DELETE", jar: aj });
