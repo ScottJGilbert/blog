@@ -37,3 +37,9 @@ For minute-level precision use Vercel Pro (`* * * * *`) or an external scheduler
 Without Docker: any local Postgres with pgvector, `cp .env.example .env`, `pnpm install`, `pnpm db:migrate && pnpm db:seed`, `pnpm dev`
 (web :3000 proxies `/api` → :4000 and `/admin` → :3001; open http://localhost:3000).
 With Docker (full stack behind a Caddy reverse proxy that mirrors the Vercel Services routing): `docker compose up --build`, see [`LOCAL_DEV.md`](LOCAL_DEV.md).
+
+## Vercel Services notes (learned from real preview deployments)
+* Use `services` + top-level `rewrites` (the `experimentalServices` / `routePrefix` form is deprecated). Rewrites hand the ORIGINAL path to the service, so the API keeps its `/api` prefix and admin keeps its `/admin` basePath.
+* A service `entrypoint` is validated BEFORE the build, so it cannot point into `dist/`. `apps/api/entry.cjs` is a committed shim that requires the tsup bundle `dist/index.cjs`.
+* `bindings` inject an absolute internal URL (e.g. `https://api.<id>.services.vercel-infra.com`) that is not subject to Deployment Protection: web and admin get `API_INTERNAL_URL` this way.
+* Bindings must not be circular (`CIRCULAR_SERVICE_BINDING`), so the API cannot bind web. It revalidates web via the deployment URL and the `x-vercel-protection-bypass` header (`VERCEL_AUTOMATION_BYPASS_SECRET`, create it once under Project → Deployment Protection → Protection Bypass for Automation).
