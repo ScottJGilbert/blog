@@ -38,13 +38,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.goto(`${BASE}/login?next=/account`, { waitUntil: "networkidle" });
   await page.getByLabel(/email/i).first().fill(READER.email); await page.getByLabel(/password/i).first().fill(READER.password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/\/account/, { timeout: 20000 }).catch(() => {});
-  ok("reader login lands on /account", /\/account/.test(page.url()), page.url());
-  ok("account shows email", (await page.locator("body").innerText()).includes(READER.email), "");
+  await page.waitForURL((u) => u.pathname === "/account", { timeout: 25000 }).catch(() => {});
+  ok("reader login lands on /account", new URL(page.url()).pathname === "/account", page.url() + " :: " + (await page.locator("[role=alert], [aria-live]").allInnerTexts()).join("|").slice(0, 300));
+  await page.getByText(READER.email).first().waitFor({ timeout: 15000 }).catch(() => {});
+  ok("account shows email", (await page.locator("body").innerText()).includes(READER.email), (await page.locator("main").innerText()).slice(0, 200));
   const cookies = await ctx.cookies(); const sess = cookies.find((c) => /session_token/.test(c.name));
   ok("session cookie Secure+HttpOnly", !!sess && sess.secure && sess.httpOnly, JSON.stringify(sess && { n: sess.name, s: sess.secure, h: sess.httpOnly }));
   // reload keeps session & header state
-  await page.goto(`${BASE}/`, { waitUntil: "networkidle" }); ok("header shows account state after reload", /account/i.test(await page.locator("header").innerText()), (await page.locator("header").innerText()).slice(0, 100));
+  await page.goto(`${BASE}/`, { waitUntil: "networkidle" }); ok("header shows account state after reload", /account/i.test(await page.getByRole("banner").first().innerText()), (await page.getByRole("banner").first().innerText()).slice(0, 100));
   // admin must refuse a reader
   await page.goto(`${BASE}/admin`, { waitUntil: "networkidle" }); ok("reader blocked from admin UI", /not authori[sz]ed/i.test(await page.locator("body").innerText()) || /\/admin\/login/.test(page.url()), page.url());
   ok("public pages: no console/5xx errors", errors.length === 0, errors.join(" | "));
