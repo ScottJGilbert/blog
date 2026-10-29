@@ -38,6 +38,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@blog/shared", "@blog/content"],
   images: {
+    // Observed on Vercel Services previews: /_next/image (and /_vercel/image) answer with the app's 404 page because the
+    // platform image optimizer is not attached to a service behind a top-level rewrite, so every next/image would break.
+    // Serve originals there (uploads are capped at 4 MB); set IMAGE_OPTIMIZATION=1 to opt back in once Vercel supports it.
+    unoptimized: process.env.VERCEL === "1" && process.env.IMAGE_OPTIMIZATION !== "1",
     formats: ["image/avif", "image/webp"],
     remotePatterns: MEDIA_HOSTS.map((hostname) => ({ protocol: "https" as const, hostname })),
   },
