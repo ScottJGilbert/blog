@@ -9,7 +9,8 @@ export const COMMENT_MAX_LENGTH = 4000;
 export const COMMENT_EDIT_WINDOW_MINUTES = 15;
 export const REPORT_REASON_MIN = 3;
 export const REPORT_REASON_MAX = 500;
-export const MEDIA_MAX_BYTES = 8 * 1024 * 1024;
+/** 4 MiB: Vercel rejects request bodies over 4.5 MB before they reach the function, so a larger upload could never succeed there. */
+export const MEDIA_MAX_BYTES = 4 * 1024 * 1024;
 export const MEDIA_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"] as const;
 
 export const SECTIONS = ["personal", "engineering"] as const;

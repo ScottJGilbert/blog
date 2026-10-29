@@ -18,6 +18,25 @@ function asHttpish(err: unknown): { status: number; type?: string } | null {
   return { status, type: typeof e.type === "string" ? e.type : undefined };
 }
 
+const NET_CODES = new Set(["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN", "EPIPE", "CONNECTION_ENDED"]);
+const POOL_MESSAGES = /timeout exceeded when trying to connect|connection terminated|connection ended unexpectedly|server closed the connection|too many clients|remaining connection slots/i;
+
+/**
+ * The database cannot be reached right now (Neon waking up / restarting, pooler saturated, network blip). Walks `cause`
+ * chains (drizzle wraps driver errors). Class 08 = connection exception, 53 = insufficient resources, 57P01-03 = shutdown.
+ */
+export function isDbUnavailable(err: unknown): boolean {
+  let cur: unknown = err;
+  for (let i = 0; i < 5 && cur && typeof cur === "object"; i++) {
+    const e = cur as { code?: unknown; message?: unknown; cause?: unknown };
+    const code = typeof e.code === "string" ? e.code : "";
+    if (NET_CODES.has(code) || code.startsWith("08") || code.startsWith("53") || /^57P0[123]$/.test(code)) return true;
+    if (typeof e.message === "string" && POOL_MESSAGES.test(e.message)) return true;
+    cur = e.cause;
+  }
+  return false;
+}
+
 export const notFoundHandler: RequestHandler = (req, res) => {
   res.status(404).json(envelope("not_found", `Route not found: ${req.method} ${req.path}`));
 };
@@ -52,6 +71,12 @@ export function createErrorHandler(logger: Logger): ErrorRequestHandler {
         logger.warn({ reqId, code: pg.code, constraint: pg.constraint, method: req.method, path: req.path }, "database constraint violated");
         return void res.status(400).json(envelope("validation_error", "The request violates a data constraint"));
       }
+    }
+
+    if (isDbUnavailable(err)) {
+      logger.error({ reqId, method: req.method, path: req.path, err: err instanceof Error ? err.message : String(err) }, "database unavailable");
+      res.set("retry-after", "2");
+      return void res.status(503).json(envelope("internal", "The database is temporarily unavailable, please retry in a moment"));
     }
 
     const http = asHttpish(err);

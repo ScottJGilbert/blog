@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import { api, API_REQUEST_HEADERS } from "@/lib/api";
 import { parseSection } from "@/lib/paths";
 
 /**
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const url = api.feedUrl(section); // origin = API_INTERNAL_URL
   try {
     const upstream = await fetch(url, {
-      headers: { accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.1" },
+      headers: { ...API_REQUEST_HEADERS, accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.1" },
       signal: AbortSignal.timeout(8000),
       next: { revalidate: 600, tags: section ? ["posts", `section:${section}`] : ["posts"] },
     });

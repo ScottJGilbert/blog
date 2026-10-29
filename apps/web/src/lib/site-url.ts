@@ -1,16 +1,20 @@
+import { derivedPublicOrigin } from "@blog/shared/server";
 import { SITE_DOMAIN } from "./site";
 
 /**
  * Public origin used for metadataBase / canonical URLs / sitemap / robots / JSON-LD (server-side only).
- * Development falls back to localhost. A PRODUCTION build must never leak `localhost` into canonical URLs, sitemaps or
- * feeds, so without SITE_URL it uses the Vercel production domain when present, else the site's own domain.
+ * SITE_URL wins. Without it: on Vercel the production domain (production) or the deployment's own URL (previews), derived
+ * from Vercel's system env vars; development falls back to localhost; any other production build uses the site's own domain.
+ * A production build must never leak `localhost` into canonical URLs, sitemaps or feeds.
+ * Statically prerendered pages freeze this value at build time; ISR / dynamic routes (sitemap, posts) evaluate it at runtime.
  */
-function resolveSiteUrl(): string {
-  const explicit = process.env.SITE_URL?.trim();
+export function resolveSiteUrl(env: Record<string, string | undefined> = process.env): string {
+  const explicit = env.SITE_URL?.trim();
   if (explicit) return explicit.replace(/\/+$/, "");
-  if (process.env.NODE_ENV !== "production") return "http://localhost:3000";
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  return `https://${vercel || SITE_DOMAIN}`;
+  const derived = derivedPublicOrigin(env);
+  if (derived) return derived;
+  if (env.NODE_ENV !== "production") return "http://localhost:3000";
+  return `https://${SITE_DOMAIN}`;
 }
 
 export const SITE_URL = resolveSiteUrl();

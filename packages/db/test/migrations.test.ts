@@ -33,7 +33,7 @@ describe("migrations", () => {
     expect(rows.map((r) => r.tablename)).toEqual(
       [
         "account", "api_key", "audit_log", "comment", "comment_report", "media", "newsletter", "post",
-        "post_embedding", "post_tag", "session", "subscriber", "tag", "user", "verification",
+        "post_embedding", "post_tag", "rate_limit", "session", "subscriber", "tag", "user", "verification",
       ].sort(),
     );
   });

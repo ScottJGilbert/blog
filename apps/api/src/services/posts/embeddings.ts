@@ -58,14 +58,22 @@ export interface ReindexSummary {
   embedded: number;
   skipped: number;
   failed: number;
+  /** Posts not looked at because the time budget ran out; start another reindex to continue (finished posts are skipped by hash). */
+  remaining?: number;
 }
 
 const BATCH_SIZE = 16;
 const running = new WeakMap<Deps, Promise<ReindexSummary>>();
 
-/** Embed every published post, in batches, and resolve with the totals. (`reindexAll` runs this in the background.) */
-export async function runReindex(deps: Deps): Promise<ReindexSummary> {
+/**
+ * Embed every published post, in batches, and resolve with the totals. (`reindexAll` runs this in the background.)
+ * Resumable: posts whose content hash is unchanged are skipped, so after a stop (time budget, killed instance) running it
+ * again continues where it ended. `budgetMs` > 0 stops cleanly between batches once that much time has passed (serverless
+ * functions have a hard `maxDuration`).
+ */
+export async function runReindex(deps: Deps, opts: { budgetMs?: number } = {}): Promise<ReindexSummary> {
   const summary: ReindexSummary = { embedded: 0, skipped: 0, failed: 0 };
+  const startedAt = Date.now();
   if (!deps.embeddings.enabled) return summary;
   const posts: EmbedSource[] = await deps.db
     .select({ id: post.id, title: post.title, excerpt: post.excerpt, contentText: post.contentText })
@@ -81,6 +89,11 @@ export async function runReindex(deps: Deps): Promise<ReindexSummary> {
   }
   const model = deps.embeddings.model;
   for (let i = 0; i < posts.length; i += BATCH_SIZE) {
+    if (opts.budgetMs && Date.now() - startedAt > opts.budgetMs) {
+      summary.remaining = posts.length - i;
+      deps.logger.warn(summary, "embedding reindex stopped at its time budget; run it again to continue");
+      break;
+    }
     const batch = posts.slice(i, i + BATCH_SIZE);
     const todo: Array<{ p: EmbedSource; text: string; hash: string }> = [];
     for (const p of batch) {
@@ -117,15 +130,17 @@ export async function runReindex(deps: Deps): Promise<ReindexSummary> {
 }
 
 /**
- * Start re-embedding all published posts in the background (in-process, fire-and-forget) and return how many posts
- * were queued. A second call while one is running joins it instead of starting another. `{ queued: 0 }` when the
- * provider is disabled.
+ * Start re-embedding all published posts in the background and return how many posts were queued. The work is handed to
+ * `deps.background` (Vercel `waitUntil`: the instance stays alive after the 202) and limited to
+ * `config.reindexBudgetMs` per request; the job is resumable, see `runReindex`. A second call on the SAME instance while one
+ * is running joins it (other instances cannot see it: a duplicate run only re-checks hashes, it is idempotent).
+ * `{ queued: 0 }` when the provider is disabled.
  */
 export async function reindexAll(deps: Deps): Promise<{ queued: number }> {
   if (!deps.embeddings.enabled) return { queued: 0 };
   const [{ n } = { n: 0 }] = await deps.db.select({ n: sql<number>`count(*)::int` }).from(post).where(and(eq(post.status, "published")));
   if (!running.has(deps)) {
-    const p = runReindex(deps)
+    const p = runReindex(deps, { budgetMs: deps.config.reindexBudgetMs })
       .catch((err): ReindexSummary => {
         deps.logger.error({ err: String(err) }, "embedding reindex crashed");
         return { embedded: 0, skipped: 0, failed: 0 };
@@ -136,6 +151,7 @@ export async function reindexAll(deps: Deps): Promise<{ queued: number }> {
       })
       .finally(() => running.delete(deps));
     running.set(deps, p);
+    deps.background(p, "embedding reindex");
   }
   return { queued: n };
 }

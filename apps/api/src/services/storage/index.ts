@@ -1,16 +1,25 @@
 import type { Config } from "../../config";
 import type { Logger } from "../../logger";
 import { LocalStorage } from "./local";
+import { UnconfiguredStorage } from "./unconfigured";
 import { VercelBlobStorage } from "./vercel-blob";
 import type { Storage } from "./types";
 
 export * from "./types";
 export { LocalStorage } from "./local";
 export { MemoryStorage } from "./memory";
+export { UnconfiguredStorage } from "./unconfigured";
 export { VercelBlobStorage } from "./vercel-blob";
 
-/** `STORAGE_DRIVER=local|vercel-blob`. vercel-blob without a token degrades to local with a warning. */
+/**
+ * `STORAGE_DRIVER=local|vercel-blob` (see `loadConfig` for the Vercel rules). Off Vercel, vercel-blob without a token degrades
+ * to local disk with a warning; on Vercel (read-only filesystem) it becomes `UnconfiguredStorage`: uploads answer 503.
+ */
 export function createStorage(config: Config, logger?: Logger): Storage {
+  if (config.storage.driver === "unconfigured") {
+    logger?.error("Media storage is not configured on Vercel (set BLOB_READ_WRITE_TOKEN): uploads will answer 503");
+    return new UnconfiguredStorage();
+  }
   if (config.storage.driver === "vercel-blob") {
     if (config.storage.blobToken || process.env.BLOB_READ_WRITE_TOKEN) return new VercelBlobStorage(config.storage.blobToken);
     logger?.warn("STORAGE_DRIVER=vercel-blob but BLOB_READ_WRITE_TOKEN is not set; falling back to local disk storage");

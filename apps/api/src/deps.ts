@@ -3,6 +3,7 @@ import type { Request } from "express";
 import { createAuth, type Auth } from "./auth";
 import { configWarnings, loadConfig, type Config } from "./config";
 import { createLogger, type Logger } from "./logger";
+import { createBackground, type Background } from "./lib/background";
 import { createRateLimiters, type RateLimiters } from "./middleware/rate-limit";
 import { createRevalidator, type Revalidator } from "./lib/revalidate";
 import { createEmbeddingProvider, type EmbeddingProvider } from "./services/embeddings";
@@ -24,6 +25,8 @@ export interface Deps {
   embeddings: EmbeddingProvider;
   /** Best-effort web cache revalidation (`revalidate(["posts", "post:slug"])`); never throws. */
   revalidate: Revalidator;
+  /** Run work after the response (Vercel `waitUntil`; fire-and-forget elsewhere). Anything that must finish: `await` it instead. */
+  background: Background;
   /** Clock. Use `deps.now()` instead of `new Date()` in logic that tests need to control. */
   now: () => Date;
   fetch: typeof fetch;
@@ -53,7 +56,8 @@ export function createDeps(overrides: DepsOverrides = {}): Deps {
     revalidate: overrides.revalidate ?? createRevalidator(config, logger, fetchImpl),
     now: overrides.now ?? (() => new Date()),
     fetch: fetchImpl,
-    limiters: overrides.limiters ?? createRateLimiters(config),
+    background: overrides.background ?? createBackground(logger),
+    limiters: overrides.limiters ?? createRateLimiters(config, db),
   };
   return { ...base, auth: overrides.auth ?? createAuth({ config, db, mailer, logger }) };
 }

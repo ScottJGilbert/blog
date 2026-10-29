@@ -64,3 +64,18 @@ export const auditLog = pgTable(
   ],
 );
 
+
+/**
+ * Fixed-window counters for the Postgres-backed rate limiter (`apps/api/src/middleware/pg-rate-limit-store.ts`): serverless
+ * instances do not share memory, so the abuse-sensitive limits (auth, comments, newsletter) count here. Rows are replaced in
+ * place once their window has passed; the daily cron deletes the leftovers.
+ */
+export const rateLimit = pgTable(
+  "rate_limit",
+  {
+    key: text("key").primaryKey(),
+    hits: integer("hits").notNull(),
+    resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [index("rate_limit_reset_idx").on(t.resetAt)],
+);

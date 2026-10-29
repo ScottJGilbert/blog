@@ -100,8 +100,8 @@ describe("POST /admin/media", () => {
     expect(await t.db.select().from(media)).toHaveLength(1);
   });
 
-  it("rejects files over 8 MB with 413 (and an empty file / no file with 4xx)", async () => {
-    const big = Buffer.concat([png(1, 1), Buffer.alloc(8 * 1024 * 1024 + 10)]);
+  it("rejects files over 4 MiB with 413 (and an empty file / no file with 4xx)", async () => {
+    const big = Buffer.concat([png(1, 1), Buffer.alloc(4 * 1024 * 1024 + 10)]);
     const res = await upload(big).expect(413);
     expect(res.body.error.code).toBe("validation_error");
     await upload(Buffer.alloc(0)).expect(415);
@@ -177,9 +177,9 @@ describe("list / patch / delete", () => {
 });
 
 describe("media service limits", () => {
-  it("storeObject refuses buffers over 8 MB even when called directly (editor images)", async () => {
+  it("storeObject refuses buffers over 4 MiB even when called directly (editor images)", async () => {
     const svc = createMediaService(t.deps);
-    const big = Buffer.concat([png(1, 1), Buffer.alloc(8 * 1024 * 1024)]);
+    const big = Buffer.concat([png(1, 1), Buffer.alloc(4 * 1024 * 1024)]);
     await expect(svc.storeObject(big)).rejects.toMatchObject({ status: 413 });
     expect(t.storage.objects.size).toBe(0);
   });

@@ -9,7 +9,7 @@ import { parseBody, parseQuery } from "../../lib/validate";
 import { actorOf, uuidParam } from "../../services/admin/common";
 import { ImageTooLargeError, createMediaService, toMediaDto } from "../../services/media";
 
-/** multipart parser: memory storage, ONE file of at most 8 MB in the field `file`, a handful of small text fields. */
+/** multipart parser: memory storage, ONE file of at most 4 MiB (Vercel caps request bodies at 4.5 MB) in the field `file`, a handful of small text fields. */
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MEDIA_MAX_BYTES, files: 1, fields: 5, fieldSize: 4096, parts: 8, headerPairs: 50 },

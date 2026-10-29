@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Section } from "@blog/shared";
-import { api, getPost, getRelated } from "@/lib/api";
+import { apiDownAtBuild, api, getPost, getRelated, noteBuildOutage } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { CommentsLazy } from "@/components/comments/CommentsLazy";
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
@@ -15,12 +15,17 @@ import { PostNav } from "./PostNav";
 import { PostTocDisclosure, PostTocSidebar } from "./PostToc";
 import { ShareBar } from "../ShareBar";
 
-/** Slugs of one section for generateStaticParams. Never throws: on-demand ISR covers anything missed. */
+/**
+ * Slugs of one section for generateStaticParams. Never throws and never waits on a missing API: without one (first deploy,
+ * `next build` before the API service is up) it returns `[]` and every post is rendered on demand (ISR) instead.
+ */
 export async function sectionStaticParams(section: Section): Promise<{ slug: string }[]> {
+  if (apiDownAtBuild()) return [];
   try {
     const entries = await api.sitemap({ next: { revalidate: 600, tags: ["posts"] } });
     return entries.filter((e) => e.section === section).map((e) => ({ slug: e.slug }));
   } catch {
+    noteBuildOutage();
     return [];
   }
 }

@@ -205,9 +205,9 @@ export function createAdminPostsService(deps: Deps) {
     return row;
   }
 
-  /** Fire-and-forget embedding (best effort; `embedPost` never throws, the catch is belt and braces). */
+  /** Embedding after the response (best effort; `embedPost` never throws). `deps.background` = Vercel `waitUntil`, so the instance is not frozen mid-request. */
   function embedInBackground(id: string): void {
-    void embedPost(deps, id).catch((err) => deps.logger.warn({ err: String(err), postId: id }, "background embedding failed"));
+    deps.background(embedPost(deps, id), `embed post ${id}`);
   }
 
   async function revalidate(rows: Array<{ slug: string; section: string }>): Promise<void> {

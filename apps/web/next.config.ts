@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import { MEDIA_HOSTS } from "./src/lib/media-hosts";
 
 const isProd = process.env.NODE_ENV === "production";
+/** Vercel preview deployments inject the Vercel toolbar / comments (vercel.live); production never loads it. */
+const isPreview = process.env.VERCEL_ENV === "preview";
 
 /** Dev topology (SPEC §3): emulate the single-origin production routing. Never in production unless DEV_PROXY=1. */
 const proxyEnabled = !isProd || process.env.DEV_PROXY === "1";
@@ -15,12 +17,12 @@ const adminOrigin = (process.env.ADMIN_DEV_URL ?? "http://localhost:3001").repla
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com${isProd ? "" : " 'unsafe-eval'"}`,
-  "style-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com${isPreview ? " https://vercel.live" : ""}${isProd ? "" : " 'unsafe-eval'"}`,
+  `style-src 'self' 'unsafe-inline'${isPreview ? " https://vercel.live" : ""}`,
   "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  `connect-src 'self' https://vitals.vercel-insights.com https://va.vercel-scripts.com${isProd ? "" : " ws: wss:"}`,
-  "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://www.figma.com https://platform.twitter.com",
+  `font-src 'self' data:${isPreview ? " https://vercel.live https://assets.vercel.com" : ""}`,
+  `connect-src 'self' https://vitals.vercel-insights.com https://va.vercel-scripts.com${isPreview ? " https://vercel.live https://vercel.com wss://ws-us3.pusher.com" : ""}${isProd ? "" : " ws: wss:"}`,
+  `frame-src https://www.youtube-nocookie.com https://www.youtube.com https://www.figma.com https://platform.twitter.com${isPreview ? " https://vercel.live" : ""}`,
   "media-src 'self' https:",
   "object-src 'none'",
   "base-uri 'self'",
@@ -30,7 +32,9 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Self-hosted container builds only (NEXT_OUTPUT=standalone). On Vercel the platform traces and packages the app itself;
+  // `standalone` there only adds a redundant copy of node_modules to the build.
+  ...(process.env.NEXT_OUTPUT === "standalone" && !process.env.VERCEL ? { output: "standalone" as const } : {}),
   poweredByHeader: false,
   transpilePackages: ["@blog/shared", "@blog/content"],
   images: {

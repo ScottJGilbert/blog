@@ -6,8 +6,8 @@ Express 5 + TypeScript API for the blog platform (contract: `docs/SPEC.md` §5).
 pnpm --filter @blog/db migrate && pnpm --filter @blog/db seed   # once (needs Postgres + pgvector)
 pnpm --filter @blog/api dev          # tsx watch on :4000 (API_PORT)
 pnpm --filter @blog/api test         # vitest, real Postgres (TEST_DATABASE_URL)
-pnpm --filter @blog/api build        # → dist/index.js
-pnpm --filter @blog/api start        # node dist/index.js (listens on API_PORT)
+pnpm --filter @blog/api build        # → dist/index.cjs (one self-contained CommonJS file)
+pnpm --filter @blog/api start        # node dist/index.cjs (listens on API_PORT)
 pnpm --filter @blog/api make-admin you@example.com
 ```
 
@@ -106,7 +106,7 @@ it("admin only", async () => {
 * Each test file gets its own database (`@blog/db/testing`), so files run in parallel; `TEST_DB_SHARED=1` uses `TEST_DATABASE_URL` directly.
 
 ## Security notes
-* Request bodies: 1 MB JSON everywhere; 4 MB only for `/admin/posts…` and `/admin/newsletters…` and only AFTER `requireAdmin`; Better Auth routes 64 KB; uploads 8 MB (multer) plus a pixel guard (≤ 16384 px per side, ≤ 100 MP).
+* Request bodies: 1 MB JSON everywhere; 4 MB only for `/admin/posts…` and `/admin/newsletters…` and only AFTER `requireAdmin`; Better Auth routes 64 KB; uploads 4 MiB (multer; Vercel rejects bodies over 4.5 MB) plus a pixel guard (≤ 16384 px per side, ≤ 100 MP).
 * CSRF: `routes/index.ts` checks `Origin` (else `Referer`) on every cookie-carrying write; Better Auth's own Origin / callback-URL validation is forced on in all environments (`disableOriginCheck: false`), so tests exercise what production runs.
 * Database rejections caused by client data (NUL bytes, over-long values, constraint violations) are mapped to 4xx by the error handler, never a 500.
 * `TRUST_PROXY` is a hop count (Vercel: 1, no proxy at all: 0) — see the comment in `config.ts`. Production refuses placeholder `BETTER_AUTH_SECRET`s and logs `configWarnings()` at startup.
@@ -118,3 +118,24 @@ it("admin only", async () => {
   `make-admin` promotes explicitly.
 * Ban = `user.banned` (+ `ban_reason`): sign-in is rejected, existing sessions stop working immediately (403), and
   `revokeUserSessions(db, userId)` deletes them. We do not use Better Auth's `admin` plugin.
+
+## Serverless notes (Vercel, Fluid compute)
+* **Entry/bundle**: `src/index.ts` default-exports the Express app and never listens on Vercel. `pnpm build` (tsup) inlines every
+  dependency and the `@blog/*` TypeScript packages into `dist/index.cjs` (~7 MB, ~0.4 s to import; no `node_modules`, no
+  `__dirname`/fs reads). Importing never throws: invalid env exports an app answering `503` and logs one JSON line naming
+  the offending variables (`boot-failure.ts`).
+* **Origins**: with `SITE_URL`/`BETTER_AUTH_URL` unset, the public origin is derived (`lib/origins.ts`): production domain in
+  production, the deployment URL on previews. CSRF/Better Auth trust exactly the deployment URL, branch alias and production domain
+  of the project plus `SITE_URL`, `BETTER_AUTH_URL`, `TRUSTED_ORIGINS` (no wildcards). Placeholder origins (`https://your-domain`) are rejected in production.
+* **Service calls**: web/admin use `API_INTERNAL_URL` (any URL shape, `@blog/shared/server`); the API revalidates the web cache at
+  `WEB_REVALIDATE_URL`, else `WEB_INTERNAL_URL + /internal/revalidate`, else the deployment URL. Calls to the project's own public hosts carry
+  `x-vercel-protection-bypass` when `VERCEL_AUTOMATION_BYPASS_SECRET` exists.
+* **After the response**: embeddings run through `deps.background` (`lib/background.ts`, Vercel `waitUntil`); revalidation, audit, mail and
+  newsletter calls are awaited inline. Reindex is resumable and stops at `REINDEX_BUDGET_MS`; run it again to continue.
+* **Statefulness**: memory is per instance. The auth / comment / subscribe limits count in Postgres (`rate_limit` table, `RATE_LIMIT_STORE`);
+  the read/admin limits stay in memory (approximate across instances). The filesystem is read-only: without `BLOB_READ_WRITE_TOKEN` uploads answer 503.
+* **Database**: use the pooled `DATABASE_URL` at runtime (no `SET`, `LISTEN`, session locks or startup parameters anywhere) and
+  `DATABASE_URL_UNPOOLED` for migrations. Connectivity errors are mapped to `503` + `Retry-After`.
+* **Diagnostics**: `GET /api/health` is `{status, db, version}`; with `Authorization: Bearer $CRON_SECRET` (or `x-revalidate-secret`) it adds
+  `config: { missing: [env var names], warnings, resolved origins/drivers }`. Request ids come from `x-vercel-id`.
+* Platform limits: request bodies 4.5 MB (uploads are capped at 4 MiB), set `maxDuration` ≥ 60 s for the API function (cron, reindex).

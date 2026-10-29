@@ -41,9 +41,29 @@ function wantsSsl(url: string): boolean {
   }
 }
 
+/** True for a Neon pooled (PgBouncer, transaction mode) endpoint: `-pooler` host or an explicit `pgbouncer=true`. */
+export function isPooledUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.hostname.includes("-pooler") || u.searchParams.get("pgbouncer") === "true";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The URL schema migrations must use: `DATABASE_URL_UNPOOLED` (direct) when present. Migrations take a session-level advisory
+ * lock and run DDL, neither of which survives PgBouncer transaction pooling.
+ */
+export function migrationDatabaseUrl(env: Record<string, string | undefined> = process.env): string {
+  return env.DATABASE_URL_UNPOOLED?.trim() || env.DATABASE_URL?.trim() || DEFAULT_DATABASE_URL;
+}
+
 /**
  * Create a drizzle instance on a plain `pg` Pool. Works with Neon's pooled (PgBouncer) connection string:
  * no session-level state is used and prepared statements are not named, so transaction pooling is fine.
+ * Never add `SET ...`, `LISTEN`, session advisory locks or startup `options` (e.g. `statement_timeout`) here: PgBouncer rejects
+ * or silently mis-routes them. Per-statement limits belong inside a transaction (`SET LOCAL`).
  */
 export function createDb(url: string = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL, options: CreateDbOptions = {}): DbHandle {
   const onVercel = Boolean(process.env.VERCEL);
@@ -70,12 +90,13 @@ export function createDb(url: string = process.env.DATABASE_URL ?? DEFAULT_DATAB
     idleTimeoutMillis: options.idleTimeoutMillis ?? 10_000,
     connectionTimeoutMillis: options.connectionTimeoutMillis ?? 10_000,
     allowExitOnIdle: true,
-    application_name: options.applicationName ?? "blog",
+    // PgBouncer (Neon pooler) rejects startup parameters it does not track: skip the optional one there.
+    ...(isPooledUrl(url) ? {} : { application_name: options.applicationName ?? "blog" }),
     ssl: ssl ? { rejectUnauthorized: true } : undefined,
   });
   // An idle client erroring (e.g. server restart) must not crash the process.
   pool.on("error", (err) => {
-    console.error("[db] idle client error:", err.message);
+    console.error(JSON.stringify({ level: 50, msg: "database idle client error", err: err.message }));
   });
 
   const db = drizzle(pool, { schema, logger: options.logger ?? false }) as Database;

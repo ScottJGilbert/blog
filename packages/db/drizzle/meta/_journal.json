@@ -15,6 +15,13 @@
       "when": 1790842217944,
       "tag": "0001_comment_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793254175579,
+      "tag": "0002_rate_limit",
+      "breakpoints": true
     }
   ]
 }

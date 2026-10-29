@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import type { Deps } from "../deps";
 import { HttpError, unauthorized } from "../errors";
 import { bearerMatches } from "../lib/crypto";
+import { purgeExpiredRateLimits } from "../middleware/pg-rate-limit-store";
 import { publishDuePosts } from "../services/admin/scheduled";
 import { createNewsletterService } from "../services/newsletter/service";
 
@@ -37,6 +38,8 @@ export function cronRouter(deps: Deps): Router {
       deps.logger.error({ err: reason instanceof Error ? reason.message : String(reason) }, "cron job failed");
       throw reason;
     }
+    // housekeeping, never worth failing the run for
+    await purgeExpiredRateLimits(deps.db).catch((err) => deps.logger.warn({ err: String(err) }, "rate_limit purge failed"));
     res.set("cache-control", "no-store");
     res.json({ data: { posts: posts.value, newsletters: newsletterResult.value } });
   };

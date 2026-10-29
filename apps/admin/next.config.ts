@@ -11,6 +11,14 @@ import type { NextConfig } from "next";
 const API_INTERNAL_URL = (process.env.API_INTERNAL_URL ?? "http://localhost:4000").replace(/\/+$/, "");
 
 const isProd = process.env.NODE_ENV === "production";
+/** Vercel preview deployments inject the Vercel toolbar / comments (vercel.live); production never loads it. */
+const isPreview = process.env.VERCEL_ENV === "preview";
+/**
+ * On Vercel the top-level `rewrites` of vercel.json send `/api/*` straight to the API service, so this app never sees it;
+ * a baked-in rewrite target (build-time env!) would only be a second, possibly stale route. Locally / in containers it is the
+ * single-origin proxy; ADMIN_API_PROXY=1 forces it anywhere.
+ */
+const proxyApi = !process.env.VERCEL || process.env.ADMIN_API_PROXY === "1";
 
 /**
  * Content-Security-Policy. Statically rendered pages cannot carry per-request nonces, so the inline scripts Next and the
@@ -21,12 +29,12 @@ const isProd = process.env.NODE_ENV === "production";
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"}`,
-  "style-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isPreview ? " https://vercel.live" : ""}${isProd ? "" : " 'unsafe-eval'"}`,
+  `style-src 'self' 'unsafe-inline'${isPreview ? " https://vercel.live" : ""}`,
   "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  `connect-src 'self'${isProd ? "" : " ws: wss:"}`,
-  "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://www.figma.com https://platform.twitter.com",
+  `font-src 'self' data:${isPreview ? " https://vercel.live https://assets.vercel.com" : ""}`,
+  `connect-src 'self'${isPreview ? " https://vercel.live https://vercel.com wss://ws-us3.pusher.com" : ""}${isProd ? "" : " ws: wss:"}`,
+  `frame-src https://www.youtube-nocookie.com https://www.youtube.com https://www.figma.com https://platform.twitter.com${isPreview ? " https://vercel.live" : ""}`,
   "media-src 'self' blob: https:",
   "object-src 'none'",
   "base-uri 'self'",
@@ -62,6 +70,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   async rewrites() {
+    if (!proxyApi) return [];
     return [
       // `basePath: false` => matches `/api/...` (not `/admin/api/...`); the API owns the whole `/api` prefix.
       { source: "/api/:path*", destination: `${API_INTERNAL_URL}/api/:path*`, basePath: false },

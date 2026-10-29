@@ -1,22 +1,32 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "experimentalServices": {
+  "services": {
     "web": {
-      "entrypoint": "apps/web",
-      "routePrefix": "/",
-      "framework": "nextjs"
+      "root": "apps/web/",
+      "framework": "nextjs",
+      "bindings": [
+        { "type": "service", "service": "api", "format": "url", "env": "API_INTERNAL_URL" }
+      ]
     },
     "admin": {
-      "entrypoint": "apps/admin",
-      "routePrefix": "/admin",
-      "framework": "nextjs"
+      "root": "apps/admin/",
+      "framework": "nextjs",
+      "bindings": [
+        { "type": "service", "service": "api", "format": "url", "env": "API_INTERNAL_URL" }
+      ]
     },
     "api": {
-      "entrypoint": "apps/api/src/index.ts",
-      "routePrefix": "/api",
-      "framework": "express"
+      "root": "apps/api/",
+      "framework": "express",
+      "entrypoint": "dist/index.cjs"
     }
   },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
+    { "source": "/admin", "destination": { "service": "admin" } },
+    { "source": "/admin/(.*)", "destination": { "service": "admin" } },
+    { "source": "/(.*)", "destination": { "service": "web" } }
+  ],
   "crons": [
     { "path": "/api/cron/publish-scheduled", "schedule": "0 6 * * *" }
   ]

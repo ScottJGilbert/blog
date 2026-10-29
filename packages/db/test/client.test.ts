@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { closeDb, createDb, getDb, getDbHandle, type DbOrTx } from "../src/client";
+import { closeDb, createDb, getDb, getDbHandle, isPooledUrl, migrationDatabaseUrl, type DbOrTx } from "../src/client";
 import { user } from "../src/schema/index";
 import { createTestDb, type TestDb } from "../src/testing";
 
@@ -35,6 +35,48 @@ describe("createDb", () => {
     const local = createDb("postgres://blog:blog@localhost:5432/blog");
     expect((local.pool.options as { ssl?: unknown }).ssl).toBeFalsy();
     await local.close();
+  });
+
+  it("is PgBouncer-safe: no startup parameters on pooled URLs, small pool + generous connect timeout on Vercel", async () => {
+    const pooled = createDb("postgres://u:p@ep-cool-123-pooler.eu-west-2.aws.neon.tech/db?sslmode=require");
+    expect(pooled.pool.options).not.toHaveProperty("application_name"); // PgBouncer rejects startup parameters it does not track
+    expect(pooled.pool.options).toMatchObject({ allowExitOnIdle: true, connectionTimeoutMillis: 10_000 });
+    await pooled.close();
+    const direct = createDb("postgres://u:p@ep-cool-123.eu-west-2.aws.neon.tech/db?sslmode=require");
+    expect(direct.pool.options).toHaveProperty("application_name", "blog");
+    await direct.close();
+    const saved = process.env.VERCEL;
+    process.env.VERCEL = "1";
+    try {
+      const v = createDb("postgres://blog:blog@localhost:5432/blog");
+      expect(v.pool.options.max).toBe(5);
+      await v.close();
+    } finally {
+      if (saved === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = saved;
+    }
+  });
+
+  it("an idle-client error is logged, never thrown (would crash the instance)", async () => {
+    const h = createDb(t.url, { max: 1 });
+    const orig = console.error;
+    const seen: string[] = [];
+    console.error = (m: string) => void seen.push(m);
+    try {
+      expect(() => h.pool.emit("error", new Error("terminating connection due to administrator command"))).not.toThrow();
+    } finally {
+      console.error = orig;
+      await h.close();
+    }
+    expect(seen.join("")).toMatch(/database idle client error/);
+  });
+
+  it("migrations use the unpooled URL when there is one", () => {
+    expect(migrationDatabaseUrl({ DATABASE_URL: "postgres://pooled-pooler/db", DATABASE_URL_UNPOOLED: "postgres://direct/db" })).toBe("postgres://direct/db");
+    expect(migrationDatabaseUrl({ DATABASE_URL: "postgres://only/db", DATABASE_URL_UNPOOLED: " " })).toBe("postgres://only/db");
+    expect(isPooledUrl("postgres://u:p@ep-x-pooler.eu.neon.tech/db")).toBe(true);
+    expect(isPooledUrl("postgres://u:p@host/db?pgbouncer=true")).toBe(true);
+    expect(isPooledUrl("postgres://u:p@ep-x.eu.neon.tech/db")).toBe(false);
   });
 
   it("getDb() is a per-URL singleton", async () => {

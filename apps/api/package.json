@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=../../.env --env-file-if-exists=.env src/dev.ts",
     "build": "tsup",
-    "start": "node --env-file-if-exists=../../.env --env-file-if-exists=.env dist/index.js",
+    "start": "node --env-file-if-exists=../../.env --env-file-if-exists=.env dist/index.cjs",
     "typecheck": "tsc --noEmit",
     "lint": "echo skip",
     "test": "vitest run --passWithNoTests",
@@ -17,6 +17,7 @@
     "@blog/db": "workspace:*",
     "@blog/shared": "workspace:*",
     "@vercel/blob": "^2",
+    "@vercel/functions": "^3.10.4",
     "better-auth": "^1",
     "cors": "^2",
     "drizzle-orm": "^0.44",

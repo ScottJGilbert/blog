@@ -4,7 +4,8 @@
  *   NEXT_PUBLIC_MEDIA_HOST   comma-separated extra hostnames (e.g. a CDN in front of the blob store)
  */
 export const MEDIA_HOSTS: string[] = [
-  "*.public.blob.vercel-storage.com", // Vercel Blob storage driver
+  "*.public.blob.vercel-storage.com", // Vercel Blob storage driver (public stores)
+  "*.blob.vercel-storage.com", // other Blob hosts (e.g. `<id>.blob.vercel-storage.com`)
   "picsum.photos", // demo covers used by the seed data
   ...(process.env.NEXT_PUBLIC_MEDIA_HOST ?? "")
     .split(",")

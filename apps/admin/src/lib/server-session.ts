@@ -1,7 +1,6 @@
 import { createApiClient, isApiError, type Me } from "@blog/shared/client";
+import { serverApiOptions } from "@blog/shared/server";
 import { cookies } from "next/headers";
-
-const API_INTERNAL_URL = process.env.API_INTERNAL_URL ?? "http://localhost:4000";
 
 export type SessionResult =
   | { status: "ok"; me: Me }
@@ -16,7 +15,9 @@ export type SessionResult =
 export async function getSession(): Promise<SessionResult> {
   const cookie = (await cookies()).toString();
   if (!cookie) return { status: "anonymous" };
-  const client = createApiClient({ baseUrl: API_INTERNAL_URL, headers: { cookie }, timeoutMs: 8000 });
+  // Target = the API_INTERNAL_URL binding (any URL shape), else this deployment's public URL (+ Authentication bypass header).
+  const target = serverApiOptions();
+  const client = createApiClient({ baseUrl: target.baseUrl, basePath: target.basePath, timeoutMs: target.timeoutMs, headers: { ...target.headers, cookie } });
   try {
     const me = await client.me({ cache: "no-store" });
     return { status: "ok", me };

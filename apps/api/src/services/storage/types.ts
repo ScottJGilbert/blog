@@ -8,7 +8,7 @@ export interface StoredObject {
 }
 
 export interface Storage {
-  readonly driver: "local" | "vercel-blob" | "memory";
+  readonly driver: "local" | "vercel-blob" | "memory" | "unconfigured";
   /** Store `body` under `key`. Keys are chosen by the caller (random, unguessable, no `..`). */
   put(key: string, body: Buffer, opts: { contentType: string }): Promise<StoredObject>;
   /** Delete by key. Missing objects are not an error. */
