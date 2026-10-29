@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=../../.env --env-file-if-exists=.env src/dev.ts",
-    "build": "tsup",
+    "build": "pnpm --filter @blog/db migrate:on-build && tsup",
     "start": "node --env-file-if-exists=../../.env --env-file-if-exists=.env dist/index.cjs",
     "typecheck": "tsc --noEmit",
     "lint": "echo skip",

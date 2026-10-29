@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "generate": "drizzle-kit generate",
     "migrate": "tsx --env-file-if-exists=../../.env --env-file-if-exists=.env src/migrate.ts",
+    "migrate:on-build": "tsx --env-file-if-exists=../../.env --env-file-if-exists=.env src/migrate-on-build.ts",
     "seed": "tsx --env-file-if-exists=../../.env --env-file-if-exists=.env src/seed.ts",
     "test": "vitest run --passWithNoTests",
     "db:studio": "drizzle-kit studio"

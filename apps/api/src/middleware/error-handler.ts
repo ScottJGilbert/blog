@@ -18,11 +18,11 @@ function asHttpish(err: unknown): { status: number; type?: string } | null {
   return { status, type: typeof e.type === "string" ? e.type : undefined };
 }
 
-const NET_CODES = new Set(["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN", "EPIPE", "CONNECTION_ENDED"]);
+const NET_CODES = new Set(["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN", "ENETUNREACH", "EADDRNOTAVAIL", "EPIPE", "CONNECTION_ENDED"]);
 const POOL_MESSAGES = /timeout exceeded when trying to connect|connection terminated|connection ended unexpectedly|server closed the connection|too many clients|remaining connection slots/i;
 
 /**
- * The database cannot be reached right now (Neon waking up / restarting, pooler saturated, network blip). Walks `cause`
+ * The database cannot be reached right now (database restarting / waking up, pooler saturated, network blip). Walks `cause`
  * chains (drizzle wraps driver errors). Class 08 = connection exception, 53 = insufficient resources, 57P01-03 = shutdown.
  */
 export function isDbUnavailable(err: unknown): boolean {

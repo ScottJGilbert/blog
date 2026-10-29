@@ -23,13 +23,13 @@ describe("createDb", () => {
     await h.close();
   });
 
-  it("enables TLS for sslmode=require / neon hosts, not for localhost", async () => {
-    const neon = createDb("postgres://u:p@ep-cool-123-pooler.eu-west-2.aws.neon.tech/db?sslmode=require");
-    const opts = neon.pool.options as { ssl?: unknown; connectionString?: string };
-    expect(opts.ssl).toBeTruthy();
+  it("enables TLS for sslmode=require / supabase hosts, not for localhost", async () => {
+    const strict = createDb("postgres://u:p@db.example.org/db?sslmode=require");
+    const opts = strict.pool.options as { ssl?: { rejectUnauthorized?: boolean }; connectionString?: string };
+    expect(opts.ssl).toMatchObject({ rejectUnauthorized: true }); // never downgraded for other hosts
     expect(opts.connectionString).not.toMatch(/sslmode/);
-    await neon.close();
-    const bare = createDb("postgres://u:p@ep-x.neon.tech/db");
+    await strict.close();
+    const bare = createDb("postgres://u:p@aws-0-eu-west-2.pooler.supabase.com:6543/postgres");
     expect((bare.pool.options as { ssl?: unknown }).ssl).toBeTruthy();
     await bare.close();
     const local = createDb("postgres://blog:blog@localhost:5432/blog");
@@ -37,19 +37,20 @@ describe("createDb", () => {
     await local.close();
   });
 
-  it("is PgBouncer-safe: no startup parameters on pooled URLs, small pool + generous connect timeout on Vercel", async () => {
-    const pooled = createDb("postgres://u:p@ep-cool-123-pooler.eu-west-2.aws.neon.tech/db?sslmode=require");
+  it("is pooler-safe: no startup parameters on pooled URLs, small pool + generous connect timeout on Vercel", async () => {
+    const pooled = createDb("postgres://postgres.abc:p@aws-0-eu-west-2.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x");
     expect(pooled.pool.options).not.toHaveProperty("application_name"); // PgBouncer rejects startup parameters it does not track
     expect(pooled.pool.options).toMatchObject({ allowExitOnIdle: true, connectionTimeoutMillis: 10_000 });
     await pooled.close();
-    const direct = createDb("postgres://u:p@ep-cool-123.eu-west-2.aws.neon.tech/db?sslmode=require");
+    const direct = createDb("postgres://u:p@db.example.org/db?sslmode=require");
     expect(direct.pool.options).toHaveProperty("application_name", "blog");
     await direct.close();
     const saved = process.env.VERCEL;
     process.env.VERCEL = "1";
     try {
       const v = createDb("postgres://blog:blog@localhost:5432/blog");
-      expect(v.pool.options.max).toBe(5);
+      expect(v.pool.options.max).toBe(3);
+      expect(v.pool.options.idleTimeoutMillis).toBe(5_000);
       await v.close();
     } finally {
       if (saved === undefined) delete process.env.VERCEL;
@@ -74,9 +75,9 @@ describe("createDb", () => {
   it("migrations use the unpooled URL when there is one", () => {
     expect(migrationDatabaseUrl({ DATABASE_URL: "postgres://pooled-pooler/db", DATABASE_URL_UNPOOLED: "postgres://direct/db" })).toBe("postgres://direct/db");
     expect(migrationDatabaseUrl({ DATABASE_URL: "postgres://only/db", DATABASE_URL_UNPOOLED: " " })).toBe("postgres://only/db");
-    expect(isPooledUrl("postgres://u:p@ep-x-pooler.eu.neon.tech/db")).toBe(true);
+    expect(isPooledUrl("postgres://u:p@ep-x-pooler.eu.example.tech/db")).toBe(true);
     expect(isPooledUrl("postgres://u:p@host/db?pgbouncer=true")).toBe(true);
-    expect(isPooledUrl("postgres://u:p@ep-x.eu.neon.tech/db")).toBe(false);
+    expect(isPooledUrl("postgres://u:p@ep-x.eu.example.tech/db")).toBe(false);
   });
 
   it("getDb() is a per-URL singleton", async () => {

@@ -160,6 +160,8 @@ describe("stats / system / reindex", () => {
       embeddings: { enabled: false, model: expect.any(String) },
       newsletter: { provider: "noop", configured: false },
       version: expect.any(String),
+      // "n/a" on plain Postgres; "locked" when a Supabase-like cluster has anon/authenticated (never "open" after migrations)
+      dataApiExposure: expect.stringMatching(/^(n\/a|locked)$/),
     });
   });
 

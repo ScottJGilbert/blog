@@ -14,7 +14,7 @@
 # `pnpm install` + migrations (+ seed) before the apps start. Optional overrides go in a root `.env` file (see .env.example):
 # PORT, PUBLIC_URL, BETTER_AUTH_SECRET, ADMIN_EMAILS, SEED_DB=0, EMBEDDING_API_KEY, LISTMONK_*, WATCHPACK_POLLING=true (slow bind mounts).
 #
-# DEVELOPMENT ONLY: default passwords and secrets below are public. Production uses Vercel + Neon (docs/DEPLOYMENT.md).
+# DEVELOPMENT ONLY: default passwords and secrets below are public. Production uses Vercel + Supabase Postgres (docs/DEPLOYMENT.md).
 
 name: blog
 

@@ -70,8 +70,10 @@ export function SettingsView() {
         </div>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
-          <Row icon={<LuDatabase className="size-5" />} title="Database" status={data.db === "up" ? "Operational" : "Down"} tone={data.db === "up" ? "ok" : "danger"}>
+          <Row icon={<LuDatabase className="size-5" />} title="Database" status={data.db === "up" ? "Operational" : "Down"} tone={data.db !== "up" || data.dataApiExposure === "open" ? "danger" : "ok"}>
             PostgreSQL connection is {data.db}.
+            {data.dataApiExposure === "open" ? " WARNING: the public Supabase Data API (anon key) can read tables in schema public. Re-run `pnpm db:migrate` to lock it down." : null}
+            {data.dataApiExposure === "locked" ? " Supabase Data API: locked (anon/authenticated cannot read any table)." : null}
           </Row>
           <Row icon={<LuMail className="size-5" />} title="Transactional email" status={data.mailer === "console" || data.mailer === "memory" ? "Not delivering" : "Configured"} tone={data.mailer === "console" || data.mailer === "memory" ? "warn" : "ok"}>
             Driver: <code className="font-mono">{data.mailer}</code>

@@ -1,3 +1,4 @@
+import { isDirectSupabaseHost, resolveDatabaseUrl } from "@blog/db";
 import { normalizeServiceUrl, ownPublicHosts, vercelHost } from "@blog/shared/server";
 import { z } from "zod";
 import { derivedPublicOrigin, isPlaceholderUrl, onVercel, vercelTrustedOrigins } from "./lib/origins";
@@ -21,6 +22,7 @@ const csv = z.preprocess(
 
 const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  /** Falls back to `POSTGRES_URL` (Vercel's Supabase integration, Supavisor transaction pooler) in `loadConfig`. */
   DATABASE_URL: str.default("postgres://blog:blog@localhost:5432/blog"),
   BETTER_AUTH_SECRET: str,
   /** Unset on Vercel: derived from VERCEL_ENV / VERCEL_URL / VERCEL_PROJECT_PRODUCTION_URL (see lib/origins.ts). */
@@ -154,6 +156,14 @@ function origin(url: string): string | null {
   }
 }
 
+function dbHost(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
+}
+
 function normaliseBasePath(p: string): string {
   const trimmed = p.trim().replace(/\/+$/, "");
   if (trimmed === "" || trimmed === "/") return "";
@@ -162,7 +172,7 @@ function normaliseBasePath(p: string): string {
 
 /** Parse + validate process env (or any env-like object). Throws a readable error on invalid values. */
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
-  const parsed = EnvSchema.safeParse(env);
+  const parsed = EnvSchema.safeParse({ ...env, DATABASE_URL: resolveDatabaseUrl(env) });
   if (!parsed.success) {
     const lines = parsed.error.issues.map((i) => `  ${i.path.join(".")}: ${i.message}`).join("\n");
     throw new ConfigError(`Invalid environment configuration:\n${lines}`, [...new Set(parsed.error.issues.map((i) => String(i.path[0])))]);
@@ -298,7 +308,8 @@ export function configWarnings(config: Config, env: Record<string, string | unde
   const local = (u: string) => /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/i.test(u);
   if (local(config.siteUrl)) out.push("SITE_URL points at localhost in production: links in emails, RSS and CSRF/trusted origins will be wrong.");
   if (local(config.authUrl)) out.push("BETTER_AUTH_URL points at localhost in production: verification / reset links and cookies will not work for real visitors.");
-  if (!env.DATABASE_URL || local(config.databaseUrl)) out.push("DATABASE_URL is unset or points at localhost in production.");
+  if (!resolveDatabaseUrl(env) || local(config.databaseUrl)) out.push("DATABASE_URL (or POSTGRES_URL) is unset or points at localhost in production.");
+  if (config.onVercel && isDirectSupabaseHost(dbHost(config.databaseUrl))) out.push("DATABASE_URL points at a Supabase direct host (db.<ref>.supabase.co), which is IPv6-only on the free plan and unreachable from Vercel: use the Supavisor pooler URL (port 6543) instead.");
   if (!config.cronSecret) out.push("CRON_SECRET is not set: /cron/* answers 503, so scheduled posts and newsletters are never published.");
   if (config.mailer.driver === "console") out.push("MAILER_DRIVER=console in production: no email (verification, password reset, newsletter confirmation) is delivered.");
   if (config.storage.driver === "local") out.push("STORAGE_DRIVER=local in production: uploads live on the (ephemeral) function filesystem; use vercel-blob.");
@@ -320,7 +331,7 @@ export function missingConfig(config: Config, env: Record<string, string | undef
   const need = (name: string, ok: unknown) => {
     if (!ok) out.push(name);
   };
-  need("DATABASE_URL", env.DATABASE_URL);
+  need("DATABASE_URL", resolveDatabaseUrl(env));
   need("BETTER_AUTH_SECRET", env.BETTER_AUTH_SECRET);
   if (!config.onVercel) {
     need("SITE_URL", env.SITE_URL);

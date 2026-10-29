@@ -134,8 +134,9 @@ it("admin only", async () => {
   newsletter calls are awaited inline. Reindex is resumable and stops at `REINDEX_BUDGET_MS`; run it again to continue.
 * **Statefulness**: memory is per instance. The auth / comment / subscribe limits count in Postgres (`rate_limit` table, `RATE_LIMIT_STORE`);
   the read/admin limits stay in memory (approximate across instances). The filesystem is read-only: without `BLOB_READ_WRITE_TOKEN` uploads answer 503.
-* **Database**: use the pooled `DATABASE_URL` at runtime (no `SET`, `LISTEN`, session locks or startup parameters anywhere) and
-  `DATABASE_URL_UNPOOLED` for migrations. Connectivity errors are mapped to `503` + `Retry-After`.
+* **Database** (Supabase Postgres, see `docs/DEPLOYMENT.md` §1): use the transaction-pooler `DATABASE_URL` (or `POSTGRES_URL`) at runtime (no `SET`, `LISTEN`, session locks, named statements or startup parameters
+  anywhere; pgvector's type and operator are schema-qualified) and `DATABASE_URL_UNPOOLED` (or `POSTGRES_URL_NON_POOLING`) for migrations. `pnpm build` runs migrations first when `MIGRATE_ON_BUILD=1` (or on Vercel previews).
+  `GET /api/admin/system` reports `dataApiExposure` (the RLS/REVOKE lockdown of the Supabase Data API). Connectivity errors are mapped to `503` + `Retry-After`.
 * **Diagnostics**: `GET /api/health` is `{status, db, version}`; with `Authorization: Bearer $CRON_SECRET` (or `x-revalidate-secret`) it adds
   `config: { missing: [env var names], warnings, resolved origins/drivers }`. Request ids come from `x-vercel-id`.
 * Platform limits: request bodies 4.5 MB (uploads are capped at 4 MiB), set `maxDuration` ≥ 60 s for the API function (cron, reindex).

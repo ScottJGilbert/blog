@@ -4,7 +4,7 @@ import type { ClientRateLimitInfo, Options, Store } from "express-rate-limit";
 /**
  * express-rate-limit store backed by the `rate_limit` table: fixed windows shared by every serverless instance.
  * One atomic upsert per hit (`INSERT … ON CONFLICT DO UPDATE … RETURNING`), so concurrent instances never lose a count and
- * nothing depends on session state (PgBouncer transaction pooling is fine). The database clock decides when a window ends.
+ * nothing depends on session state (a transaction-mode pooler such as Supavisor is fine). The database clock decides when a window ends.
  *
  * Use it for the abuse-sensitive limits only (sign-in, comments, newsletter): it costs one query per request.
  */

@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, post, postTag, sql, tag, user, type SQL } from "@blog/db";
+import { and, asc, count, desc, eq, inArray, post, postTag, sql, tag, user, vectorSql, type SQL } from "@blog/db";
 import { escapeHtml, extractToc, renderHtml } from "@blog/content";
 import type { ListPostsQuery, PostDetail, PostNavRef, PostSummary, SearchQuery, SearchResult, Section, SitemapEntry, TagRef, TagWithCount } from "@blog/shared";
 import type { Deps } from "../../deps";
@@ -220,11 +220,12 @@ export function createPostsService(deps: Deps) {
       try {
         const hasVector = await execRows<{ one: number }>(sql`select 1 as one from post_embedding where post_id = ${self.id}::uuid`);
         if (hasVector.length > 0) {
+          const v = await vectorSql(deps.db);
           const rows = await execRows<{ id: string }>(sql`
             select p.id from post_embedding e
             join post p on p.id = e.post_id
             where ${publishedP(now)} and e.post_id <> ${self.id}::uuid
-            order by e.embedding <=> (select embedding from post_embedding where post_id = ${self.id}::uuid), p.published_at desc
+            order by ${v.cosineDistance(sql`e.embedding`, sql`(select embedding from post_embedding where post_id = ${self.id}::uuid)`)}, p.published_at desc
             limit ${limit}`);
           chosen.push(...rows.map((r) => r.id));
         }
@@ -280,11 +281,13 @@ export function createPostsService(deps: Deps) {
           const [vec] = await deps.embeddings.embed([text]);
           if (vec) {
             const lit = vectorLiteral(vec);
+            const v = await vectorSql(deps.db);
+            const dist = v.cosineDistance(sql`e.embedding`, sql`${lit}::${v.type}`);
             const rows = await execRows<{ id: string }>(sql`
               select p.id from post_embedding e
               join post p on p.id = e.post_id
-              where ${publishedP(now)} ${sectionCond} and 1 - (e.embedding <=> ${lit}::vector) >= ${VECTOR_MIN_SIMILARITY}
-              order by e.embedding <=> ${lit}::vector
+              where ${publishedP(now)} ${sectionCond} and 1 - ${dist} >= ${VECTOR_MIN_SIMILARITY}
+              order by ${dist}
               limit ${CANDIDATES}`);
             vectorIds = rows.map((r) => r.id);
           }

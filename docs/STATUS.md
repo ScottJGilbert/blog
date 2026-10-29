@@ -20,4 +20,4 @@
 - Embeddings are disabled until `EMBEDDING_API_KEY` is set (FTS-only search meanwhile).
 
 ## Manual steps to go live
-1. Neon DB → `DATABASE_URL`, run `pnpm db:migrate`. 2. Vercel project (Framework: Services), env vars per `docs/DEPLOYMENT.md`. 3. Resend/SMTP + `MAIL_FROM`. 4. Vercel Blob token. 5. listmonk container host + API user. 6. Sign up with an `ADMIN_EMAILS` address, then verify email.
+1. Supabase Postgres → `DATABASE_URL` (transaction pooler) + `DATABASE_URL_UNPOOLED`, run `pnpm db:migrate` (or `MIGRATE_ON_BUILD=1`); see `docs/DEPLOYMENT.md` §1. 2. Vercel project (Framework: Services), env vars per `docs/DEPLOYMENT.md`. 3. Resend/SMTP + `MAIL_FROM`. 4. Vercel Blob token. 5. listmonk container host + API user. 6. Sign up with an `ADMIN_EMAILS` address, then verify email.

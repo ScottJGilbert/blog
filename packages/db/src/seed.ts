@@ -1,8 +1,11 @@
 /**
- * Idempotent seed: `pnpm db:seed`.
+ * Idempotent seed: `pnpm db:seed` locally, `SEED_ON_BUILD=1` on Vercel previews (see migrate-on-build.ts).
  *  - always: tags (+ posts when an author exists)
- *  - non-production only: demo users `admin@example.com / admin-password-123` (admin) and
- *    `reader@example.com / reader-password-123`, a few comments, two newsletter subscribers.
+ *  - local dev only (NODE_ENV !== production AND not on Vercel): the PUBLIC demo users `admin@example.com / admin-password-123`
+ *    (admin) and `reader@example.com / reader-password-123`, a few comments, two newsletter subscribers.
+ *  - real accounts (any environment, the only kind created on Vercel): admin from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, optional
+ *    verified reader from `SEED_READER_EMAIL` / `SEED_READER_PASSWORD`. Passwords need >= 16 characters and must not be a known default;
+ *    an existing account keeps its password unless `SEED_RESET_PASSWORDS=1`.
  * Safe to run repeatedly: everything is keyed by slug / email and existing rows are updated in place.
  */
 import { randomBytes, randomUUID } from "node:crypto";
@@ -10,17 +13,73 @@ import { fileURLToPath } from "node:url";
 import { readingMinutes, toExcerpt, toPlainText, validateContent, type Content } from "@blog/content";
 import { and, eq, inArray } from "drizzle-orm";
 import { hashPassword } from "better-auth/crypto";
-import { closeDb, getDb, DEFAULT_DATABASE_URL, type Database } from "./client";
+import { closeDb, getDb, redactUrl, resolveDatabaseUrl, DEFAULT_DATABASE_URL, type Database } from "./client";
 import { account, comment, post, postTag, subscriber, tag, user } from "./schema/index";
 import { SEED_POSTS, SEED_TAGS } from "./seed-content";
 
 export const DEMO_ADMIN = { email: "admin@example.com", password: "admin-password-123", name: "Demo Admin" } as const;
 export const DEMO_READER = { email: "reader@example.com", password: "reader-password-123", name: "Demo Reader" } as const;
 
+export interface SeedAccount {
+  email: string;
+  password: string;
+  name?: string;
+}
+
+export interface SeedAccounts {
+  admin?: SeedAccount;
+  reader?: SeedAccount;
+}
+
 export interface SeedOptions {
-  /** Create demo users/comments/subscribers. Default: NODE_ENV !== "production". */
+  /** Create the public demo users/comments/subscribers. Default: NODE_ENV !== "production". Always refused on Vercel (VERCEL / VERCEL_ENV set). */
   demoData?: boolean;
+  /** Real accounts to create instead of the demo ones (see `seedAccountsFromEnv`). */
+  accounts?: SeedAccounts;
+  /** Overwrite the password of an account that already exists (default: leave it alone). */
+  resetPasswords?: boolean;
+  /** Do not touch posts that already exist (so edits made on a preview survive a re-seed). */
+  keepExistingPosts?: boolean;
+  /** Default process.env. */
+  env?: Record<string, string | undefined>;
   log?: (msg: string) => void;
+}
+
+export const MIN_SEED_PASSWORD_LENGTH = 16;
+const KNOWN_DEFAULT_PASSWORDS = new Set<string>([DEMO_ADMIN.password, DEMO_READER.password]);
+const OBVIOUS_PASSWORD = /^(change-?me|password|admin-?password|reader-?password|letmein|qwerty|123456)/i;
+const truthy = (v: string | undefined) => ["1", "true", "yes", "on"].includes((v ?? "").trim().toLowerCase());
+
+export function maskEmail(email: string): string {
+  const [local = "", domain = ""] = email.split("@");
+  return `${local.slice(0, 1)}***@${domain}`;
+}
+
+/**
+ * Accounts from `SEED_ADMIN_*` / `SEED_READER_*`. Invalid or missing entries are left out and described in `problems` (variable
+ * NAMES only, never values) so the caller can log them loudly.
+ */
+export function seedAccountsFromEnv(env: Record<string, string | undefined> = process.env): { accounts: SeedAccounts; problems: string[] } {
+  const problems: string[] = [];
+  const read = (prefix: "ADMIN" | "READER", name: string): SeedAccount | undefined => {
+    const email = env[`SEED_${prefix}_EMAIL`]?.trim().toLowerCase();
+    const password = env[`SEED_${prefix}_PASSWORD`];
+    if (!email && !password) {
+      if (prefix === "ADMIN") problems.push("SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD are not set: no admin account is created");
+      return undefined;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return void problems.push(`SEED_${prefix}_EMAIL is missing or not an email address: ${prefix.toLowerCase()} account skipped`);
+    if (!password || password.length < MIN_SEED_PASSWORD_LENGTH) return void problems.push(`SEED_${prefix}_PASSWORD must be at least ${MIN_SEED_PASSWORD_LENGTH} characters: ${prefix.toLowerCase()} account skipped`);
+    if (KNOWN_DEFAULT_PASSWORDS.has(password) || OBVIOUS_PASSWORD.test(password)) return void problems.push(`SEED_${prefix}_PASSWORD is a known default / placeholder password: ${prefix.toLowerCase()} account skipped`);
+    return { email, password, name };
+  };
+  const admin = read("ADMIN", "Admin");
+  const reader = read("READER", "Reader");
+  if (admin && reader && admin.email === reader.email) {
+    problems.push("SEED_READER_EMAIL equals SEED_ADMIN_EMAIL: reader account skipped");
+    return { accounts: { admin }, problems };
+  }
+  return { accounts: { ...(admin && { admin }), ...(reader && { reader }) }, problems };
 }
 
 export interface SeedResult {
@@ -30,11 +89,18 @@ export interface SeedResult {
   comments: number;
 }
 
-async function upsertUser(db: Database, u: { email: string; password: string; name: string }, role: "admin" | "reader"): Promise<string> {
+async function upsertUser(
+  db: Database,
+  u: { email: string; password: string; name: string },
+  role: "admin" | "reader",
+  o: { resetPassword?: boolean; restoreAccess?: boolean } = {},
+): Promise<string> {
   const [existing] = await db.select({ id: user.id }).from(user).where(eq(user.email, u.email)).limit(1);
   const id = existing?.id ?? randomUUID();
   if (existing) {
-    await db.update(user).set({ role, emailVerified: true, banned: false, banReason: null }).where(eq(user.id, id));
+    // Only the demo accounts un-ban and re-role; a real reader keeps whatever role/ban moderation gave them.
+    const patch = o.restoreAccess ? { role, emailVerified: true, banned: false, banReason: null } : role === "admin" ? { role, emailVerified: true } : { emailVerified: true };
+    await db.update(user).set(patch).where(eq(user.id, id));
   } else {
     await db.insert(user).values({ id, name: u.name, email: u.email, emailVerified: true, role });
   }
@@ -42,13 +108,21 @@ async function upsertUser(db: Database, u: { email: string; password: string; na
   if (!cred) {
     // Better Auth's own scrypt hasher, so these accounts can really sign in.
     await db.insert(account).values({ id: randomUUID(), accountId: id, providerId: "credential", userId: id, password: await hashPassword(u.password) });
+  } else if (o.resetPassword) {
+    await db.update(account).set({ password: await hashPassword(u.password), updatedAt: new Date() }).where(eq(account.id, cred.id));
   }
   return id;
 }
 
 export async function seed(db: Database, options: SeedOptions = {}): Promise<SeedResult> {
   const log = options.log ?? (() => undefined);
-  const demo = options.demoData ?? process.env.NODE_ENV !== "production";
+  const env = options.env ?? process.env;
+  const onVercel = Boolean(env.VERCEL_ENV || env.VERCEL);
+  const real = options.accounts && (options.accounts.admin || options.accounts.reader) ? options.accounts : undefined;
+  const wantsDemo = !real && (options.demoData ?? env.NODE_ENV !== "production");
+  // The demo passwords are public: they must never exist in a deployed database, whatever the caller asked for.
+  if (wantsDemo && onVercel) log("refusing to create the public demo accounts on Vercel (set SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD instead)");
+  const demo = wantsDemo && !onVercel;
   const result: SeedResult = { tags: 0, posts: 0, users: 0, comments: 0 };
 
   // --- tags -------------------------------------------------------------------------------------------------------
@@ -63,13 +137,26 @@ export async function seed(db: Database, options: SeedOptions = {}): Promise<See
   let adminId: string | undefined;
   let readerId: string | undefined;
   if (demo) {
-    adminId = await upsertUser(db, DEMO_ADMIN, "admin");
-    readerId = await upsertUser(db, DEMO_READER, "reader");
+    adminId = await upsertUser(db, DEMO_ADMIN, "admin", { restoreAccess: true });
+    readerId = await upsertUser(db, DEMO_READER, "reader", { restoreAccess: true });
     result.users = 2;
     log(`demo users: ${DEMO_ADMIN.email} / ${DEMO_ADMIN.password}, ${DEMO_READER.email} / ${DEMO_READER.password}`);
   } else {
-    const [admin] = await db.select({ id: user.id }).from(user).where(eq(user.role, "admin")).limit(1);
-    adminId = admin?.id;
+    const o = { resetPassword: options.resetPasswords };
+    if (real?.admin) {
+      adminId = await upsertUser(db, { name: "Admin", ...real.admin }, "admin", o);
+      result.users++;
+      log(`admin account: ${maskEmail(real.admin.email)}`);
+    }
+    if (real?.reader) {
+      await upsertUser(db, { name: "Reader", ...real.reader }, "reader", o);
+      result.users++;
+      log(`reader account: ${maskEmail(real.reader.email)}`);
+    }
+    if (!adminId) {
+      const [admin] = await db.select({ id: user.id }).from(user).where(eq(user.role, "admin")).limit(1);
+      adminId = admin?.id;
+    }
   }
 
   // --- posts ------------------------------------------------------------------------------------------------------
@@ -77,6 +164,7 @@ export async function seed(db: Database, options: SeedOptions = {}): Promise<See
     log("no admin user exists: skipping posts (create an admin with `pnpm --filter @blog/api make-admin <email>` and re-run)");
   } else {
     for (const sp of SEED_POSTS) {
+      if (options.keepExistingPosts && (await db.select({ id: post.id }).from(post).where(eq(post.slug, sp.slug)).limit(1)).length > 0) continue;
       const check = validateContent(sp.content);
       if (!check.ok) throw new Error(`seed post "${sp.slug}" has invalid content: ${JSON.stringify(check.errors)}`);
       const content = sp.content as unknown as Content;
@@ -142,14 +230,27 @@ export async function seed(db: Database, options: SeedOptions = {}): Promise<See
   return result;
 }
 
+/**
+ * The seed run by `SEED_ON_BUILD=1` on Vercel (and by `pnpm db:seed` when `VERCEL_ENV` is set): demo tags and posts, plus the real
+ * accounts from `SEED_*`. Never the public demo accounts. Problems are logged loudly and never include a password.
+ */
+export async function seedDeployment(db: Database, env: Record<string, string | undefined> = process.env, log: (msg: string) => void = console.log): Promise<SeedResult> {
+  const { accounts, problems } = seedAccountsFromEnv(env);
+  for (const p of problems) log(`WARNING ${p}`);
+  return seed(db, { demoData: false, accounts, resetPasswords: truthy(env.SEED_RESET_PASSWORDS), keepExistingPosts: true, env, log });
+}
+
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (isMain) {
-  const url = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL;
-  console.log(`[seed] ${url.replace(/:\/\/[^@]*@/, "://***@")}`);
-  seed(getDb(), { log: (m) => console.log(`[seed] ${m}`) })
+  const url = resolveDatabaseUrl() ?? DEFAULT_DATABASE_URL;
+  console.log(`[seed] ${redactUrl(url)}`);
+  const log = (m: string) => console.log(`[seed] ${m}`);
+  const { accounts } = seedAccountsFromEnv();
+  const run = process.env.VERCEL_ENV ? seedDeployment(getDb(), process.env, log) : seed(getDb(), { accounts, resetPasswords: truthy(process.env.SEED_RESET_PASSWORDS), log });
+  run
     .then((r) => console.log(`[seed] done: ${r.tags} tags, ${r.posts} posts, ${r.users} users, ${r.comments} new comments`))
     .catch((err) => {
-      console.error("[seed] failed:", err);
+      console.error("[seed] failed:", err instanceof Error ? err.message : err);
       process.exitCode = 1;
     })
     .finally(() => closeDb());

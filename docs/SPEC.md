@@ -12,7 +12,7 @@ Convert the single Next.js blog frontend into a full-stack platform:
 | Public site | Next.js 16 (App Router) | `apps/web` | 3000 | `/` |
 | Admin | Next.js 16, `basePath: "/admin"` | `apps/admin` | 3001 | `/admin` |
 | API | Express 5 + TypeScript | `apps/api` | 4000 | `/api` |
-| DB | Postgres + pgvector (Neon in prod) | `packages/db` | 5432 | — |
+| DB | Postgres + pgvector (Supabase Postgres in prod, see DEPLOYMENT.md) | `packages/db` | 5432 | — |
 | Newsletters | listmonk (container, external host) | `docker-compose.yml` | 9000 | not routed; API-only |
 | Content standard | TypeScript lib + normative doc | `packages/content` | — | — |
 | Shared DTOs/client | zod schemas + typed fetch client | `packages/shared` | — | — |

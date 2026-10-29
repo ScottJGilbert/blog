@@ -1,5 +1,6 @@
-import { randomUUID } from "node:crypto";
-import type { Database } from "../src/client";
+import { randomBytes, randomUUID } from "node:crypto";
+import pg from "pg";
+import { DEFAULT_TEST_DATABASE_URL, type Database } from "../src/client";
 import { post, user, type LexicalJson } from "../src/schema/index";
 
 export function lexical(text = "hello"): LexicalJson {
@@ -56,5 +57,39 @@ export async function pgErrorCode(p: Promise<unknown>): Promise<string | undefin
   } catch (err) {
     const e = err as { code?: string; cause?: { code?: string } };
     return e.code ?? e.cause?.code;
+  }
+}
+
+/** A new, EMPTY (not migrated) database next to TEST_DATABASE_URL, for tests that must prepare roles/extensions before migrating. */
+export async function createEmptyDb(): Promise<{ url: string; adminQuery: (sql: string) => Promise<void>; drop(): Promise<void> }> {
+  const base = new URL(process.env.TEST_DATABASE_URL ?? DEFAULT_TEST_DATABASE_URL);
+  const name = `blog_test_x_${Date.now().toString(36)}_${randomBytes(4).toString("hex")}`;
+  const at = (db: string) => {
+    const u = new URL(base);
+    u.pathname = `/${db}`;
+    return u.toString();
+  };
+  const adminQuery = async (text: string) => {
+    const c = new pg.Client({ connectionString: at("postgres") });
+    await c.connect();
+    try {
+      await c.query(text);
+    } finally {
+      await c.end();
+    }
+  };
+  await adminQuery(`create database "${name}"`);
+  return { url: at(name), adminQuery, drop: () => adminQuery(`drop database if exists "${name}" with (force)`) };
+}
+
+/** Run SQL on a database as a plain client (optionally `SET ROLE`d first); resolves with the rows, rejects with the pg error. */
+export async function queryAs(url: string, role: string | null, text: string): Promise<Record<string, unknown>[]> {
+  const c = new pg.Client({ connectionString: url });
+  await c.connect();
+  try {
+    if (role) await c.query(`set role ${role}`);
+    return (await c.query(text)).rows;
+  } finally {
+    await c.end();
   }
 }

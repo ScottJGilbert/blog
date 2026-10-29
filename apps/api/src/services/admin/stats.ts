@@ -1,4 +1,4 @@
-import { comment, commentReport, count, desc, eq, exists, isNull, and, post, sql, subscriber, user } from "@blog/db";
+import { checkDataApiExposure, comment, commentReport, count, desc, eq, exists, isNull, and, post, sql, subscriber, user } from "@blog/db";
 import type { Stats, SystemInfo } from "@blog/shared";
 import type { Deps } from "../../deps";
 
@@ -65,6 +65,7 @@ export function createAdminStatsService(deps: Deps) {
       } catch {
         dbStatus = "down";
       }
+      const dataApiExposure = dbStatus === "up" ? await checkDataApiExposure(db).catch(() => undefined) : undefined;
       const provider = deps.newsletter.kind === "listmonk" ? "listmonk" : "noop";
       return {
         db: dbStatus,
@@ -73,6 +74,7 @@ export function createAdminStatsService(deps: Deps) {
         embeddings: { enabled: deps.embeddings.enabled, model: deps.embeddings.model },
         newsletter: { provider, configured: provider !== "noop" },
         version: deps.config.version,
+        dataApiExposure,
       };
     },
   };

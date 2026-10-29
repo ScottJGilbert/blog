@@ -4,7 +4,7 @@ import { configWarnings, missingConfig } from "../config";
 import type { Deps } from "../deps";
 import { bearerMatches, safeEqual } from "../lib/crypto";
 
-/** Long enough for a Neon compute waking from idle (1-3 s), short enough that a probe never hangs the instance. */
+/** Long enough for a managed database waking from idle (1-3 s), short enough that a probe never hangs the instance. */
 export const HEALTH_DB_TIMEOUT_MS = 4000;
 
 async function dbUp(deps: Deps): Promise<boolean> {

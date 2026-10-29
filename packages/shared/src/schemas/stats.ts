@@ -48,6 +48,11 @@ export const SystemInfoSchema = z.object({
   embeddings: z.object({ enabled: z.boolean(), model: z.string() }),
   newsletter: z.object({ provider: z.enum(["listmonk", "noop"]), configured: z.boolean() }),
   version: z.string(),
+  /**
+   * Can the public Supabase Data API (anon / authenticated roles) reach any table of schema `public`? `locked` = no, `open` = YES
+   * (fix: re-run migrations), `n/a` = not Supabase (the roles do not exist). Optional so older API versions still parse.
+   */
+  dataApiExposure: z.enum(["locked", "open", "n/a"]).optional(),
 });
 
 export type Stats = z.infer<typeof StatsSchema>;

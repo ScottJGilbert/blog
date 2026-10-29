@@ -113,7 +113,7 @@ newsletters; it is safe to call concurrently. On Vercel add to `vercel.json`:
 ## 7. Production hosting
 
 * Run listmonk as a container on a host that is **not** Vercel (it is a long-running Go server): Railway, Fly.io, Render, a small VPS …
-  Use the `listmonk/listmonk` image with its own Postgres (managed Postgres from the host, or Neon – a *separate* database from the blog).
+  Use the `listmonk/listmonk` image with its own Postgres (managed Postgres from the host, or a Supabase project – a *separate* database from the blog).
   First deploy: command `./listmonk --install --idempotent --yes && ./listmonk`, then keep the normal start command.
 * Configure through environment variables (`LISTMONK_app__address=0.0.0.0:9000`, `LISTMONK_db__host/port/user/password/database/ssl_mode`,
   `LISTMONK_ADMIN_USER`/`LISTMONK_ADMIN_PASSWORD` for the first admin). Put it behind HTTPS and set **Settings → General → Root URL** to its public URL
