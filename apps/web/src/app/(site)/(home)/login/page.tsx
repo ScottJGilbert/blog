@@ -14,6 +14,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const sp = await searchParams;
   const next = safeNext(sp.next);
   const error = typeof sp.error === "string" ? sp.error : undefined;
+  const email = typeof sp.email === "string" ? sp.email.slice(0, 254) : undefined;
   const nextQuery = next === "/" ? "" : `?next=${encodeURIComponent(next)}`;
   return (
     <AuthCard
@@ -28,7 +29,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </p>
       }
     >
-      <LoginForm next={next} initialError={error} />
+      <LoginForm next={next} initialError={error} initialEmail={email} />
     </AuthCard>
   );
 }

@@ -12,7 +12,7 @@ export function FooterNewsletter() {
       source="footer"
       title="Get new posts by email"
       description="One email per new post. No spam, unsubscribe any time."
-      className="mb-12 bg-bg"
+      className="mt-6 max-w-sm border-0! bg-transparent! p-0!"
     />
   );
 }

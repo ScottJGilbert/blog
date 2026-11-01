@@ -25,7 +25,7 @@ interface SectionCopy {
 export const SECTION_COPY: Record<Section, SectionCopy> = {
   personal: {
     eyebrow: "Reflections",
-    title: "Personal",
+    title: "Personal Blog",
     description: "Life updates, philosophical reflections, and what I’m currently learning beyond the screen.",
     emptyIcon: <LuPenLine />,
     emptyTitle: "The first entry is on its way",
@@ -33,7 +33,7 @@ export const SECTION_COPY: Record<Section, SectionCopy> = {
   },
   engineering: {
     eyebrow: "~/engineering",
-    title: "Engineering Insights",
+    title: "Engineering Blog",
     description:
       "Some insights from my time in the “field”, and lessons learned from both development and (regrettably) production.",
     emptyIcon: <LuTerminal />,

@@ -4,7 +4,7 @@ import type { ElementType, ReactNode } from "react";
 const sizes = {
   /** Reading column (articles, about). */
   prose: "max-w-reading",
-  /** Default page width (listings). */
+  /** Narrower page width. */
   page: "max-w-page",
   /** Header/footer and wide grids. */
   wide: "max-w-wide",
@@ -17,7 +17,7 @@ export type PageContainerSize = keyof typeof sizes;
  * Pages must NOT add their own max-width / horizontal padding on top of it.
  */
 export function PageContainer({
-  size = "page",
+  size = "wide",
   as: Tag = "div",
   className,
   children,

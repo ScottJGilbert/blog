@@ -91,8 +91,8 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
               </label>
               <select id="search-section" name="section" defaultValue={section ?? ""} className={`${inputClass} mt-2 sm:w-44`}>
                 <option value="">All sections</option>
-                <option value="personal">Personal</option>
-                <option value="engineering">Engineering</option>
+                <option value="personal">Personal Blog</option>
+                <option value="engineering">Engineering Blog</option>
               </select>
             </div>
             <Button type="submit" size="lg" className="sm:min-h-11">

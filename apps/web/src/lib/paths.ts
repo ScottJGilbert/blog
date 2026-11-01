@@ -1,8 +1,8 @@
 import type { Section } from "@blog/shared";
 
 export const SECTION_LABEL: Record<Section, string> = {
-  personal: "Personal",
-  engineering: "Engineering",
+  personal: "Personal Blog",
+  engineering: "Engineering Blog",
 };
 
 export function postHref(section: Section, slug: string): string {
