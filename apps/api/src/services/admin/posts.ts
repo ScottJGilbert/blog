@@ -8,7 +8,6 @@ import {
   notInArray,
   or,
   post,
-  postEmbedding,
   postTag,
   sql,
   tag,
@@ -187,15 +186,12 @@ export function createAdminPostsService(deps: Deps) {
       .where(eq(post.id, id))
       .limit(1);
     if (!row) throw notFound("Post not found");
-    const [tags, emb] = await Promise.all([
-      loadTagMap(tx, [id]),
-      tx.select({ n: count() }).from(postEmbedding).where(eq(postEmbedding.postId, id)),
-    ]);
+    const [tags, hasEmbedding] = await Promise.all([loadTagMap(tx, [id]), deps.vectors.has(id)]);
     return {
       ...toSummary(row, tags.get(id) ?? []),
       content: row.content as LexicalContent,
       coverImageAlt: row.coverImageAlt,
-      hasEmbedding: (emb[0]?.n ?? 0) > 0,
+      hasEmbedding,
     };
   }
 
@@ -476,6 +472,8 @@ export function createAdminPostsService(deps: Deps) {
         await tx.delete(post).where(eq(post.id, id));
         await audit(tx, actor, { action: "post.delete", targetType: "post", targetId: id, meta: { slug: existing.slug, title: existing.title, status: existing.status } });
       });
+      // pgvector rows go with the post (ON DELETE CASCADE); remote stores need telling. Best effort: the post is already gone.
+      await deps.vectors.remove(id).catch((err) => deps.logger.warn({ err: String(err), postId: id }, "removing the post vector failed"));
       await revalidate([existing]);
     },
   };

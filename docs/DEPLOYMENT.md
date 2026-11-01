@@ -68,6 +68,18 @@ Mail: `MAILER_DRIVER=resend|smtp`, `RESEND_API_KEY` or `SMTP_URL`, `MAIL_FROM`.
 Media: `STORAGE_DRIVER=vercel-blob`, `BLOB_READ_WRITE_TOKEN`, and `NEXT_PUBLIC_MEDIA_HOST` (the blob store host) for web `next/image`.
 Optional: `GOOGLE_CLIENT_ID/SECRET`, `GITHUB_CLIENT_ID/SECRET` (+ `NEXT_PUBLIC_AUTH_GOOGLE=1` / `NEXT_PUBLIC_AUTH_GITHUB=1` for the buttons),
 `EMBEDDING_API_URL/KEY/MODEL` (semantic search/related posts), `LISTMONK_*` (see `docs/NEWSLETTERS.md`).
+### Adapters (self-hosted vs Supabase)
+The API reaches every swappable backend through one interface on `deps`, chosen by its own env var, so the same code runs under docker compose (plain Postgres, local disk) and on Vercel + Supabase. Auth is Better Auth in both environments.
+
+| Capability | Interface | Env var | Drivers |
+| --- | --- | --- | --- |
+| Post vectors (storage + similarity search) | `deps.vectors` (`services/vectors/types.ts`) | `VECTOR_DRIVER` | `pgvector` (default; any Postgres, Supabase included), `supabase` (placeholder, 501) |
+| Media files | `deps.storage` (`services/storage/types.ts`) | `STORAGE_DRIVER` | `local`, `vercel-blob`, `supabase` (placeholder, 501) |
+| Embedding generation | `deps.embeddings` | `EMBEDDING_API_*` | OpenAI-compatible, disabled |
+| Mail / newsletters | `deps.mailer`, `deps.newsletter` | `MAILER_DRIVER`, `LISTMONK_*` | see above |
+
+The posts and admin services never write vector SQL; a new driver implements `VectorStore` / `Storage`, is added to the `create*` factory and the env enum in `config.ts`, and needs nothing else. Reads degrade (search → full-text, related → tag overlap) if a vector driver fails; uploads on a placeholder answer 501.
+
 The first admin: sign up with an address listed in `ADMIN_EMAILS` and verify the email (or `pnpm --filter @blog/api make-admin you@example.com`).
 
 ## 3. Listmonk

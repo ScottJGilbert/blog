@@ -1,4 +1,4 @@
-import { eq, inArray, post, postEmbedding, and, sql } from "@blog/db";
+import { eq, post, and, sql } from "@blog/db";
 import { createHash } from "node:crypto";
 import type { Deps } from "../../deps";
 import { truncateForEmbedding } from "../embeddings/provider";
@@ -19,13 +19,8 @@ export function embeddingText(p: Pick<EmbedSource, "title" | "excerpt" | "conten
 
 const hashOf = (model: string, text: string): string => createHash("sha256").update(model).update("\0").update(text).digest("hex");
 
-async function upsertEmbedding(deps: Deps, postId: string, hash: string, vector: number[]): Promise<void> {
-  const model = deps.embeddings.model;
-  await deps.db
-    .insert(postEmbedding)
-    .values({ postId, model, contentHash: hash, embedding: vector })
-    .onConflictDoUpdate({ target: postEmbedding.postId, set: { model, contentHash: hash, embedding: vector, updatedAt: sql`now()` } });
-}
+const upsertEmbedding = (deps: Deps, postId: string, contentHash: string, vector: number[]): Promise<void> =>
+  deps.vectors.upsert(postId, { model: deps.embeddings.model, contentHash, vector });
 
 /**
  * Compute (or refresh) the embedding of one post. Skips when the content hash is unchanged. Never throws:
@@ -42,8 +37,7 @@ export async function embedPost(deps: Deps, postId: string): Promise<{ status: E
     if (!row) return { status: "failed" };
     const text = embeddingText(row);
     const hash = hashOf(deps.embeddings.model, text);
-    const [existing] = await deps.db.select({ hash: postEmbedding.contentHash, model: postEmbedding.model }).from(postEmbedding).where(eq(postEmbedding.postId, postId)).limit(1);
-    if (existing && existing.hash === hash) return { status: "skipped" };
+    if ((await deps.vectors.contentHashes([postId])).get(postId) === hash) return { status: "skipped" };
     const [vector] = await deps.embeddings.embed([text]);
     if (!vector) throw new Error("provider returned no vector");
     await upsertEmbedding(deps, postId, hash, vector);
@@ -79,14 +73,7 @@ export async function runReindex(deps: Deps, opts: { budgetMs?: number } = {}): 
     .select({ id: post.id, title: post.title, excerpt: post.excerpt, contentText: post.contentText })
     .from(post)
     .where(eq(post.status, "published"));
-  const existing = new Map<string, string>();
-  if (posts.length) {
-    const rows = await deps.db
-      .select({ postId: postEmbedding.postId, hash: postEmbedding.contentHash })
-      .from(postEmbedding)
-      .where(inArray(postEmbedding.postId, posts.map((p) => p.id)));
-    for (const r of rows) existing.set(r.postId, r.hash);
-  }
+  const existing = await deps.vectors.contentHashes(posts.map((p) => p.id));
   const model = deps.embeddings.model;
   for (let i = 0; i < posts.length; i += BATCH_SIZE) {
     if (opts.budgetMs && Date.now() - startedAt > opts.budgetMs) {

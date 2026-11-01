@@ -61,7 +61,8 @@ const EnvSchema = z.object({
   SMTP_URL: str,
   RESEND_API_KEY: str,
   MAIL_FROM: str,
-  STORAGE_DRIVER: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.enum(["local", "vercel-blob"]).optional()),
+  STORAGE_DRIVER: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.enum(["local", "vercel-blob", "supabase"]).optional()),
+  VECTOR_DRIVER: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.enum(["pgvector", "supabase"]).default("pgvector")),
   BLOB_READ_WRITE_TOKEN: str,
   UPLOAD_DIR: str,
   EMBEDDING_API_URL: str.default("https://api.openai.com/v1"),
@@ -113,7 +114,8 @@ export interface Config {
   social: { google?: OAuthCredentials; github?: OAuthCredentials };
   mailer: { driver: "console" | "smtp" | "resend"; smtpUrl?: string; resendApiKey?: string; from: string };
   /** `unconfigured`: running on Vercel without Vercel Blob; reads work, uploads answer 503 (the filesystem is read-only). */
-  storage: { driver: "local" | "vercel-blob" | "unconfigured"; blobToken?: string; localDir: string };
+  storage: { driver: "local" | "vercel-blob" | "supabase" | "unconfigured"; blobToken?: string; localDir: string };
+  vectors: { driver: "pgvector" | "supabase" };
   embedding: { url: string; apiKey?: string; model: string; enabled: boolean };
   listmonk: { url?: string; user?: string; apiToken?: string; listId?: string; webhookSecret?: string; enabled: boolean };
   /** `url` is where the API POSTs cache invalidations (WEB_REVALIDATE_URL, else derived from the WEB_INTERNAL_URL binding / VERCEL_URL). */
@@ -269,6 +271,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
       blobToken: e.BLOB_READ_WRITE_TOKEN,
       localDir: e.UPLOAD_DIR ?? ".data/uploads",
     },
+    vectors: { driver: e.VECTOR_DRIVER },
     embedding: {
       url: e.EMBEDDING_API_URL,
       apiKey: embeddingKey,

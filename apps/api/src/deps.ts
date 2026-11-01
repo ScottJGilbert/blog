@@ -10,6 +10,7 @@ import { createEmbeddingProvider, type EmbeddingProvider } from "./services/embe
 import { createMailer, type Mailer } from "./services/mailer";
 import { createNewsletterProvider, type NewsletterProvider } from "./services/newsletter";
 import { createStorage, type Storage } from "./services/storage";
+import { createVectorStore, type VectorStore } from "./services/vectors";
 
 /**
  * Everything a route needs from the outside world. Routers are built as `xRouter(deps)`; tests inject fakes
@@ -23,6 +24,8 @@ export interface Deps {
   storage: Storage;
   newsletter: NewsletterProvider;
   embeddings: EmbeddingProvider;
+  /** Where post embeddings are stored and searched (`VECTOR_DRIVER`). */
+  vectors: VectorStore;
   /** Best-effort web cache revalidation (`revalidate(["posts", "post:slug"])`); never throws. */
   revalidate: Revalidator;
   /** Run work after the response (Vercel `waitUntil`; fire-and-forget elsewhere). Anything that must finish: `await` it instead. */
@@ -53,6 +56,7 @@ export function createDeps(overrides: DepsOverrides = {}): Deps {
     storage: overrides.storage ?? createStorage(config, logger),
     newsletter: overrides.newsletter ?? createNewsletterProvider(config, logger, fetchImpl),
     embeddings: overrides.embeddings ?? createEmbeddingProvider(config, fetchImpl),
+    vectors: overrides.vectors ?? createVectorStore(config, db),
     revalidate: overrides.revalidate ?? createRevalidator(config, logger, fetchImpl),
     now: overrides.now ?? (() => new Date()),
     fetch: fetchImpl,

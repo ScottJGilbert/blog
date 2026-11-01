@@ -61,7 +61,7 @@ docs/         vercel.json     docker-compose.yml     .env.example (per app too)
 `API_BASE_PATH=/api`, `API_INTERNAL_URL` (server-side URL web/admin use to reach the API; default `http://localhost:4000`),
 `ADMIN_EMAILS` (comma list; accounts with these emails become `admin` on signup), `GOOGLE_CLIENT_ID/SECRET`, `GITHUB_CLIENT_ID/SECRET`,
 `MAILER_DRIVER=console|smtp|resend`, `SMTP_URL`, `RESEND_API_KEY`, `MAIL_FROM`,
-`STORAGE_DRIVER=local|vercel-blob`, `BLOB_READ_WRITE_TOKEN`, `EMBEDDING_API_URL`, `EMBEDDING_API_KEY`, `EMBEDDING_MODEL` (default `text-embedding-3-small`),
+`STORAGE_DRIVER=local|vercel-blob|supabase`, `VECTOR_DRIVER=pgvector|supabase`, `BLOB_READ_WRITE_TOKEN`, `EMBEDDING_API_URL`, `EMBEDDING_API_KEY`, `EMBEDDING_MODEL` (default `text-embedding-3-small`),
 `LISTMONK_URL`, `LISTMONK_USER`, `LISTMONK_API_TOKEN`, `LISTMONK_LIST_ID`, `LISTMONK_WEBHOOK_SECRET`,
 `WEB_REVALIDATE_URL` (e.g. `http://localhost:3000/internal/revalidate`), `REVALIDATE_SECRET`, `CRON_SECRET`.
 Every app ships an `.env.example`; nothing secret is committed. Missing optional integrations must degrade gracefully (feature disabled, clear log line), never crash.
