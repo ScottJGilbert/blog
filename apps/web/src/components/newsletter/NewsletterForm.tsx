@@ -36,8 +36,8 @@ type Status =
  */
 export function NewsletterForm({
   onSubmit,
-  title = "Get new posts by email",
-  description = "No spam. Unsubscribe any time.",
+  title = "Subscribe to my newsletter!",
+  description = "Be the first to hear about new posts.",
   submitLabel = "Subscribe",
   className,
 }: NewsletterFormProps) {

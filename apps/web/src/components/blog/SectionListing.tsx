@@ -32,7 +32,7 @@ export const SECTION_COPY: Record<Section, SectionCopy> = {
     emptyDescription: "I’m still gathering my thoughts. Check back soon for the first story.",
   },
   engineering: {
-    eyebrow: "~/engineering",
+    eyebrow: "~/engineering-blog",
     title: "Engineering Blog",
     description:
       "Some insights from my time in the “field”, and lessons learned from both development and (regrettably) production.",

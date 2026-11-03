@@ -3,7 +3,6 @@ import type { Section } from "@blog/shared";
 import { apiDownAtBuild, api, getPost, getRelated, noteBuildOutage } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { CommentsLazy } from "@/components/comments/CommentsLazy";
-import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
 import { postHref } from "@/lib/paths";
 import { SITE_URL } from "@/lib/site-url";
 import { PostCard } from "../PostCard";
@@ -60,12 +59,6 @@ export async function PostPage({ section, slug }: { section: Section; slug: stri
 
         <div className="mx-auto mt-14 grid max-w-reading gap-14">
           <PostNav prev={post.prev} next={post.next} />
-
-          <NewsletterSignup
-            source="post"
-            title="Enjoyed this? Get the next one by email"
-            description="New posts straight to your inbox. No spam, unsubscribe any time."
-          />
 
           {related.length > 0 && (
             <section aria-labelledby="related-title">

@@ -27,7 +27,7 @@ export default function AboutPage() {
             href="/personal"
             className="font-semibold text-accent underline underline-offset-4"
           >
-            personal
+            Personal Blog
           </Link>{" "}
           and{" "}
           <Link
@@ -35,9 +35,9 @@ export default function AboutPage() {
             href="/engineering"
             className="font-semibold text-accent underline underline-offset-4"
           >
-            engineering
+            Engineering Blog
           </Link>{" "}
-          sections.
+          .
         </p>
       </div>
     </PageContainer>
