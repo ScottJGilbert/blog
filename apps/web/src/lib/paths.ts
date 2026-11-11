@@ -1,8 +1,9 @@
-import type { Section } from "@blog/shared";
+import { SECTIONS, type Section } from "@blog/shared";
 
 export const SECTION_LABEL: Record<Section, string> = {
   personal: "Personal",
   engineering: "Engineering",
+  cookbook: "Cookbook",
 };
 
 export function postHref(section: Section, slug: string): string {
@@ -39,5 +40,5 @@ export function parseTag(value: string | string[] | undefined): string | undefin
 
 export function parseSection(value: string | string[] | undefined): Section | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
-  return raw === "personal" || raw === "engineering" ? raw : undefined;
+  return (SECTIONS as readonly string[]).includes(raw ?? "") ? (raw as Section) : undefined;
 }

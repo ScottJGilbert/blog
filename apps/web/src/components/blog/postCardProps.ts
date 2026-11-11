@@ -12,7 +12,8 @@ export function toCardProps(post: PostSummary): PostCardProps {
     excerpt: post.excerpt,
     section: post.section,
     publishedAt: post.publishedAt,
-    readingMinutes: post.readingMinutes,
+    // A recipe is cooked, not read: no "min read" chip on cookbook cards.
+    readingMinutes: post.section === "cookbook" ? null : post.readingMinutes,
     cover: cover?.src ? { src: cover.src, alt: post.coverImageAlt ?? "", unoptimized: cover.unoptimized } : null,
     tags: post.tags.map((t) => ({ label: t.name, href: listingHref(`/${post.section}`, { tag: t.slug }) })),
   };

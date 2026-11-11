@@ -44,7 +44,7 @@ export default function Navbar() {
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-40 border-b border-border bg-bg/95 backdrop-blur-sm supports-[backdrop-filter]:bg-bg/85"
+      className="sticky top-0 z-40 print:hidden border-b border-border bg-bg/95 backdrop-blur-sm supports-[backdrop-filter]:bg-bg/85"
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
           setOpenPath(null);

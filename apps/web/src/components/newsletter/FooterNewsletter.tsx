@@ -6,7 +6,7 @@ import { NewsletterSignup } from "./NewsletterSignup";
 /** Footer sign-up; hidden where the page already carries its own call to action (home, post pages). */
 export function FooterNewsletter() {
   const pathname = usePathname();
-  if (pathname === "/" || /^\/(personal|engineering)\/[^/]+$/.test(pathname)) return null;
+  if (pathname === "/" || /^\/(personal|engineering|cookbook)\/[^/]+$/.test(pathname)) return null;
   return (
     <NewsletterSignup
       source="footer"

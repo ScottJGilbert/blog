@@ -13,7 +13,7 @@ export const REPORT_REASON_MAX = 500;
 export const MEDIA_MAX_BYTES = 4 * 1024 * 1024;
 export const MEDIA_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"] as const;
 
-export const SECTIONS = ["personal", "engineering"] as const;
+export const SECTIONS = ["personal", "engineering", "cookbook"] as const;
 export const POST_STATUSES = ["draft", "scheduled", "published", "archived"] as const;
 export const COMMENT_STATUSES = ["visible", "hidden", "deleted"] as const;
 export const SUBSCRIBER_STATUSES = ["pending", "confirmed", "unsubscribed"] as const;

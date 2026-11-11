@@ -17,6 +17,7 @@ const FOOTER_GROUPS: FooterGroup[] = [
       { label: "Home", href: "/" },
       { label: "Personal", href: "/personal" },
       { label: "Engineering", href: "/engineering" },
+      { label: "Cookbook", href: "/cookbook" },
       { label: "About", href: "/about" },
       { label: "Search", href: "/search" },
     ],
@@ -48,7 +49,7 @@ const linkClass =
 
 export default function Footer() {
   return (
-    <footer className="mt-24 border-t border-border bg-surface-2/40">
+    <footer className="mt-24 print:hidden border-t border-border bg-surface-2/40">
       <PageContainer size="wide" className="py-12 sm:py-16">
         <div className="max-w-2xl">
           <FooterNewsletter />
@@ -63,7 +64,7 @@ export default function Footer() {
               {SITE_DOMAIN}
             </Link>
             <p className="mt-3 max-w-sm text-muted">
-              Notes on engineering, making, and life from {SITE_NAME}.
+              Notes on engineering, making, cooking and life from {SITE_NAME}.
             </p>
           </div>
 

@@ -45,7 +45,7 @@ import { MAX_TAGS, MAX_TAG_LENGTH, TagInput } from "./tag-input";
 
 const AUTOSAVE_DELAY_MS = 2000;
 const LARGE_CONTENT_BYTES = 1_500_000;
-const SECTION_LABEL: Record<Section, string> = { personal: "Personal", engineering: "Engineering" };
+const SECTION_LABEL: Record<Section, string> = { personal: "Personal", engineering: "Engineering", cookbook: "Cookbook" };
 
 export interface Draft {
   title: string;

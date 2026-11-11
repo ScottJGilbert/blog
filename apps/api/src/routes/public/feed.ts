@@ -25,7 +25,7 @@ export function cdata(s: string): string {
   return `<![CDATA[${clean.replaceAll("]]>", "]]]]><![CDATA[>")}]]>`;
 }
 
-const SECTION_TITLES: Record<Section, string> = { personal: "Personal", engineering: "Engineering" };
+const SECTION_TITLES: Record<Section, string> = { personal: "Personal", engineering: "Engineering", cookbook: "Cookbook" };
 
 export interface FeedItemInput {
   title: string;

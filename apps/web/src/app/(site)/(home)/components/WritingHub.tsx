@@ -4,6 +4,7 @@ import Link from "next/link";
 import { clsx } from "clsx";
 import {
   LuArrowRight,
+  LuChefHat,
   LuCpu,
   LuHeartHandshake,
   LuPenLine,
@@ -106,12 +107,30 @@ export default function WritingHub() {
         </HubCard>
 
         <HubCard
+          section="cookbook"
+          eyebrow="Recipes"
+          title="The Cookbook"
+          description="Recipes I’ve actually cooked: ingredients, method and notes, kept in one place."
+          watermark={LuChefHat}
+          className="lg:col-span-5"
+        >
+          <Link
+            prefetch={false}
+            href="/cookbook"
+            className={clsx(buttonStyles({ size: "lg" }), stretched)}
+          >
+            Open the cookbook
+            <LuArrowRight aria-hidden className="size-4" />
+          </Link>
+        </HubCard>
+
+        <HubCard
           section="home"
           eyebrow="Impact"
           title="Miracle Makers Blog (External)"
           description="Dedicated service projects and volunteer work focused on creating tangible miracles for those who need them most. Building bridges between technology and charity."
           watermark={LuHeartHandshake}
-          className="md:col-span-2 lg:col-span-12"
+          className="lg:col-span-7"
         >
           <SmartLink
             href="https://miracles.scottgilbert.dev"

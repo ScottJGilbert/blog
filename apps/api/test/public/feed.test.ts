@@ -104,6 +104,15 @@ describe("GET /feed.xml", () => {
     await request(t.app).get("/api/feed.xml?section=nope").expect(400);
   });
 
+  it("serves the cookbook section feed", async () => {
+    await insertPost(t, { slug: "ragu", section: "cookbook", title: "Mushroom Ragu" });
+    await insertPost(t, { slug: "other", section: "personal" });
+    const res = await request(t.app).get("/api/feed.xml?section=cookbook").expect(200);
+    const feed = parseFeed(res.text);
+    expect(feed.items.map((i) => i.link![0])).toEqual(["http://localhost:3000/cookbook/ragu"]);
+    expect(res.text).toContain("<category>Cookbook</category>");
+  });
+
   it("is valid with no posts", async () => {
     const feed = parseFeed((await request(t.app).get("/api/feed.xml").expect(200)).text);
     expect(feed.items).toEqual([]);

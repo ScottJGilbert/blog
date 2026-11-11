@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PostCardSkeleton } from "./PostCard";
@@ -6,7 +7,7 @@ import { PostCardSkeleton } from "./PostCard";
  * Loading UI for a section listing: mirrors PageContainer + SectionHeader +
  * a 1/2/3-column PostCard grid so content swaps in without shifting.
  */
-export function ListingSkeleton({ cards = 6 }: { cards?: number }) {
+export function ListingSkeleton({ cards = 6, Card = PostCardSkeleton }: { cards?: number; Card?: ComponentType }) {
   return (
     <PageContainer className="py-12 sm:py-16">
       <div role="status" aria-label="Loading posts">
@@ -22,7 +23,7 @@ export function ListingSkeleton({ cards = 6 }: { cards?: number }) {
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-hidden>
           {Array.from({ length: cards }, (_, i) => (
-            <PostCardSkeleton key={i} />
+            <Card key={i} />
           ))}
         </div>
         <span className="sr-only">Loading…</span>

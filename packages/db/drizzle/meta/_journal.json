@@ -29,6 +29,13 @@
       "when": 1793286237240,
       "tag": "0003_supabase_lockdown",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794373448622,
+      "tag": "0004_cookbook_section",
+      "breakpoints": true
     }
   ]
 }

@@ -24,7 +24,7 @@ import { useGroupMutate } from "@/lib/use-group-mutate";
 import { useDebouncedQuery, useQueryState } from "@/lib/use-query-state";
 
 const PAGE_SIZE = 15;
-const SECTION_LABEL: Record<Section, string> = { personal: "Personal", engineering: "Engineering" };
+const SECTION_LABEL: Record<Section, string> = { personal: "Personal", engineering: "Engineering", cookbook: "Cookbook" };
 
 export function PostsView() {
   const { values, page, set } = useQueryState(["status", "section", "q"] as const);
@@ -73,7 +73,7 @@ export function PostsView() {
     <>
       <PageHeader
         title="Posts"
-        description="Write, schedule and publish posts across both sections."
+        description="Write, schedule and publish posts across every section."
         actions={
           <LinkButton href="/posts/new" variant="primary">
             <LuPlus aria-hidden className="size-4" />
