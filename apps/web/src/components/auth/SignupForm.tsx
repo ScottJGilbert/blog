@@ -16,9 +16,10 @@ export function SignupForm({ next }: { next: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; password?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; password?: string; confirm?: string }>({});
   const [sentTo, setSentTo] = useState<string | null>(null);
 
   async function submit(event: React.FormEvent) {
@@ -28,10 +29,11 @@ export function SignupForm({ next }: { next: string }) {
     if (!name.trim()) errors.name = "Tell us what to call you.";
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) errors.email = "Enter a valid email address.";
     if (password.length < PASSWORD_MIN) errors.password = `Use at least ${PASSWORD_MIN} characters.`;
+    if (confirm !== password) errors.confirm = "Passwords don't match.";
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       // Move focus to the first invalid field so keyboard and screen-reader users land on the problem.
-      const first = errors.name ? "signup-name" : errors.email ? "signup-email" : "signup-password";
+      const first = errors.name ? "signup-name" : errors.email ? "signup-email" : errors.password ? "signup-password" : "signup-confirm";
       document.getElementById(first)?.focus();
       return;
     }
@@ -117,6 +119,15 @@ export function SignupForm({ next }: { next: string }) {
           value={password}
           onChange={setPassword}
           error={fieldErrors.password}
+        />
+        <PasswordField
+          id="signup-confirm"
+          name="confirmPassword"
+          label="Confirm password"
+          autoComplete="new-password"
+          value={confirm}
+          onChange={setConfirm}
+          error={fieldErrors.confirm}
         />
         <FormStatus kind="error">{error}</FormStatus>
         <Button type="submit" size="lg" disabled={busy} aria-busy={busy}>

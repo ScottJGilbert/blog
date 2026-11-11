@@ -1,34 +1,32 @@
 "use client";
 
-import { hasStatus, isValidationError } from "@/lib/api-error";
-import { getBrowserApi } from "@/lib/browser-api";
-import { NewsletterForm, type NewsletterResult } from "./NewsletterForm";
+import { useRouter } from "next/navigation";
+import { NewsletterForm } from "./NewsletterForm";
 
-/**
- * The A1 NewsletterForm shell wired to POST /api/newsletter/subscribe (double opt-in: the API always answers 202
- * and mails a confirmation link, so the success copy never reveals whether the address was already known).
- */
+/** Subscriptions require an account, so the form just hands the typed address to the sign-in page. */
 export function NewsletterSignup({
-  source,
   title,
   description,
   className,
 }: {
-  /** Where the sign-up happened (`home`, `footer`, `post`), stored with the subscriber. */
-  source: string;
+  /** Kept so callers can say where the form sits; unused now that sign-up happens after sign-in. */
+  source?: string;
   title?: string;
   description?: string;
   className?: string;
 }) {
-  async function onSubmit(email: string): Promise<NewsletterResult> {
-    try {
-      await (await getBrowserApi()).newsletter.subscribe({ email, source });
-      return { ok: true, message: "Almost done! Check your inbox for a link to confirm your subscription." };
-    } catch (err) {
-      if (isValidationError(err)) return { ok: false, message: "That doesn't look like a valid email address." };
-      if (hasStatus(err, 429)) return { ok: false, message: "Too many attempts. Please try again in a minute." };
-      return { ok: false, message: "Something went wrong. Please try again." };
-    }
+  const router = useRouter();
+  async function onSubmit(email: string) {
+    router.push(`/login?email=${encodeURIComponent(email)}`);
+    await new Promise(() => {}); // stay "Subscribing…" until navigation lands
   }
-  return <NewsletterForm onSubmit={onSubmit} title={title} description={description} className={className} />;
+  return (
+    <NewsletterForm
+      onSubmit={onSubmit}
+      title={title}
+      description={description}
+      submitLabel="Subscribe"
+      className={className}
+    />
+  );
 }

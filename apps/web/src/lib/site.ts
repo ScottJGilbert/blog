@@ -14,8 +14,8 @@ export interface SectionInfo {
 /** Primary navigation, in display order. */
 export const SECTIONS: readonly SectionInfo[] = [
   { id: "home", label: "Home", href: "/" },
-  { id: "personal", label: "Personal", href: "/personal" },
-  { id: "engineering", label: "Engineering", href: "/engineering" },
+  { id: "personal", label: "Personal Blog", href: "/personal" },
+  { id: "engineering", label: "Engineering Blog", href: "/engineering" },
   { id: "cookbook", label: "Cookbook", href: "/cookbook" },
 ];
 

@@ -20,7 +20,7 @@ export default function NotFound() {
           Back to home
         </ButtonLink>
         <ButtonLink href="/engineering" variant="secondary" size="lg">
-          Browse engineering
+          Browse the Engineering Blog
         </ButtonLink>
       </StatusPage>
     </SiteShell>

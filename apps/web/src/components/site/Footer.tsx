@@ -1,13 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import { LuRss } from "react-icons/lu";
-import { FooterNewsletter } from "@/components/newsletter/FooterNewsletter";
+import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
+import { useAuth } from "@/lib/auth-store";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { SmartLink } from "@/components/ui/SmartLink";
 import { SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
 interface FooterGroup {
   title: string;
-  links: { label: string; href: string; /** plain <a>: not a page (feeds, sitemaps) */ native?: boolean }[];
+  links: { label: string; href: string; /** hidden unless signed in */ authOnly?: boolean; /** plain <a>: not a page (feeds, sitemaps) */ native?: boolean }[];
 }
 
 const FOOTER_GROUPS: FooterGroup[] = [
@@ -15,8 +18,8 @@ const FOOTER_GROUPS: FooterGroup[] = [
     title: "Explore",
     links: [
       { label: "Home", href: "/" },
-      { label: "Personal", href: "/personal" },
-      { label: "Engineering", href: "/engineering" },
+      { label: "Personal Blog", href: "/personal" },
+      { label: "Engineering Blog", href: "/engineering" },
       { label: "Cookbook", href: "/cookbook" },
       { label: "About", href: "/about" },
       { label: "Search", href: "/search" },
@@ -39,7 +42,9 @@ const FOOTER_GROUPS: FooterGroup[] = [
     links: [
       { label: "RSS feed", href: "/feed.xml", native: true },
       { label: "Sitemap", href: "/sitemap.xml", native: true },
-      { label: "Account", href: "/account" },
+      { label: "Account", href: "/account", authOnly: true },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy" },
     ],
   },
 ];
@@ -48,12 +53,10 @@ const linkClass =
   "inline-flex min-h-11 items-center gap-1 whitespace-nowrap text-muted underline-offset-4 transition-colors hover:text-accent hover:underline";
 
 export default function Footer() {
+  const signedIn = useAuth().status === "authenticated";
   return (
     <footer className="mt-24 print:hidden border-t border-border bg-surface-2/40">
       <PageContainer size="wide" className="py-12 sm:py-16">
-        <div className="max-w-2xl">
-          <FooterNewsletter />
-        </div>
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5">
             <Link
@@ -66,6 +69,10 @@ export default function Footer() {
             <p className="mt-3 max-w-sm text-muted">
               Notes on engineering, making, cooking and life from {SITE_NAME}.
             </p>
+            <NewsletterSignup
+              source="footer"
+              className="mt-6 max-w-sm border-0! bg-transparent! p-0!"
+            />
           </div>
 
           <nav
@@ -76,7 +83,7 @@ export default function Footer() {
               <div key={group.title}>
                 <h2 className="eyebrow text-fg">{group.title}</h2>
                 <ul className="mt-2">
-                  {group.links.map((link) => (
+                  {group.links.filter((link) => !link.authOnly || signedIn).map((link) => (
                     <li key={link.href}>
                       {link.native ? (
                         <a href={link.href} className={linkClass}>

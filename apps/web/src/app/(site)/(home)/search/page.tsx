@@ -91,8 +91,8 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
               </label>
               <select id="search-section" name="section" defaultValue={section ?? ""} className={`${inputClass} mt-2 sm:w-44`}>
                 <option value="">All sections</option>
-                <option value="personal">Personal</option>
-                <option value="engineering">Engineering</option>
+                <option value="personal">Personal Blog</option>
+                <option value="engineering">Engineering Blog</option>
                 <option value="cookbook">Cookbook</option>
               </select>
             </div>
@@ -175,11 +175,11 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
             <p className="text-muted">
               Or head straight to{" "}
               <Link prefetch={false} href="/personal" className="font-semibold text-accent underline underline-offset-4">
-                personal
+                Personal Blog
               </Link>
               {", "}
               <Link prefetch={false} href="/engineering" className="font-semibold text-accent underline underline-offset-4">
-                engineering
+                Engineering Blog
               </Link>
               {", or the "}
               <Link prefetch={false} href="/cookbook" className="font-semibold text-accent underline underline-offset-4">

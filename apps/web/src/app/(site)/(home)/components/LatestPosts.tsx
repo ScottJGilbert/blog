@@ -18,10 +18,10 @@ export default async function LatestPosts() {
           </h2>
           <div className="flex flex-wrap gap-3">
             <ButtonLink href="/personal" variant="secondary">
-              Personal <LuArrowRight aria-hidden className="size-4" />
+              Personal Blog <LuArrowRight aria-hidden className="size-4" />
             </ButtonLink>
             <ButtonLink href="/engineering" variant="secondary">
-              Engineering <LuArrowRight aria-hidden className="size-4" />
+              Engineering Blog <LuArrowRight aria-hidden className="size-4" />
             </ButtonLink>
             <ButtonLink href="/cookbook" variant="secondary">
               Cookbook <LuArrowRight aria-hidden className="size-4" />

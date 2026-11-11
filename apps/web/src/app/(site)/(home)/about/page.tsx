@@ -27,7 +27,7 @@ export default function AboutPage() {
             href="/personal"
             className="font-semibold text-accent underline underline-offset-4"
           >
-            personal
+            Personal Blog
           </Link>
           ,{" "}
           <Link
@@ -35,9 +35,9 @@ export default function AboutPage() {
             href="/engineering"
             className="font-semibold text-accent underline underline-offset-4"
           >
-            engineering
-          </Link>{" "}
-          and{" "}
+            Engineering Blog
+          </Link>
+          ,{" "}
           <Link
             prefetch={false}
             href="/cookbook"

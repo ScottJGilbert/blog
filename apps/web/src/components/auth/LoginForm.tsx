@@ -12,9 +12,9 @@ import { ResendVerification } from "./ResendVerification";
 import { SocialButtons } from "./SocialButtons";
 import { linkClass } from "./AuthCard";
 
-export function LoginForm({ next, initialError }: { next: string; initialError?: string }) {
+export function LoginForm({ next, initialError, initialEmail = "" }: { next: string; initialError?: string; initialEmail?: string }) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(
