@@ -9,7 +9,7 @@
    --------------------------------------------------------------------------
    1. Shared tokens (@theme): type scale, radius, shadow, motion, containers.
    2. Semantic colour/font variables (--bg, --surface, --text, ...) are set per
-      section via [data-section="home|personal|engineering"] with light + dark
+      section via [data-section="home|personal|engineering|cookbook"] with light + dark
       values and mapped onto Tailwind utilities (bg-bg, text-fg, text-muted,
       bg-accent, border-border, ring-ring, font-display, ...).
    ========================================================================== */
@@ -207,6 +207,60 @@
   --motif: rgb(235 163 124 / 0.1);
 }
 
+/* --------------------------------------------------------------------------
+   Section: COOKBOOK  (linen + aubergine, like a well-used recipe book; gingham motif)
+   -------------------------------------------------------------------------- */
+[data-section="cookbook"] {
+  --bg: #faf6f9;
+  --surface: #ffffff;
+  --surface-2: #f3eaf0;
+  --text: #2a1a24;
+  --muted: #64505b;
+  --accent: #7a2e5a;
+  --accent-hover: #5f2145;
+  --accent-fg: #ffffff;
+  --accent-soft: #f1dbe8;
+  --accent-soft-fg: #5c1f43;
+  --border: #e8dce3;
+  --border-strong: #85707c;
+  --ring: #9a3b72;
+  --danger: #a4262c;
+  --motif: rgb(122 46 90 / 0.09);
+}
+.dark [data-section="cookbook"] {
+  --bg: #1a1318;
+  --surface: #231a20;
+  --surface-2: #2d2229;
+  --text: #f5ecf1;
+  --muted: #c4b1bc;
+  --accent: #e7a3c8;
+  --accent-hover: #f1c0da;
+  --accent-fg: #2d0f20;
+  --accent-soft: #4a2038;
+  --accent-soft-fg: #f3c9de;
+  --border: #3a2a33;
+  --border-strong: #8f7683;
+  --ring: #e7a3c8;
+  --danger: #ffb4ab;
+  --motif: rgb(231 163 200 / 0.09);
+}
+
+/* Printed recipes: always black on white, whichever theme is active on screen. */
+@media print {
+  [data-section="cookbook"],
+  .dark [data-section="cookbook"] {
+    --bg: #fff;
+    --surface: #fff;
+    --surface-2: #f4f4f4;
+    --text: #000;
+    --muted: #333;
+    --accent: #000;
+    --accent-soft: #eee;
+    --accent-soft-fg: #000;
+    --border: #bbb;
+  }
+}
+
 /* ==========================================================================
    Base
    ========================================================================== */
@@ -329,6 +383,15 @@
       radial-gradient(circle, var(--motif) 1px, transparent 1.5px) 0 0 / 22px
         22px;
     mask-image: linear-gradient(to bottom, #000 20%, transparent 100%);
+  }
+
+  /* Cookbook: a gingham tablecloth, faded out towards the content. */
+  [data-section="cookbook"] .section-motif::before {
+    background-image:
+      linear-gradient(var(--motif) 50%, transparent 50%),
+      linear-gradient(90deg, var(--motif) 50%, transparent 50%);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(to bottom, #000 25%, transparent 100%);
   }
 
   /* Card lift: transforms only when motion is allowed. */

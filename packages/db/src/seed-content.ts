@@ -89,12 +89,15 @@ export const SEED_TAGS = [
   { slug: "web", name: "Web" },
   { slug: "travel", name: "Travel" },
   { slug: "outdoors", name: "Outdoors" },
+  { slug: "dinner", name: "Dinner" },
+  { slug: "baking", name: "Baking" },
+  { slug: "vegetarian", name: "Vegetarian" },
 ] as const;
 
 export interface SeedPost {
   slug: string;
   title: string;
-  section: "personal" | "engineering";
+  section: "personal" | "engineering" | "cookbook";
   status: "published" | "draft";
   publishedAt?: string;
   tags: string[];
@@ -107,6 +110,78 @@ export interface SeedPost {
 const pic = (seed: string, w = 1600, h = 900) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
 export const SEED_POSTS: SeedPost[] = [
+  {
+    slug: "weeknight-mushroom-ragu",
+    title: "Weeknight Mushroom Ragu",
+    section: "cookbook",
+    status: "published",
+    publishedAt: "2026-09-12T17:30:00.000Z",
+    tags: ["dinner", "vegetarian"],
+    cover: { url: pic("mushroom-ragu"), alt: "A bowl of pappardelle with a dark mushroom ragu" },
+    excerpt: "Serves 4 · 15 min prep · 35 min cook. Deeply savoury, on the table in under an hour.",
+    content: doc(
+      `## Ingredients
+
+- 500 g mixed mushrooms, roughly chopped
+- 2 tbsp olive oil
+- 1 onion, finely diced
+- 3 cloves garlic, minced
+- 2 tbsp tomato paste
+- 150 ml red wine
+- 400 g tin chopped tomatoes
+- 2 sprigs thyme
+- 400 g pappardelle
+- Parmesan, to serve
+
+## Method
+
+1. Brown the mushrooms in the oil over high heat, in two batches, until deeply golden. Set aside.
+2. Soften the onion in the same pan for 6 minutes, then add the garlic and tomato paste and cook for 1 minute.
+3. Pour in the wine and let it reduce by half, scraping up the browned bits.
+4. Return the mushrooms with the tomatoes and thyme. Simmer for 20 minutes until thick.
+5. Boil the pasta in well-salted water, drain, and toss with the ragu and a splash of the pasta water.
+
+## Notes
+
+Don't crowd the pan when browning: steamed mushrooms never get that savoury depth. Keeps for 3 days in the fridge and freezes well.
+`,
+    ),
+  },
+  {
+    slug: "brown-butter-chocolate-chip-cookies",
+    title: "Brown Butter Chocolate Chip Cookies",
+    section: "cookbook",
+    status: "published",
+    publishedAt: "2026-08-29T14:00:00.000Z",
+    tags: ["baking"],
+    cover: { url: pic("brown-butter-cookies"), alt: "Chocolate chip cookies cooling on a wire rack" },
+    excerpt: "Makes 18 · 20 min prep · 12 min bake. Nutty, chewy, with crisp edges.",
+    content: doc(
+      `## Ingredients
+
+- 225 g unsalted butter
+- 200 g dark brown sugar
+- 100 g caster sugar
+- 1 egg plus 1 yolk
+- 2 tsp vanilla extract
+- 280 g plain flour
+- 1 tsp bicarbonate of soda
+- 1 tsp fine salt
+- 200 g dark chocolate, chopped
+
+## Method
+
+1. Melt the butter in a light-coloured pan and keep cooking until it foams and smells nutty, about 5 minutes. Cool for 15 minutes.
+2. Whisk both sugars into the butter, then the egg, yolk and vanilla.
+3. Fold in the flour, bicarbonate and salt, then the chocolate. Chill the dough for at least 1 hour.
+4. Scoop onto lined trays and bake at 180 °C (160 °C fan) for 11–12 minutes. Leave on the tray for 5 minutes.
+
+## Notes
+
+Flake salt on top straight out of the oven is worth the extra step.
+`,
+    ),
+  },
   {
     slug: "typed-api-client-shared-by-server-and-browser",
     title: "A Typed API Client Shared by the Server and the Browser",

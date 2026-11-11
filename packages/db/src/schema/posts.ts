@@ -15,7 +15,7 @@ import {
 import { user } from "./auth";
 import { tsvector, type LexicalJson } from "./types";
 
-export const POST_SECTIONS = ["personal", "engineering"] as const;
+export const POST_SECTIONS = ["personal", "engineering", "cookbook"] as const;
 export const POST_STATUSES = ["draft", "scheduled", "published", "archived"] as const;
 export const postSection = pgEnum("post_section", POST_SECTIONS);
 export const postStatus = pgEnum("post_status", POST_STATUSES);

@@ -7,7 +7,7 @@ import { SITE_URL } from "@/lib/site-url";
 // Rebuilt at most every 10 minutes and whenever the `posts` tag is revalidated.
 export const revalidate = 600;
 
-const STATIC_ROUTES = ["/", "/personal", "/engineering", "/about", "/terms", "/privacy"];
+const STATIC_ROUTES = ["/", "/personal", "/engineering", "/cookbook", "/about", "/terms", "/privacy"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = STATIC_ROUTES.map((path) => ({

@@ -4,7 +4,7 @@ Full-stack blog: public site, admin, Express API, Postgres (pgvector), listmonk 
 
 | Path | What | Dev port |
 | --- | --- | --- |
-| `apps/web` | Public Next.js 16 site (Home / Personal / Engineering themes, search, auth, comments, newsletter) | 3000 |
+| `apps/web` | Public Next.js 16 site (Home / Personal / Engineering / Cookbook themes, search, auth, comments, newsletter) | 3000 |
 | `apps/admin` | Admin Next.js app at `/admin` (posts + Lexical editor, media, users, moderation, newsletters, API keys) | 3001 |
 | `apps/api` | Express 5 API at `/api` (Better Auth, posts, search, comments, admin, newsletters, external `/api/v1`) | 4000 |
 | `packages/db` | Drizzle schema, migrations, seed | |

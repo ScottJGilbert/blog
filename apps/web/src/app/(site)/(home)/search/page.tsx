@@ -93,6 +93,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
                 <option value="">All sections</option>
                 <option value="personal">Personal Blog</option>
                 <option value="engineering">Engineering Blog</option>
+                <option value="cookbook">Cookbook</option>
               </select>
             </div>
             <Button type="submit" size="lg" className="sm:min-h-11">
@@ -175,10 +176,14 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
               Or head straight to{" "}
               <Link prefetch={false} href="/personal" className="font-semibold text-accent underline underline-offset-4">
                 Personal Blog
-              </Link>{" "}
-              or{" "}
+              </Link>
+              {", "}
               <Link prefetch={false} href="/engineering" className="font-semibold text-accent underline underline-offset-4">
                 Engineering Blog
+              </Link>
+              {", or the "}
+              <Link prefetch={false} href="/cookbook" className="font-semibold text-accent underline underline-offset-4">
+                cookbook
               </Link>
               .
             </p>

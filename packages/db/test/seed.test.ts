@@ -4,7 +4,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { account, comment, post, postTag, tag, user } from "../src/schema/index";
 import { DEMO_ADMIN, DEMO_READER, seed } from "../src/seed";
-import { SEED_POSTS } from "../src/seed-content";
+import { SEED_POSTS, SEED_TAGS } from "../src/seed-content";
 import { createTestDb, type TestDb } from "../src/testing";
 
 let t: TestDb;
@@ -45,10 +45,10 @@ describe("seed", () => {
     expect(a.users).toBe(2);
   });
 
-  it("creates ~6 published posts across both sections with derived fields", async () => {
+  it("creates ~6 published posts across every section with derived fields", async () => {
     const rows = await t.db.select().from(post).where(eq(post.status, "published"));
     expect(rows.length).toBeGreaterThanOrEqual(6);
-    expect(new Set(rows.map((r) => r.section))).toEqual(new Set(["personal", "engineering"]));
+    expect(new Set(rows.map((r) => r.section))).toEqual(new Set(["personal", "engineering", "cookbook"]));
     for (const r of rows) {
       expect(r.contentText.length).toBeGreaterThan(100);
       expect(r.excerpt.length).toBeGreaterThan(20);
@@ -89,7 +89,7 @@ describe("seed", () => {
     const t2 = await createTestDb();
     try {
       const r = await seed(t2.db, { demoData: false });
-      expect(r).toEqual({ tags: 11, posts: 0, users: 0, comments: 0 });
+      expect(r).toEqual({ tags: SEED_TAGS.length, posts: 0, users: 0, comments: 0 });
     } finally {
       await t2.close();
     }

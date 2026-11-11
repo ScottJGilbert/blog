@@ -1,9 +1,9 @@
 export const SITE_NAME = "Scott Gilbert";
 export const SITE_DOMAIN = "blog.scottgilbert.dev";
 export const SITE_DESCRIPTION =
-  "Writing by Scott Gilbert, a computer engineer: personal reflections and engineering insights from the field.";
+  "Writing by Scott Gilbert, a computer engineer: personal reflections, engineering insights from the field, and a cookbook of recipes.";
 
-export type SectionId = "home" | "personal" | "engineering";
+export type SectionId = "home" | "personal" | "engineering" | "cookbook";
 
 export interface SectionInfo {
   id: SectionId;
@@ -16,6 +16,7 @@ export const SECTIONS: readonly SectionInfo[] = [
   { id: "home", label: "Home", href: "/" },
   { id: "personal", label: "Personal Blog", href: "/personal" },
   { id: "engineering", label: "Engineering Blog", href: "/engineering" },
+  { id: "cookbook", label: "Cookbook", href: "/cookbook" },
 ];
 
 /** True when `pathname` is `href` or a nested route below it (home is exact). */

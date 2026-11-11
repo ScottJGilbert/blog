@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import type { Section } from "@blog/shared";
-import { LuPenLine, LuTerminal } from "react-icons/lu";
+import { LuChefHat, LuPenLine, LuTerminal } from "react-icons/lu";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getPosts, LISTING_PAGE_SIZE } from "@/lib/api";
 import { listingHref } from "@/lib/paths";
+import { COOKBOOK_COPY } from "@/components/cookbook/CookbookListing";
 import { Pagination } from "./Pagination";
 import { PostCard } from "./PostCard";
 import { toCardProps } from "./postCardProps";
@@ -40,6 +41,13 @@ export const SECTION_COPY: Record<Section, SectionCopy> = {
     emptyTitle: "Under construction",
     emptyDescription: "Check back soon for the first publication.",
     emptyStatus: "status: compilation_in_progress",
+  },
+  // The cookbook has its own listing (CookbookListing); only the metadata copy is used from here.
+  cookbook: {
+    ...COOKBOOK_COPY,
+    emptyIcon: <LuChefHat />,
+    emptyTitle: "The first recipe is still in the oven",
+    emptyDescription: "Nothing has been written down yet. Check back soon.",
   },
 };
 

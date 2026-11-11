@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { ButtonLink } from "@/components/ui/Button";
 import { getPosts } from "@/lib/api";
 
-/** Newest posts across both sections; each card previews its own section theme. */
+/** Newest posts across every section; each card previews its own section theme. */
 export default async function LatestPosts() {
   const { data: posts } = await getPosts({ page: 1, pageSize: 6 });
   if (posts.length === 0) return null;
@@ -22,6 +22,9 @@ export default async function LatestPosts() {
             </ButtonLink>
             <ButtonLink href="/engineering" variant="secondary">
               Engineering Blog <LuArrowRight aria-hidden className="size-4" />
+            </ButtonLink>
+            <ButtonLink href="/cookbook" variant="secondary">
+              Cookbook <LuArrowRight aria-hidden className="size-4" />
             </ButtonLink>
           </div>
         </div>

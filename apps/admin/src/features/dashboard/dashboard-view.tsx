@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import useSWR from "swr";
+import type { Section } from "@blog/shared";
 import { LuFileText, LuMail, LuMessageSquare, LuPlus, LuUsers } from "react-icons/lu";
 import { Card, PageHeader } from "@/components/page-header";
 import { LinkButton } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import { StatusBadge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import { formatRelative } from "@/lib/format";
+
+const SECTION_LABEL: Record<Section, string> = { personal: "Personal", engineering: "Engineering", cookbook: "Cookbook" };
 
 export function DashboardView() {
   const { data, error, isLoading, mutate } = useSWR(["stats"], () => api.admin.stats());
@@ -111,7 +114,7 @@ export function DashboardView() {
                           {p.title}
                         </Link>
                         <p className="text-[0.8125rem] text-muted">
-                          {p.section === "engineering" ? "Engineering" : "Personal"} · updated{" "}
+                          {SECTION_LABEL[p.section]} · updated{" "}
                           <time dateTime={p.updatedAt}>{formatRelative(p.updatedAt)}</time>
                         </p>
                       </div>

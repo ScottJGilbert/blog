@@ -20,6 +20,7 @@ const FOOTER_GROUPS: FooterGroup[] = [
       { label: "Home", href: "/" },
       { label: "Personal Blog", href: "/personal" },
       { label: "Engineering Blog", href: "/engineering" },
+      { label: "Cookbook", href: "/cookbook" },
       { label: "About", href: "/about" },
       { label: "Search", href: "/search" },
     ],
@@ -54,7 +55,7 @@ const linkClass =
 export default function Footer() {
   const signedIn = useAuth().status === "authenticated";
   return (
-    <footer className="mt-24 border-t border-border bg-surface-2/40">
+    <footer className="mt-24 print:hidden border-t border-border bg-surface-2/40">
       <PageContainer size="wide" className="py-12 sm:py-16">
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5">
@@ -66,7 +67,7 @@ export default function Footer() {
               {SITE_DOMAIN}
             </Link>
             <p className="mt-3 max-w-sm text-muted">
-              Notes on engineering, making, and life from {SITE_NAME}.
+              Notes on engineering, making, cooking and life from {SITE_NAME}.
             </p>
             <NewsletterSignup
               source="footer"

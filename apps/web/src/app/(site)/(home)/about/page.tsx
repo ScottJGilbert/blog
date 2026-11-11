@@ -28,16 +28,24 @@ export default function AboutPage() {
             className="font-semibold text-accent underline underline-offset-4"
           >
             Personal Blog
-          </Link>{" "}
-          and{" "}
+          </Link>
+          ,{" "}
           <Link
             prefetch={false}
             href="/engineering"
             className="font-semibold text-accent underline underline-offset-4"
           >
             Engineering Blog
+          </Link>
+          ,{" "}
+          <Link
+            prefetch={false}
+            href="/cookbook"
+            className="font-semibold text-accent underline underline-offset-4"
+          >
+            cookbook
           </Link>{" "}
-          .
+          sections.
         </p>
       </div>
     </PageContainer>
