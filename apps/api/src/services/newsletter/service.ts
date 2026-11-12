@@ -378,4 +378,3 @@ export function createNewsletterService(deps: Deps) {
   };
 }
 
-export type NewsletterService = ReturnType<typeof createNewsletterService>;

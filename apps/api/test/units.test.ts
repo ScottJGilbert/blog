@@ -9,7 +9,8 @@ import { loadConfig } from "../src/config";
 import { HttpError, notFound } from "../src/errors";
 import { createRevalidator, postTags } from "../src/lib/revalidate";
 import { bearerMatches, safeEqual } from "../src/lib/crypto";
-import { parsePagination, paginated } from "../src/lib/pagination";
+import { paginated } from "../src/lib/pagination";
+import { PaginationQuerySchema } from "@blog/shared";
 import { createLogger } from "../src/logger";
 import { createErrorHandler, notFoundHandler } from "../src/middleware/error-handler";
 import { createRateLimiters } from "../src/middleware/rate-limit";
@@ -66,9 +67,9 @@ describe("config", () => {
 
 describe("pagination", () => {
   it("parses with defaults and limits", () => {
-    expect(parsePagination({})).toEqual({ page: 1, pageSize: 10 });
-    expect(parsePagination({ page: "2", pageSize: "50" })).toEqual({ page: 2, pageSize: 50 });
-    expect(() => parsePagination({ pageSize: "51" })).toThrow();
+    expect(PaginationQuerySchema.parse({})).toEqual({ page: 1, pageSize: 10 });
+    expect(PaginationQuerySchema.parse({ page: "2", pageSize: "50" })).toEqual({ page: 2, pageSize: 50 });
+    expect(() => PaginationQuerySchema.parse({ pageSize: "51" })).toThrow();
   });
   it("paginated() emits data + meta", async () => {
     const app = express();

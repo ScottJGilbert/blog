@@ -148,4 +148,3 @@ export function createAdminUsersService(deps: Deps) {
   };
 }
 
-export type AdminUsersService = ReturnType<typeof createAdminUsersService>;

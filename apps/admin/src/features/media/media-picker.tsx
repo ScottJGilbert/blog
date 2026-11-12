@@ -10,7 +10,7 @@ import { EmptyState, ErrorState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
-import { useGroupMutate } from "@/lib/use-group-mutate";
+import { mutateGroups } from "@/lib/mutate-groups";
 import { MediaImage } from "./media-image";
 import { UploadZone } from "./upload-zone";
 
@@ -26,7 +26,6 @@ export function MediaPicker({
 }) {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Media | null>(null);
-  const mutateGroup = useGroupMutate();
   const { data, error, isLoading, mutate } = useSWR(open ? ["media", { page, picker: true }] : null, () =>
     api.admin.media.list({ page, pageSize: 24 }),
   );
@@ -59,7 +58,7 @@ export function MediaPicker({
             setSelected(m);
             setPage(1);
             void mutate();
-            void mutateGroup("media");
+            void mutateGroups("media");
           }}
         />
         {error && !data ? (

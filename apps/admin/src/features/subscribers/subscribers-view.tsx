@@ -17,7 +17,7 @@ import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
-import { useGroupMutate } from "@/lib/use-group-mutate";
+import { mutateGroups } from "@/lib/mutate-groups";
 import { useDebouncedQuery, useQueryState } from "@/lib/use-query-state";
 
 const PAGE_SIZE = 20;
@@ -30,7 +30,6 @@ export function SubscribersView() {
   const [qText, setQText] = useDebouncedQuery(values.q, commitQ);
   const toast = useToast();
   const confirm = useConfirm();
-  const mutateGroup = useGroupMutate();
   const [syncing, setSyncing] = useState(false);
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(["subscribers", { q, status, page }], () =>
@@ -48,7 +47,7 @@ export function SubscribersView() {
     try {
       await api.admin.subscribers.remove(s.id);
       toast.success("Subscriber deleted");
-      await mutateGroup("subscribers", "stats");
+      await mutateGroups("subscribers", "stats");
     } catch (err) {
       toast.error(errorMessage(err));
     }
@@ -60,7 +59,7 @@ export function SubscribersView() {
       const r = await api.admin.subscribers.sync();
       if (!r.providerConfigured) toast.info("No newsletter provider is configured (LISTMONK_URL is unset), so there is nothing to sync.");
       else toast.success(`Synced ${r.synced} subscribers${r.failed ? `, ${r.failed} failed` : ""}.`);
-      await mutateGroup("subscribers");
+      await mutateGroups("subscribers");
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {

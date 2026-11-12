@@ -22,7 +22,7 @@ import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { errorMessage, fieldErrorsFromApi } from "@/lib/errors";
 import { formatDateTime } from "@/lib/format";
-import { useGroupMutate } from "@/lib/use-group-mutate";
+import { mutateGroups } from "@/lib/mutate-groups";
 import { useQueryState } from "@/lib/use-query-state";
 
 const PAGE_SIZE = 15;
@@ -32,7 +32,6 @@ export function NewslettersView() {
   const status = (NEWSLETTER_STATUSES as readonly string[]).includes(values.status) ? (values.status as NewsletterStatus) : undefined;
   const toast = useToast();
   const confirm = useConfirm();
-  const mutateGroup = useGroupMutate();
   const [createOpen, setCreateOpen] = useState(false);
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(["newsletters", { status, page }], () =>
@@ -45,7 +44,7 @@ export function NewslettersView() {
     try {
       await api.admin.newsletters.remove(n.id);
       toast.success("Newsletter deleted");
-      await mutateGroup("newsletters");
+      await mutateGroups("newsletters");
     } catch (err) {
       toast.error(errorMessage(err));
     }
@@ -152,7 +151,6 @@ export function NewslettersView() {
 
 function CreateForm({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const mutateGroup = useGroupMutate();
   const [mode, setMode] = useState<"blank" | "post">("blank");
   const [subject, setSubject] = useState("");
   const [postId, setPostId] = useState("");
@@ -177,7 +175,7 @@ function CreateForm({ onClose }: { onClose: () => void }) {
       const n = await api.admin.newsletters.create(
         mode === "post" ? { subject: subj, postId } : { subject: subj, content: emptyContentDoc() },
       );
-      await mutateGroup("newsletters");
+      await mutateGroups("newsletters");
       router.push(`/newsletters/${n.id}`);
     } catch (err) {
       setErrors(fieldErrorsFromApi(err));

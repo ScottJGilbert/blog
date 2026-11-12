@@ -20,7 +20,7 @@ import { api } from "@/lib/api";
 import { publicPostUrl } from "@/lib/base-path";
 import { errorMessage } from "@/lib/errors";
 import { formatDate, formatDateTime } from "@/lib/format";
-import { useGroupMutate } from "@/lib/use-group-mutate";
+import { mutateGroups } from "@/lib/mutate-groups";
 import { useDebouncedQuery, useQueryState } from "@/lib/use-query-state";
 
 const PAGE_SIZE = 15;
@@ -36,7 +36,6 @@ export function PostsView() {
 
   const toast = useToast();
   const confirm = useConfirm();
-  const mutateGroup = useGroupMutate();
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(["posts", { status, section, q, page }], () =>
     api.admin.posts.list({ status, section, q, page, pageSize: PAGE_SIZE }),
@@ -46,7 +45,7 @@ export function PostsView() {
     try {
       await fn();
       toast.success(label);
-      await mutateGroup("posts", "stats");
+      await mutateGroups("posts", "stats");
     } catch (err) {
       toast.error(errorMessage(err));
     }

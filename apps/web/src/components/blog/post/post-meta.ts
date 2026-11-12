@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { PostDetail, Section } from "@blog/shared";
+import type { PostDetail } from "@blog/shared";
 import { getPost } from "@/lib/api";
 import { imageSource } from "@/lib/media-hosts";
 import { postHref } from "@/lib/paths";
@@ -11,7 +11,7 @@ export function absoluteUrl(pathOrUrl: string): string {
   return /^https?:\/\//.test(pathOrUrl) ? pathOrUrl : `${SITE_URL}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
 }
 
-export async function postMetadata(section: Section, slug: string): Promise<Metadata> {
+export async function postMetadata(slug: string): Promise<Metadata> {
   const post = await getPost(slug);
   if (!post) return { title: "Post not found", robots: { index: false } };
   // A post addressed under the wrong section is redirected by the page; canonicalise either way.

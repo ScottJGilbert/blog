@@ -4,17 +4,17 @@ import { z } from "zod";
 import { derivedPublicOrigin, isPlaceholderUrl, onVercel, vercelTrustedOrigins } from "./lib/origins";
 
 /** Treat `FOO=` (empty) the same as unset. */
-const str = z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.string().trim().optional());
+const blank = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
+const str = z.preprocess(blank, z.string().trim().optional());
 const flag = (def: boolean) =>
   z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    blank,
     z
       .union([z.boolean(), z.string()])
       .optional()
       .transform((v) => (v === undefined ? def : typeof v === "boolean" ? v : ["1", "true", "yes", "on"].includes(v.toLowerCase()))),
   );
-const int = (def: number) =>
-  z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.coerce.number().int().default(def));
+const int = (def: number) => z.preprocess(blank, z.coerce.number().int().default(def));
 const csv = z.preprocess(
   (v) => (typeof v === "string" ? v.split(",").map((s) => s.trim()).filter(Boolean) : v),
   z.array(z.string()).default([]),
@@ -61,8 +61,8 @@ const EnvSchema = z.object({
   SMTP_URL: str,
   RESEND_API_KEY: str,
   MAIL_FROM: str,
-  STORAGE_DRIVER: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.enum(["local", "vercel-blob", "supabase"]).optional()),
-  VECTOR_DRIVER: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.enum(["pgvector", "supabase"]).default("pgvector")),
+  STORAGE_DRIVER: z.preprocess(blank, z.enum(["local", "vercel-blob", "supabase"]).optional()),
+  VECTOR_DRIVER: z.preprocess(blank, z.enum(["pgvector", "supabase"]).default("pgvector")),
   BLOB_READ_WRITE_TOKEN: str,
   UPLOAD_DIR: str,
   EMBEDDING_API_URL: str.default("https://api.openai.com/v1"),
@@ -78,7 +78,7 @@ const EnvSchema = z.object({
   CRON_SECRET: str,
   RATE_LIMIT_ENABLED: str,
   /** `memory` (per instance) or `postgres` (shared by all instances; default on Vercel) for the abuse-sensitive limits. */
-  RATE_LIMIT_STORE: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.enum(["memory", "postgres"]).optional()),
+  RATE_LIMIT_STORE: z.preprocess(blank, z.enum(["memory", "postgres"]).optional()),
   /** How long one embedding reindex request may keep working (ms) before it stops cleanly and can be resumed. */
   REINDEX_BUDGET_MS: int(0),
   LOG_LEVEL: str,
@@ -150,21 +150,7 @@ export class ConfigError extends Error {
 
 export const DEV_AUTH_SECRET = "dev-only-secret-do-not-use-in-production-0123456789";
 
-function origin(url: string): string | null {
-  try {
-    return new URL(url).origin;
-  } catch {
-    return null;
-  }
-}
-
-function dbHost(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return "";
-  }
-}
+const tryUrl = (url: string): URL | null => URL.canParse(url) ? new URL(url) : null;
 
 function normaliseBasePath(p: string): string {
   const trimmed = p.trim().replace(/\/+$/, "");
@@ -212,15 +198,13 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const trustedOrigins = [
     ...new Set(
       [siteUrlRaw, authUrlRaw, ...e.TRUSTED_ORIGINS, ...vercelTrustedOrigins(env), ...devOrigins]
-        .map((u) => origin(u))
+        .map((u) => tryUrl(u)?.origin)
         .filter((o): o is string => Boolean(o)),
     ),
   ];
 
   const oauth = (id?: string, secret?: string): OAuthCredentials | undefined =>
     id && secret ? { clientId: id, clientSecret: secret } : undefined;
-  const embeddingKey = e.EMBEDDING_API_KEY;
-  const listmonkEnabled = Boolean(e.LISTMONK_URL && (e.LISTMONK_API_TOKEN || e.LISTMONK_USER));
 
   // Storage: Vercel's filesystem is read-only, so `local` can never work there. A Blob token selects Vercel Blob
   // automatically; without one uploads fail with a clear 503 instead of an EROFS crash.
@@ -274,9 +258,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     vectors: { driver: e.VECTOR_DRIVER },
     embedding: {
       url: e.EMBEDDING_API_URL,
-      apiKey: embeddingKey,
+      apiKey: e.EMBEDDING_API_KEY,
       model: e.EMBEDDING_MODEL,
-      enabled: Boolean(embeddingKey),
+      enabled: Boolean(e.EMBEDDING_API_KEY),
     },
     listmonk: {
       url: e.LISTMONK_URL?.replace(/\/+$/, ""),
@@ -284,7 +268,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
       apiToken: e.LISTMONK_API_TOKEN,
       listId: e.LISTMONK_LIST_ID,
       webhookSecret: e.LISTMONK_WEBHOOK_SECRET,
-      enabled: listmonkEnabled,
+      enabled: Boolean(e.LISTMONK_URL && (e.LISTMONK_API_TOKEN || e.LISTMONK_USER)),
     },
     revalidate,
     cronSecret: e.CRON_SECRET,
@@ -312,7 +296,7 @@ export function configWarnings(config: Config, env: Record<string, string | unde
   if (local(config.siteUrl)) out.push("SITE_URL points at localhost in production: links in emails, RSS and CSRF/trusted origins will be wrong.");
   if (local(config.authUrl)) out.push("BETTER_AUTH_URL points at localhost in production: verification / reset links and cookies will not work for real visitors.");
   if (!resolveDatabaseUrl(env) || local(config.databaseUrl)) out.push("DATABASE_URL (or POSTGRES_URL) is unset or points at localhost in production.");
-  if (config.onVercel && isDirectSupabaseHost(dbHost(config.databaseUrl))) out.push("DATABASE_URL points at a Supabase direct host (db.<ref>.supabase.co), which is IPv6-only on the free plan and unreachable from Vercel: use the Supavisor pooler URL (port 6543) instead.");
+  if (config.onVercel && isDirectSupabaseHost(tryUrl(config.databaseUrl)?.hostname ?? "")) out.push("DATABASE_URL points at a Supabase direct host (db.<ref>.supabase.co), which is IPv6-only on the free plan and unreachable from Vercel: use the Supavisor pooler URL (port 6543) instead.");
   if (!config.cronSecret) out.push("CRON_SECRET is not set: /cron/* answers 503, so scheduled posts and newsletters are never published.");
   if (config.mailer.driver === "console") out.push("MAILER_DRIVER=console in production: no email (verification, password reset, newsletter confirmation) is delivered.");
   if (config.storage.driver === "local") out.push("STORAGE_DRIVER=local in production: uploads live on the (ephemeral) function filesystem; use vercel-blob.");

@@ -19,7 +19,6 @@ export const POST_SECTIONS = ["personal", "engineering", "cookbook"] as const;
 export const POST_STATUSES = ["draft", "scheduled", "published", "archived"] as const;
 export const postSection = pgEnum("post_section", POST_SECTIONS);
 export const postStatus = pgEnum("post_status", POST_STATUSES);
-export type PostSection = (typeof POST_SECTIONS)[number];
 export type PostStatus = (typeof POST_STATUSES)[number];
 
 export const EMBEDDING_DIMENSIONS = 1536;

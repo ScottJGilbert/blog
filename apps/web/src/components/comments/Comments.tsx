@@ -18,7 +18,7 @@ const PAGE_SIZE = 10;
 const RESERVED = "min-h-[28rem]";
 
 type Item = Omit<Comment, "replies"> & { pending?: boolean; replies: ReplyItem[] };
-type Phase = "idle" | "loading" | "ready" | "error";
+type Phase = "loading" | "ready" | "error";
 type DialogState = { kind: "delete" | "report"; id: string; topId: string | null } | null;
 
 let tempCounter = 0;
@@ -172,15 +172,14 @@ export function Comments({ slug }: { slug: string }) {
     <section
       id="comments"
       aria-labelledby="comments-title"
-      className={phase === "ready" ? undefined : RESERVED}
-    >
+      className={phase === "ready" ? undefined : RESERVED}>
       <h2 id="comments-title" className="text-2xl">
         Comments{total !== null && total > 0 ? <span className="ml-2 font-accent text-lg text-muted">({total})</span> : null}
       </h2>
 
       {/* Compose area: same reserved height for every viewer state. */}
       <div className="mt-5 min-h-44 rounded-card border border-border bg-surface p-4 sm:p-5">
-        {auth.status === "unknown" || phase === "idle" ? (
+        {auth.status === "unknown" ? (
           <div aria-hidden className="grid gap-3">
             <div className="h-5 w-32 rounded bg-surface-2 motion-safe:animate-pulse" />
             <div className="h-24 rounded-control bg-surface-2 motion-safe:animate-pulse" />
@@ -230,7 +229,7 @@ export function Comments({ slug }: { slug: string }) {
       </FormStatus>
 
       <div className="mt-6">
-        {phase === "idle" || phase === "loading" ? (
+        {phase === "loading" ? (
           <div role="status" aria-label="Loading comments" className="grid gap-6">
             {[0, 1].map((i) => (
               <div key={i} aria-hidden className="flex gap-4">

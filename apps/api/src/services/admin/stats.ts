@@ -80,4 +80,3 @@ export function createAdminStatsService(deps: Deps) {
   };
 }
 
-export type AdminStatsService = ReturnType<typeof createAdminStatsService>;

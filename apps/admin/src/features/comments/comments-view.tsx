@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSWRConfig } from "swr";
 import useSWR from "swr";
 import { LuCircleCheck, LuEye, LuEyeOff, LuFlag, LuMessageSquare, LuTrash2, LuUndo2 } from "react-icons/lu";
 import type { AdminComment, CommentStatus, Paginated } from "@blog/shared";
@@ -18,7 +17,7 @@ import { api } from "@/lib/api";
 import { publicPostUrl } from "@/lib/base-path";
 import { errorMessage } from "@/lib/errors";
 import { formatDateTime } from "@/lib/format";
-import { useGroupMutate } from "@/lib/use-group-mutate";
+import { mutateGroups } from "@/lib/mutate-groups";
 import { useQueryState } from "@/lib/use-query-state";
 
 type Tab = "all" | "reported" | "hidden";
@@ -30,8 +29,6 @@ export function CommentsView() {
   const key = ["comments", { tab, page }] as const;
   const toast = useToast();
   const confirm = useConfirm();
-  const mutateGroup = useGroupMutate();
-  const { mutate: globalMutate } = useSWRConfig();
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(key, () =>
     api.admin.comments.list({
@@ -63,8 +60,7 @@ export function CommentsView() {
       },
       { optimisticData: apply(prev), rollbackOnError: true, revalidate: false },
     );
-    void mutateGroup("comments", "stats");
-    void globalMutate((k) => Array.isArray(k) && k[0] === "comments");
+    void mutateGroups("comments", "stats");
   }
 
   async function remove(c: AdminComment) {
@@ -81,7 +77,7 @@ export function CommentsView() {
     try {
       await api.admin.comments.resolveReports(c.id);
       toast.success("Reports resolved");
-      await mutateGroup("comments", "stats");
+      await mutateGroups("comments", "stats");
     } catch (err) {
       toast.error(errorMessage(err));
     }

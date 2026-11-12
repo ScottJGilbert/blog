@@ -21,14 +21,6 @@ export interface SniffedImage {
 export const MAX_IMAGE_SIDE = 16_384;
 export const MAX_IMAGE_PIXELS = 100_000_000;
 
-const EXT: Record<ImageMime, SniffedImage["ext"]> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-  "image/avif": "avif",
-};
-
 const ascii = (b: Buffer, start: number, end: number): string => b.toString("latin1", start, end);
 
 function dims(width: number, height: number): { width: number | null; height: number | null; oversized?: boolean } {
@@ -127,5 +119,3 @@ export function sniffImage(buf: Buffer): SniffedImage | null {
     return null;
   }
 }
-
-export const extensionFor = (mime: ImageMime): SniffedImage["ext"] => EXT[mime];

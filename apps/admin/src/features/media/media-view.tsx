@@ -17,7 +17,7 @@ import { api } from "@/lib/api";
 import { copyText } from "@/lib/clipboard";
 import { errorMessage } from "@/lib/errors";
 import { formatBytes, formatDate } from "@/lib/format";
-import { useGroupMutate } from "@/lib/use-group-mutate";
+import { mutateGroups } from "@/lib/mutate-groups";
 import { useQueryState } from "@/lib/use-query-state";
 import { MediaImage } from "./media-image";
 import { UploadZone } from "./upload-zone";
@@ -28,7 +28,6 @@ export function MediaView() {
   const { page, set } = useQueryState([] as const);
   const toast = useToast();
   const confirm = useConfirm();
-  const mutateGroup = useGroupMutate();
   const [editing, setEditing] = useState<Media | null>(null);
   const { data, error, isLoading, mutate } = useSWR(["media", { page }], () => api.admin.media.list({ page, pageSize: PAGE_SIZE }));
 
@@ -51,7 +50,7 @@ export function MediaView() {
       toast.success("Image deleted");
       setEditing(null);
       await mutate();
-      await mutateGroup("media");
+      await mutateGroups("media");
     } catch (err) {
       toast.error(errorMessage(err));
     }
@@ -64,7 +63,7 @@ export function MediaView() {
         <UploadZone
           onUploaded={() => {
             void mutate();
-            void mutateGroup("media");
+            void mutateGroups("media");
           }}
         />
       </div>
@@ -130,7 +129,7 @@ export function MediaView() {
         onClose={() => setEditing(null)}
         onSaved={async () => {
           await mutate();
-          await mutateGroup("media");
+          await mutateGroups("media");
         }}
         onDelete={remove}
         onCopy={copy}
