@@ -62,7 +62,7 @@ export function RecipeHeader({ post }: { post: PostDetail }) {
             alt={post.coverImageAlt ?? ""}
             width={1600}
             height={1200}
-            sizes="(min-width: 1280px) 704px, (min-width: 768px) 720px, 100vw"
+            sizes="(min-width: 768px) 768px, 100vw"
             preload
             fetchPriority="high"
             unoptimized={cover.unoptimized}

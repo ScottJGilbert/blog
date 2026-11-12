@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <PageContainer size="prose" className="py-12 sm:py-16">
+    <PageContainer className="py-12 sm:py-16">
       <SectionHeader eyebrow="Legal" title="Privacy Policy" description="Last updated November 3, 2026." />
-      <div className="mt-10 space-y-5 text-lg leading-8 text-muted">
+      <div className="mt-10 max-w-3xl space-y-5 text-lg leading-8 text-muted">
         <h2 className="pt-4 text-2xl text-fg">What we collect</h2>
         <p>When you create an account we store your name, email address and a securely hashed password (or the profile details from the social sign-in you choose). If you comment, we store your comments. If you subscribe, we store your email address and subscription status.</p>
         <h2 className="pt-4 text-2xl text-fg">How we use it</h2>

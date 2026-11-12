@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <PageContainer size="prose" className="py-12 sm:py-16">
+    <PageContainer className="py-12 sm:py-16">
       <SectionHeader eyebrow="Legal" title="Terms of Service" description="Last updated November 3, 2026." />
-      <div className="mt-10 space-y-5 text-lg leading-8 text-muted">
+      <div className="mt-10 max-w-3xl space-y-5 text-lg leading-8 text-muted">
         <h2 className="pt-4 text-2xl text-fg">Using this site</h2>
         <p>By using this site you agree to these terms. If you do not agree, please do not use it. The site is a personal blog by Scott Gilbert.</p>
         <h2 className="pt-4 text-2xl text-fg">Accounts</h2>
