@@ -53,7 +53,7 @@ export function createAppWithDeps(overrides: DepsOverrides = {}): AppWithDeps {
   // --- Better Auth: must see the raw body, so it is mounted BEFORE express.json() ---------------------------------
   const authBase = `${config.basePath}/auth`;
   const authNode = toNodeHandler(deps.auth);
-  app.all([`${authBase}/*splat`, "/auth/*splat"], async (req, res, next) => {
+  app.all([`${authBase}/*splat`, "/auth/*splat"], async (req, res) => {
     // Vercel Services may strip the `/api` prefix: normalise so Better Auth always sees its configured basePath.
     if (!req.url.startsWith(authBase)) req.url = `${config.basePath}${req.url}`;
     if (!SAFE_METHODS.has(req.method)) {

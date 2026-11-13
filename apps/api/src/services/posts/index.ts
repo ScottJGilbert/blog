@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, post, postTag, sql, tag, user, type SQL } from "@blog/db";
+import { and, asc, count, desc, eq, inArray, post, postTag, sql, tag, user, type DbOrTx, type SQL } from "@blog/db";
 import { escapeHtml, extractToc, renderHtml } from "@blog/content";
 import type { ListPostsQuery, PostDetail, PostNavRef, PostSummary, SearchQuery, SearchResult, Section, SitemapEntry, TagRef, TagWithCount } from "@blog/shared";
 import type { Deps } from "../../deps";
@@ -59,7 +59,7 @@ export const publishedWhere = (now: Date): SQL => sql`${post.status} = 'publishe
 const publishedP = (now: Date): SQL => sql`p.status = 'published' AND p.published_at <= ${now.toISOString()}::timestamptz`;
 
 /** Tags of many posts at once → map postId → tags (sorted by name). */
-export async function loadTags(db: Deps["db"], postIds: string[]): Promise<Map<string, TagRef[]>> {
+export async function loadTags(db: DbOrTx, postIds: string[]): Promise<Map<string, TagRef[]>> {
   const map = new Map<string, TagRef[]>();
   if (postIds.length === 0) return map;
   const rows = await db

@@ -76,7 +76,7 @@ export function postsRouter(deps: Deps): Router {
   (pass a transaction as first argument to make it atomic). After publish/unpublish/delete: `await deps.revalidate(postTags(post))`.
 * Rate limits (`deps.limiters`): `auth`, `commentCreate` (place after `requireUser`), `subscribe`, `publicRead`, `admin`.
 * Time: use `deps.now()`; send mail with `deps.mailer.send({ to, ...verifyEmail(...) })`; files via `deps.storage`.
-* Pagination: `parsePagination(req.query)` / `pageParams(req)` and `paginated(res, { data, total, page, pageSize })`.
+* Pagination: `PaginationQuerySchema` (via `parseQuery`) and `paginated(res, { data, total, page, pageSize })`.
 * Never import singletons in route code; take what you need from `deps` so tests can inject fakes.
 
 ## Writing tests

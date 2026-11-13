@@ -28,20 +28,11 @@ export class ApiError extends Error {
     this.requestId = init.requestId ?? null;
   }
 
-  get isUnauthorized(): boolean {
-    return this.status === 401;
-  }
-  get isForbidden(): boolean {
-    return this.status === 403;
-  }
   get isNotFound(): boolean {
     return this.status === 404;
   }
   get isValidation(): boolean {
     return this.code === "validation_error";
-  }
-  get isRateLimited(): boolean {
-    return this.status === 429;
   }
 
   toJSON() {

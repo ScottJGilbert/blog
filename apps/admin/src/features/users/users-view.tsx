@@ -19,7 +19,7 @@ import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
-import { useGroupMutate } from "@/lib/use-group-mutate";
+import { mutateGroups } from "@/lib/mutate-groups";
 import { useDebouncedQuery, useQueryState } from "@/lib/use-query-state";
 
 const PAGE_SIZE = 15;
@@ -33,7 +33,6 @@ export function UsersView() {
   const [qText, setQText] = useDebouncedQuery(values.q, commitQ);
   const toast = useToast();
   const confirm = useConfirm();
-  const mutateGroup = useGroupMutate();
   const [banTarget, setBanTarget] = useState<AdminUser | null>(null);
 
   const { data: me } = useSWR(["me"], () => api.me());
@@ -45,7 +44,7 @@ export function UsersView() {
     try {
       await fn();
       toast.success(okMsg);
-      await mutateGroup("users", "stats");
+      await mutateGroups("users", "stats");
     } catch (err) {
       // Guard rails (cannot change yourself / the last admin) come back as readable API messages.
       toast.error(errorMessage(err));
@@ -179,7 +178,7 @@ export function UsersView() {
             onClose={() => setBanTarget(null)}
             onDone={async () => {
               toast.success(`${banTarget.name} was banned`);
-              await mutateGroup("users", "stats");
+              await mutateGroups("users", "stats");
             }}
           />
         ) : null}

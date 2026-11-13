@@ -30,3 +30,8 @@ export function ErrorBoundaryView({
     </StatusPage>
   );
 }
+
+/** Default export of the section error.tsx files: rendered inside the section layout, so header/footer and theme stay. */
+export default function SectionError({ error, unstable_retry }: { error: Error & { digest?: string }; unstable_retry: () => void }) {
+  return <ErrorBoundaryView error={error} retry={unstable_retry} />;
+}

@@ -8,7 +8,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/engineering/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  return postMetadata("engineering", slug);
+  return postMetadata(slug);
 }
 
 export default async function Page({ params }: PageProps<"/engineering/[slug]">) {

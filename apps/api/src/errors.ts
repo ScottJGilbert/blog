@@ -22,6 +22,4 @@ export const unauthorized = (message = "Authentication required") => new HttpErr
 export const forbidden = (message = "You do not have access to this resource") => new HttpError(403, "forbidden", message);
 export const notFound = (message = "Not found") => new HttpError(404, "not_found", message);
 export const conflict = (message = "Conflict", details?: unknown) => new HttpError(409, "conflict", message, { details });
-export const tooManyRequests = (message = "Too many requests, please try again later", retryAfterSeconds?: number) =>
-  new HttpError(429, "rate_limited", message, retryAfterSeconds ? { headers: { "retry-after": String(retryAfterSeconds) } } : undefined);
 export const internal = (message = "Internal server error") => new HttpError(500, "internal", message);

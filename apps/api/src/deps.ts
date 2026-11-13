@@ -1,5 +1,4 @@
 import { getDb, type Database } from "@blog/db";
-import type { Request } from "express";
 import { createAuth, type Auth } from "./auth";
 import { configWarnings, loadConfig, type Config } from "./config";
 import { createLogger, type Logger } from "./logger";
@@ -64,9 +63,4 @@ export function createDeps(overrides: DepsOverrides = {}): Deps {
     limiters: overrides.limiters ?? createRateLimiters(config, db),
   };
   return { ...base, auth: overrides.auth ?? createAuth({ config, db, mailer, logger }) };
-}
-
-/** The deps of the running app (for middleware that only receives `req`). */
-export function getDeps(req: Request): Deps {
-  return req.app.locals.deps as Deps;
 }

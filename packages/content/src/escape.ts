@@ -32,8 +32,3 @@ export function escapeText(input: string): string {
   if (out.includes("\n") || out.includes("\r")) out = out.replace(/\r\n|\r|\n/g, "<br>");
   return out;
 }
-
-/** Escape source text destined for a `<pre>` (whitespace preserved by the element itself). */
-export function escapePre(input: string): string {
-  return escapeHtml(input);
-}

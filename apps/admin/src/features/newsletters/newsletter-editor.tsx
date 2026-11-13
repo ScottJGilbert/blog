@@ -34,6 +34,7 @@ interface Draft {
 }
 
 const snap = (d: Draft) => JSON.stringify(d);
+const refreshList = () => void globalMutate((k) => Array.isArray(k) && k[0] === "newsletters");
 
 export function NewsletterEditor({ id }: { id: string }) {
   const { data, error, mutate } = useSWR(["newsletter", id], () => api.admin.newsletters.get(id), {
@@ -149,7 +150,7 @@ function Form({ initial, onUpdated }: { initial: Newsletter; onUpdated: (n: News
       setSavedSnap(snap(d));
       setNl(res);
       onUpdated(res);
-      void globalMutate((k) => Array.isArray(k) && k[0] === "newsletters");
+      refreshList();
       return res;
     } catch (err) {
       setErrors(fieldErrorsFromApi(err));
@@ -235,7 +236,7 @@ function Form({ initial, onUpdated }: { initial: Newsletter; onUpdated: (n: News
       const r = await api.admin.newsletters.send(saved.id);
       setNl(r.newsletter);
       onUpdated(r.newsletter);
-      void globalMutate((k) => Array.isArray(k) && k[0] === "newsletters");
+      refreshList();
       if (r.warning) {
         setNotice({ tone: r.newsletter.status === "failed" ? "danger" : "warn", text: r.warning });
         toast.info(r.warning);
@@ -257,7 +258,7 @@ function Form({ initial, onUpdated }: { initial: Newsletter; onUpdated: (n: News
     setNl(res);
     onUpdated(res);
     toast.success(`Scheduled for ${formatDateTime(iso)}`);
-    void globalMutate((k) => Array.isArray(k) && k[0] === "newsletters");
+    refreshList();
   }
 
   async function unschedule() {
@@ -266,7 +267,7 @@ function Form({ initial, onUpdated }: { initial: Newsletter; onUpdated: (n: News
       setNl(res);
       onUpdated(res);
       toast.success("Schedule cancelled — back to draft");
-      void globalMutate((k) => Array.isArray(k) && k[0] === "newsletters");
+      refreshList();
     } catch (err) {
       toast.error(errorMessage(err));
     }

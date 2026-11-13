@@ -68,4 +68,3 @@ export function createAdminApiKeysService(deps: Deps) {
   };
 }
 
-export type AdminApiKeysService = ReturnType<typeof createAdminApiKeysService>;

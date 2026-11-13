@@ -242,4 +242,3 @@ export function createMediaService(deps: Deps) {
   };
 }
 
-export type MediaService = ReturnType<typeof createMediaService>;

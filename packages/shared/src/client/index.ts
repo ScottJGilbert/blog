@@ -12,37 +12,6 @@
  */
 import { z } from "zod";
 import * as S from "../schemas/index";
-import type {
-  AdminListCommentsQueryInput,
-  AdminListPostsQueryInput,
-  BanUserInput,
-  Comment,
-  CreateApiKeyInputInput,
-  CreateCommentInputInput,
-  CreateNewsletterInputInput,
-  CreatePostInputInput,
-  ListCommentsQueryInput,
-  ListMediaQueryInput,
-  ListNewslettersQueryInput,
-  ListPostsQueryInput,
-  ListSubscribersQueryInput,
-  ListUsersQueryInput,
-  RelatedPostsQueryInput,
-  ReportCommentInput,
-  ScheduleNewsletterInput,
-  SchedulePostInput,
-  SearchQueryInput,
-  SubscribeInputInput,
-  TestNewsletterInput,
-  UpdateCommentInput,
-  UpdateCommentStatusInput,
-  UpdateMeInput,
-  UpdateMediaInput,
-  UpdateNewsletterInputInput,
-  UpdatePostInputInput,
-  UpdateUserInput,
-  V1ListCommentsQueryInput,
-} from "../schemas/index";
 import { HttpClient, type ApiClientOptions, type ApiRequestInit } from "./http";
 
 export { ApiError, isApiError, codeForStatus, type ClientErrorCode } from "./errors";
@@ -55,32 +24,30 @@ const enc = encodeURIComponent;
 export function createApiClient(options: ApiClientOptions) {
   const http = new HttpClient(options);
 
-  const unknownSchema = z.unknown();
-
   const admin = {
     stats: (init?: Init) => http.data("GET", "/admin/stats", S.StatsSchema, { init }),
     /** Environment health: db, mailer, storage, embeddings, newsletter provider, version. */
     system: (init?: Init) => http.data("GET", "/admin/system", S.SystemInfoSchema, { init }),
 
     posts: {
-      list: (query: AdminListPostsQueryInput = {}, init?: Init) =>
+      list: (query: S.AdminListPostsQueryInput = {}, init?: Init) =>
         http.page("/admin/posts", S.AdminPostSummarySchema, { query, init }),
       get: (id: string, init?: Init) => http.data("GET", `/admin/posts/${enc(id)}`, S.AdminPostDetailSchema, { init }),
-      create: (input: CreatePostInputInput, init?: Init) =>
+      create: (input: S.CreatePostInputInput, init?: Init) =>
         http.data("POST", "/admin/posts", S.AdminPostDetailSchema, { body: input, init }),
-      update: (id: string, input: UpdatePostInputInput, init?: Init) =>
+      update: (id: string, input: S.UpdatePostInputInput, init?: Init) =>
         http.data("PATCH", `/admin/posts/${enc(id)}`, S.AdminPostDetailSchema, { body: input, init }),
       remove: (id: string, init?: Init) => http.void("DELETE", `/admin/posts/${enc(id)}`, { init }),
       publish: (id: string, init?: Init) =>
         http.data("POST", `/admin/posts/${enc(id)}/publish`, S.AdminPostDetailSchema, { init }),
       unpublish: (id: string, init?: Init) =>
         http.data("POST", `/admin/posts/${enc(id)}/unpublish`, S.AdminPostDetailSchema, { init }),
-      schedule: (id: string, input: SchedulePostInput, init?: Init) =>
+      schedule: (id: string, input: S.SchedulePostInput, init?: Init) =>
         http.data("POST", `/admin/posts/${enc(id)}/schedule`, S.AdminPostDetailSchema, { body: input, init }),
     },
 
     media: {
-      list: (query: ListMediaQueryInput = {}, init?: Init) => http.page("/admin/media", S.MediaSchema, { query, init }),
+      list: (query: S.ListMediaQueryInput = {}, init?: Init) => http.page("/admin/media", S.MediaSchema, { query, init }),
       /** Upload an image (`File`/`Blob`). Sent as multipart/form-data. */
       upload: (file: Blob, opts: { alt?: string; filename?: string } = {}, init?: Init) => {
         const form = new FormData();
@@ -89,56 +56,56 @@ export function createApiClient(options: ApiClientOptions) {
         if (opts.alt) form.append("alt", opts.alt);
         return http.data("POST", "/admin/media", S.MediaSchema, { body: form, init });
       },
-      update: (id: string, input: UpdateMediaInput, init?: Init) =>
+      update: (id: string, input: S.UpdateMediaInput, init?: Init) =>
         http.data("PATCH", `/admin/media/${enc(id)}`, S.MediaSchema, { body: input, init }),
       remove: (id: string, init?: Init) => http.void("DELETE", `/admin/media/${enc(id)}`, { init }),
     },
 
     users: {
-      list: (query: ListUsersQueryInput = {}, init?: Init) => http.page("/admin/users", S.AdminUserSchema, { query, init }),
+      list: (query: S.ListUsersQueryInput = {}, init?: Init) => http.page("/admin/users", S.AdminUserSchema, { query, init }),
       get: (id: string, init?: Init) => http.data("GET", `/admin/users/${enc(id)}`, S.AdminUserSchema, { init }),
-      update: (id: string, input: UpdateUserInput, init?: Init) =>
+      update: (id: string, input: S.UpdateUserInput, init?: Init) =>
         http.data("PATCH", `/admin/users/${enc(id)}`, S.AdminUserSchema, { body: input, init }),
-      ban: (id: string, input: BanUserInput, init?: Init) =>
+      ban: (id: string, input: S.BanUserInput, init?: Init) =>
         http.data("POST", `/admin/users/${enc(id)}/ban`, S.AdminUserSchema, { body: input, init }),
       unban: (id: string, init?: Init) => http.data("POST", `/admin/users/${enc(id)}/unban`, S.AdminUserSchema, { init }),
       remove: (id: string, init?: Init) => http.void("DELETE", `/admin/users/${enc(id)}`, { init }),
     },
 
     comments: {
-      list: (query: AdminListCommentsQueryInput = {}, init?: Init) =>
+      list: (query: S.AdminListCommentsQueryInput = {}, init?: Init) =>
         http.page("/admin/comments", S.AdminCommentSchema, { query, init }),
-      setStatus: (id: string, input: UpdateCommentStatusInput, init?: Init) =>
+      setStatus: (id: string, input: S.UpdateCommentStatusInput, init?: Init) =>
         http.data("PATCH", `/admin/comments/${enc(id)}`, S.AdminCommentSchema, { body: input, init }),
       resolveReports: (id: string, init?: Init) =>
         http.data("POST", `/admin/comments/${enc(id)}/resolve-reports`, S.AdminCommentSchema, { init }),
     },
 
     newsletters: {
-      list: (query: ListNewslettersQueryInput = {}, init?: Init) =>
+      list: (query: S.ListNewslettersQueryInput = {}, init?: Init) =>
         http.page("/admin/newsletters", S.NewsletterSummarySchema, { query, init }),
-      create: (input: CreateNewsletterInputInput, init?: Init) =>
+      create: (input: S.CreateNewsletterInputInput, init?: Init) =>
         http.data("POST", "/admin/newsletters", S.NewsletterSchema, { body: input, init }),
       get: (id: string, init?: Init) => http.data("GET", `/admin/newsletters/${enc(id)}`, S.NewsletterSchema, { init }),
-      update: (id: string, input: UpdateNewsletterInputInput, init?: Init) =>
+      update: (id: string, input: S.UpdateNewsletterInputInput, init?: Init) =>
         http.data("PATCH", `/admin/newsletters/${enc(id)}`, S.NewsletterSchema, { body: input, init }),
       remove: (id: string, init?: Init) => http.void("DELETE", `/admin/newsletters/${enc(id)}`, { init }),
       preview: (id: string, init?: Init) =>
         http.data("POST", `/admin/newsletters/${enc(id)}/preview`, S.NewsletterPreviewSchema, { init }),
-      test: (id: string, input: TestNewsletterInput, init?: Init) =>
+      test: (id: string, input: S.TestNewsletterInput, init?: Init) =>
         http.data("POST", `/admin/newsletters/${enc(id)}/test`, S.TestNewsletterResultSchema, { body: input, init }),
       unschedule: (id: string, init?: Init) =>
         http.data("POST", `/admin/newsletters/${enc(id)}/unschedule`, S.NewsletterSchema, { init }),
       send: (id: string, init?: Init) =>
         http.data("POST", `/admin/newsletters/${enc(id)}/send`, S.SendNewsletterResultSchema, { init }),
-      schedule: (id: string, input: ScheduleNewsletterInput, init?: Init) =>
+      schedule: (id: string, input: S.ScheduleNewsletterInput, init?: Init) =>
         http.data("POST", `/admin/newsletters/${enc(id)}/schedule`, S.NewsletterSchema, { body: input, init }),
       stats: (id: string, init?: Init) =>
         http.data("GET", `/admin/newsletters/${enc(id)}/stats`, S.NewsletterStatsSchema, { init }),
     },
 
     subscribers: {
-      list: (query: ListSubscribersQueryInput = {}, init?: Init) =>
+      list: (query: S.ListSubscribersQueryInput = {}, init?: Init) =>
         http.page("/admin/subscribers", S.SubscriberSchema, { query, init }),
       remove: (id: string, init?: Init) => http.void("DELETE", `/admin/subscribers/${enc(id)}`, { init }),
       sync: (init?: Init) => http.data("POST", "/admin/subscribers/sync", S.SubscriberSyncResultSchema, { init }),
@@ -148,7 +115,7 @@ export function createApiClient(options: ApiClientOptions) {
       list: (init?: Init) =>
         http.data("GET", "/admin/api-keys", z.array(S.ApiKeySchema), { init }),
       /** The returned `key` is shown once; store it immediately. */
-      create: (input: CreateApiKeyInputInput, init?: Init) =>
+      create: (input: S.CreateApiKeyInputInput, init?: Init) =>
         http.data("POST", "/admin/api-keys", S.ApiKeyCreatedSchema, { body: input, init }),
       revoke: (id: string, init?: Init) => http.void("DELETE", `/admin/api-keys/${enc(id)}`, { init }),
     },
@@ -160,15 +127,15 @@ export function createApiClient(options: ApiClientOptions) {
 
   /** `/api/v1` — stable read-only public API (use `apiKey` option for higher limits / `comments:read`). */
   const v1 = {
-    posts: (query: ListPostsQueryInput = {}, init?: Init) =>
+    posts: (query: S.ListPostsQueryInput = {}, init?: Init) =>
       http.page("/v1/posts", S.PostSummarySchema, { query, init, tags: tagsForList(query.section) }),
     post: (slug: string, init?: Init) =>
       http.data("GET", `/v1/posts/${enc(slug)}`, S.PostDetailSchema, { init, tags: ["posts", `post:${slug}`] }),
     tags: (init?: Init) => http.data("GET", "/v1/tags", z.array(S.TagWithCountSchema), { init, tags: ["posts", "tags"] }),
-    search: (query: SearchQueryInput, init?: Init) => http.page("/v1/search", S.SearchResultSchema, { query, init }),
-    comments: (query: V1ListCommentsQueryInput, init?: Init) => http.page("/v1/comments", S.V1CommentSchema, { query, init }),
+    search: (query: S.SearchQueryInput, init?: Init) => http.page("/v1/search", S.SearchResultSchema, { query, init }),
+    comments: (query: S.V1ListCommentsQueryInput, init?: Init) => http.page("/v1/comments", S.V1CommentSchema, { query, init }),
     /** OpenAPI 3.1 document (raw JSON, not enveloped). */
-    openapi: async (init?: Init) => (await http.raw("GET", "/v1/openapi.json", { init }, unknownSchema)).data as Record<string, unknown>,
+    openapi: async (init?: Init) => (await http.raw("GET", "/v1/openapi.json", { init }, z.unknown())).data as Record<string, unknown>,
   };
 
   return {
@@ -180,40 +147,40 @@ export function createApiClient(options: ApiClientOptions) {
 
     // ----- session / account (sign-in/up themselves go through Better Auth at /api/auth/*) ---------------------------
     me: (init?: Init) => http.data("GET", "/me", S.MeSchema, { init }),
-    updateMe: (input: UpdateMeInput, init?: Init) => http.data("PATCH", "/me", S.MeSchema, { body: input, init }),
+    updateMe: (input: S.UpdateMeInput, init?: Init) => http.data("PATCH", "/me", S.MeSchema, { body: input, init }),
     /** Anonymises the account. */
     deleteMe: (init?: Init) => http.void("DELETE", "/me", { init }),
 
     // ----- public content -------------------------------------------------------------------------------------------
-    publicPosts: (query: ListPostsQueryInput = {}, init?: Init) =>
+    publicPosts: (query: S.ListPostsQueryInput = {}, init?: Init) =>
       http.page("/posts", S.PostSummarySchema, { query, init, tags: tagsForList(query.section) }),
     post: (slug: string, init?: Init) =>
       http.data("GET", `/posts/${enc(slug)}`, S.PostDetailSchema, { init, tags: ["posts", `post:${slug}`] }),
-    related: (slug: string, query: RelatedPostsQueryInput = {}, init?: Init) =>
+    related: (slug: string, query: S.RelatedPostsQueryInput = {}, init?: Init) =>
       http.data("GET", `/posts/${enc(slug)}/related`, z.array(S.PostSummarySchema), {
         query,
         init,
         tags: ["posts", `post:${slug}`],
       }),
-    search: (query: SearchQueryInput, init?: Init) => http.page("/search", S.SearchResultSchema, { query, init }),
+    search: (query: S.SearchQueryInput, init?: Init) => http.page("/search", S.SearchResultSchema, { query, init }),
     tags: (init?: Init) => http.data("GET", "/tags", z.array(S.TagWithCountSchema), { init, tags: ["posts", "tags"] }),
     sitemap: (init?: Init) => http.data("GET", "/sitemap", z.array(S.SitemapEntrySchema), { init, tags: ["posts"] }),
 
     // ----- comments -------------------------------------------------------------------------------------------------
-    comments: (slug: string, query: ListCommentsQueryInput = {}, init?: Init) =>
+    comments: (slug: string, query: S.ListCommentsQueryInput = {}, init?: Init) =>
       http.page(`/posts/${enc(slug)}/comments`, S.CommentSchema, { query, init }),
-    createComment: (slug: string, input: CreateCommentInputInput, init?: Init): Promise<Comment> =>
+    createComment: (slug: string, input: S.CreateCommentInputInput, init?: Init) =>
       http.data("POST", `/posts/${enc(slug)}/comments`, S.CommentSchema, { body: input, init }),
-    updateComment: (id: string, input: UpdateCommentInput, init?: Init) =>
+    updateComment: (id: string, input: S.UpdateCommentInput, init?: Init) =>
       http.data("PATCH", `/comments/${enc(id)}`, S.CommentReplySchema, { body: input, init }),
     deleteComment: (id: string, init?: Init) => http.void("DELETE", `/comments/${enc(id)}`, { init }),
-    reportComment: (id: string, input: ReportCommentInput, init?: Init) =>
+    reportComment: (id: string, input: S.ReportCommentInput, init?: Init) =>
       http.void("POST", `/comments/${enc(id)}/report`, { body: input, init }),
 
     // ----- newsletter -----------------------------------------------------------------------------------------------
     newsletter: {
       /** Always resolves (202) — no account enumeration. */
-      subscribe: (input: SubscribeInputInput, init?: Init) => http.void("POST", "/newsletter/subscribe", { body: input, init }),
+      subscribe: (input: S.SubscribeInputInput, init?: Init) => http.void("POST", "/newsletter/subscribe", { body: input, init }),
       confirm: (token: string, init?: Init) =>
         http.data("POST", "/newsletter/confirm", S.ConfirmSubscriptionResultSchema, { body: { token }, init }),
       unsubscribe: (token: string, init?: Init) =>

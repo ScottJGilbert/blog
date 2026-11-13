@@ -10,4 +10,3 @@ export function parse<S extends z.ZodType>(schema: S, data: unknown): z.output<S
 }
 export const parseQuery = <S extends z.ZodType>(schema: S, req: Request): z.output<S> => schema.parse(req.query);
 export const parseBody = <S extends z.ZodType>(schema: S, req: Request): z.output<S> => schema.parse(req.body ?? {});
-export const parseParams = <S extends z.ZodType>(schema: S, req: Request): z.output<S> => schema.parse(req.params);

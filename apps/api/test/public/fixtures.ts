@@ -1,13 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { post, postEmbedding, postTag, tag, user } from "@blog/db";
 import { markdownToContent, readingMinutes, slugify, toExcerpt, toPlainText } from "@blog/content";
+import type { Section } from "@blog/shared";
 import { EMBEDDING_DIMENSIONS, type EmbeddingProvider } from "../../src/services/embeddings";
 import { createUser, type TestApp } from "../helpers";
 
 export interface PostFixture {
   slug: string;
   title?: string;
-  section?: "personal" | "engineering";
+  section?: Section;
   status?: "draft" | "scheduled" | "published" | "archived";
   /** default: 1 day before `base` */
   publishedAt?: Date | null;

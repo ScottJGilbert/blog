@@ -30,7 +30,7 @@ import { HttpError, conflict, notFound } from "../../errors";
 import { audit } from "../../lib/audit";
 import { postTags } from "../../lib/revalidate";
 import { createMediaService } from "../media";
-import { embedPost } from "../posts";
+import { embedPost, loadTags } from "../posts";
 import { isUniqueViolation, iso, likePattern } from "./common";
 
 type PostRow = typeof post.$inferSelect;
@@ -55,23 +55,8 @@ const listColumns = {
   authorName: user.name,
   authorImage: user.image,
 };
-type ListRow = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string;
-  section: PostRow["section"];
-  status: PostRow["status"];
-  coverImageUrl: string | null;
-  publishedAt: Date | null;
-  scheduledFor: Date | null;
-  readingMinutes: number;
-  createdAt: Date;
-  updatedAt: Date;
-  authorId: string;
-  authorName: string;
-  authorImage: string | null;
-};
+const selectList = (db: DbOrTx) => db.select(listColumns).from(post).innerJoin(user, eq(user.id, post.authorId));
+type ListRow = Awaited<ReturnType<typeof selectList>>[number];
 
 function toSummary(r: ListRow, tags: TagRef[]): AdminPostSummary {
   return {
@@ -90,23 +75,6 @@ function toSummary(r: ListRow, tags: TagRef[]): AdminPostSummary {
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),
   };
-}
-
-async function loadTagMap(db: DbOrTx, ids: string[]): Promise<Map<string, TagRef[]>> {
-  const map = new Map<string, TagRef[]>();
-  if (ids.length === 0) return map;
-  const rows = await db
-    .select({ postId: postTag.postId, slug: tag.slug, name: tag.name })
-    .from(postTag)
-    .innerJoin(tag, eq(tag.id, postTag.tagId))
-    .where(inArray(postTag.postId, ids))
-    .orderBy(tag.name);
-  for (const r of rows) {
-    const list = map.get(r.postId) ?? [];
-    list.push({ slug: r.slug, name: r.name });
-    map.set(r.postId, list);
-  }
-  return map;
 }
 
 /** Unique tag names → `{slug, name}` (slugified, de-duplicated by slug, first spelling wins). */
@@ -166,6 +134,8 @@ function contentIssues(content: unknown): { warnings: number } {
   return { warnings: v.warnings.length };
 }
 
+const scheduleHereError = () =>
+  new HttpError(422, "validation_error", "Use POST /admin/posts/:id/schedule to schedule a post", { details: [{ path: ["status"], message: "scheduled is not accepted here" }] });
 const emptyPostError = () => new HttpError(422, "validation_error", "Cannot publish or schedule a post without content", { details: [{ path: ["content"], message: "Content is empty" }] });
 
 export interface MutationResult {
@@ -186,7 +156,7 @@ export function createAdminPostsService(deps: Deps) {
       .where(eq(post.id, id))
       .limit(1);
     if (!row) throw notFound("Post not found");
-    const [tags, hasEmbedding] = await Promise.all([loadTagMap(tx, [id]), deps.vectors.has(id)]);
+    const [tags, hasEmbedding] = await Promise.all([loadTags(tx, [id]), deps.vectors.has(id)]);
     return {
       ...toSummary(row, tags.get(id) ?? []),
       content: row.content as LexicalContent,
@@ -213,8 +183,6 @@ export function createAdminPostsService(deps: Deps) {
   }
 
   return {
-    detail,
-
     async list(q: AdminListPostsQuery): Promise<{ items: AdminPostSummary[]; total: number }> {
       const conds: SQL[] = [];
       if (q.status) conds.push(eq(post.status, q.status));
@@ -225,30 +193,23 @@ export function createAdminPostsService(deps: Deps) {
       }
       const where = conds.length ? and(...conds) : undefined;
       const [rows, [totals]] = await Promise.all([
-        db
-          .select(listColumns)
-          .from(post)
-          .innerJoin(user, eq(user.id, post.authorId))
+        selectList(db)
           .where(where)
           .orderBy(desc(post.updatedAt), desc(post.id))
           .limit(q.pageSize)
           .offset((q.page - 1) * q.pageSize),
         db.select({ n: count() }).from(post).where(where),
       ]);
-      const tags = await loadTagMap(db, rows.map((r) => r.id));
+      const tags = await loadTags(db, rows.map((r) => r.id));
       return { items: rows.map((r) => toSummary(r, tags.get(r.id) ?? [])), total: totals?.n ?? 0 };
     },
 
-    async get(id: string): Promise<AdminPostDetail> {
-      return detail(id);
-    },
+    get: detail,
 
     async create(actor: Actor, input: CreatePostInput): Promise<MutationResult> {
       const { warnings } = contentIssues(input.content);
       const status = input.status ?? "draft";
-      if (status === "scheduled") {
-        throw new HttpError(422, "validation_error", "Use POST /admin/posts/:id/schedule to schedule a post", { details: [{ path: ["status"], message: "scheduled is not accepted here" }] });
-      }
+      if (status === "scheduled") throw scheduleHereError();
       if (status === "published" && isContentEmpty(input.content)) throw emptyPostError();
 
       const ext = await media.externalizeDataImages(input.content);
@@ -367,7 +328,7 @@ export function createAdminPostsService(deps: Deps) {
       if (input.status !== undefined && input.status !== existing.status) {
         if (input.status === "scheduled") {
           await media.discard(files);
-          throw new HttpError(422, "validation_error", "Use POST /admin/posts/:id/schedule to schedule a post", { details: [{ path: ["status"], message: "scheduled is not accepted here" }] });
+          throw scheduleHereError();
         }
         status = input.status;
         patch.status = status;
@@ -478,5 +439,3 @@ export function createAdminPostsService(deps: Deps) {
     },
   };
 }
-
-export type AdminPostsService = ReturnType<typeof createAdminPostsService>;

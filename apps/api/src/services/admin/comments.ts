@@ -125,4 +125,3 @@ export function createAdminCommentsService(deps: Deps) {
   };
 }
 
-export type AdminCommentsService = ReturnType<typeof createAdminCommentsService>;

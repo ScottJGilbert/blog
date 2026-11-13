@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mutate as globalMutate } from "swr";
 import {
   LuCalendarClock,
@@ -46,6 +46,7 @@ import { MAX_TAGS, MAX_TAG_LENGTH, TagInput } from "./tag-input";
 const AUTOSAVE_DELAY_MS = 2000;
 const LARGE_CONTENT_BYTES = 1_500_000;
 const SECTION_LABEL: Record<Section, string> = { personal: "Personal", engineering: "Engineering", cookbook: "Cookbook" };
+const refreshLists = () => void globalMutate((k) => Array.isArray(k) && (k[0] === "posts" || k[0] === "stats"));
 
 export interface Draft {
   title: string;
@@ -166,10 +167,7 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
 
   // ----- editor callbacks -------------------------------------------------------------------------------------------
   const onEditorBaseline = useCallback((json: string) => {
-    setDraft((d) => {
-      if (d.contentStr === json) return d;
-      return { ...d, contentStr: json };
-    });
+    setDraft((d) => (d.contentStr === json ? d : { ...d, contentStr: json }));
     savedRef.current = { ...savedRef.current, contentStr: json };
     setSavedSnap(snapshot(savedRef.current));
   }, []);
@@ -247,7 +245,7 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
         setSavedSnap(snapshot(savedRef.current));
         setSaveState({ kind: "saved", at: new Date() });
         globalMutate(["post", res.id], res, { revalidate: false });
-        void globalMutate((k) => Array.isArray(k) && (k[0] === "posts" || k[0] === "stats"));
+        refreshLists();
         if (reason === "manual") toast.success("Post saved");
         return res;
       } catch (err) {
@@ -289,8 +287,8 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
   }, [draft, dirty, autosaveEligible, saveState.kind, busy, save]);
 
   // Flush a pending draft autosave when the editor goes away (in-app navigation).
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (deleted.current) return;
       const d = draftRef.current;
       const p = postRef.current;
@@ -298,8 +296,9 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
       if (isDirty && (p === null || p.status === "draft") && Object.keys(validateDraft(d)).length === 0 && d.title.trim()) {
         void doSave("auto");
       }
-    };
-  }, [doSave]);
+    },
+    [doSave],
+  );
 
   useUnsavedGuard(dirty, {
     what: "this post",
@@ -312,16 +311,19 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
   });
 
   // ----- status actions ---------------------------------------------------------------------------------------------
+  function adopt(res: AdminPostDetail, message: string) {
+    setPost(res);
+    postRef.current = res;
+    toast.success(message);
+    refreshLists();
+  }
+
   async function publish() {
     setBusy("publish");
     try {
       const saved = await ensureSaved();
       if (!saved) return;
-      const res = await api.admin.posts.publish(saved.id);
-      setPost(res);
-      postRef.current = res;
-      toast.success("Post published");
-      void globalMutate((k) => Array.isArray(k) && (k[0] === "posts" || k[0] === "stats"));
+      adopt(await api.admin.posts.publish(saved.id), "Post published");
     } catch (err) {
       setFormError(errorMessage(err));
       toast.error(errorMessage(err));
@@ -344,11 +346,7 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
     if (!ok) return;
     setBusy("unpublish");
     try {
-      const res = await api.admin.posts.unpublish(post.id);
-      setPost(res);
-      postRef.current = res;
-      toast.success(wasScheduled ? "Schedule cancelled — post is a draft" : "Post unpublished");
-      void globalMutate((k) => Array.isArray(k) && (k[0] === "posts" || k[0] === "stats"));
+      adopt(await api.admin.posts.unpublish(post.id), wasScheduled ? "Schedule cancelled — post is a draft" : "Post unpublished");
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -361,11 +359,7 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
     try {
       const saved = await ensureSaved();
       if (!saved) throw new Error("Fix the highlighted fields before scheduling.");
-      const res = await api.admin.posts.schedule(saved.id, { scheduledFor: iso });
-      setPost(res);
-      postRef.current = res;
-      toast.success(`Scheduled for ${formatDateTime(iso)}`);
-      void globalMutate((k) => Array.isArray(k) && (k[0] === "posts" || k[0] === "stats"));
+      adopt(await api.admin.posts.schedule(saved.id, { scheduledFor: iso }), `Scheduled for ${formatDateTime(iso)}`);
     } finally {
       setBusy(null);
     }
@@ -387,7 +381,7 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
       savedRef.current = draftRef.current;
       setSavedSnap(snapshot(draftRef.current));
       toast.success("Post deleted");
-      void globalMutate((k) => Array.isArray(k) && (k[0] === "posts" || k[0] === "stats"));
+      refreshLists();
       router.push("/posts");
     } catch (err) {
       toast.error(errorMessage(err));
@@ -591,26 +585,23 @@ export function PostForm({ initial, emptyDoc }: { initial: AdminPostDetail | nul
                 Info
               </h2>
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt className="text-muted">Author</dt>
-                <dd>{post.author.name}</dd>
-                <dt className="text-muted">Created</dt>
-                <dd>{formatDateTime(post.createdAt)}</dd>
-                <dt className="text-muted">Updated</dt>
-                <dd>{formatDateTime(post.updatedAt)}</dd>
-                {post.publishedAt ? (
-                  <>
-                    <dt className="text-muted">Published</dt>
-                    <dd>{formatDateTime(post.publishedAt)}</dd>
-                  </>
-                ) : null}
-                {post.scheduledFor && post.status === "scheduled" ? (
-                  <>
-                    <dt className="text-muted">Scheduled</dt>
-                    <dd>{formatDateTime(post.scheduledFor)}</dd>
-                  </>
-                ) : null}
-                <dt className="text-muted">Reading time</dt>
-                <dd>{post.readingMinutes} min</dd>
+                {(
+                  [
+                    ["Author", post.author.name],
+                    ["Created", formatDateTime(post.createdAt)],
+                    ["Updated", formatDateTime(post.updatedAt)],
+                    ["Published", post.publishedAt && formatDateTime(post.publishedAt)],
+                    ["Scheduled", post.status === "scheduled" && post.scheduledFor && formatDateTime(post.scheduledFor)],
+                    ["Reading time", `${post.readingMinutes} min`],
+                  ] as const
+                ).map(([label, value]) =>
+                  value ? (
+                    <Fragment key={label}>
+                      <dt className="text-muted">{label}</dt>
+                      <dd>{value}</dd>
+                    </Fragment>
+                  ) : null,
+                )}
               </dl>
               {!autosaveEligible ? (
                 <p className="mt-3 text-muted">Autosave is only on for drafts. Use “Save changes” to update this post.</p>
